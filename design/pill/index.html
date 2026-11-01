@@ -3,9 +3,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,800&family=Noto+Sans+KR:wght@400;700;900&display=swap">
 <style>
-/* Layout: fashion-magazine cover in layers (pink band → masthead → Serena → cut lines → floating pills), MV subtitle, weekly pill case below. Single dark look. */
+/* Layout: tilted riso collage — looming shadow figure → tritone Serena → splatter, rain, halftone, pills; MV subtitle; pill case below. Single dark teal look. */
 :root{
-  --ink:#0b0709; --bone:#f3ece4; --pink:#ff2d8a; --red:#e3122d; --lilac:#8b6cff; --smoke:#2a1d24;
+  --ink:#061314; --bone:#f2efe6; --pink:#ff2d8a; --red:#ff3d4a; --lilac:#8b6cff; --smoke:#0f2a2b; --teal:#17c8b8; --deep:#0a2627;
   --mast:'Bodoni Moda','Didot','Times New Roman',serif;
   --ui:'Noto Sans KR',system-ui,sans-serif;
   color-scheme:dark;
@@ -17,30 +17,50 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 button:focus-visible{outline:2px solid var(--pink);outline-offset:3px}
 
 #app{position:fixed;inset:0;display:grid;grid-template-rows:1fr auto;overflow:hidden}
-#cover{position:relative;overflow:hidden;isolation:isolate}
+#cover{position:relative;overflow:hidden;isolation:isolate;background:
+  radial-gradient(80% 60% at 70% 30%,#14504f,transparent 70%),radial-gradient(60% 50% at 10% 90%,#3b0d2a,transparent 70%),linear-gradient(160deg,#0c2d2e,#061314 70%)}
+#tilt{position:absolute;inset:-12%;transform:rotate(-8deg);transform-origin:50% 45%}
+#dots{inset:0;z-index:8;pointer-events:none;mix-blend-mode:multiply;opacity:.3;
+  background-image:radial-gradient(circle,rgba(0,0,0,.9) .7px,transparent 1.3px);background-size:4px 4px}
+#dots2{inset:0;z-index:8;pointer-events:none;mix-blend-mode:screen;opacity:.22;
+  background-image:radial-gradient(circle,#ff2d8a .9px,transparent 1.6px);background-size:7px 7px;background-position:2px 3px;
+  -webkit-mask-image:linear-gradient(200deg,transparent 30%,#000 75%);mask-image:linear-gradient(200deg,transparent 30%,#000 75%)}
+#rain{inset:-20%;z-index:7;pointer-events:none;opacity:.35;mix-blend-mode:screen;
+  background-image:repeating-linear-gradient(100deg,transparent 0 22px,rgba(190,255,250,.55) 22px 23px,transparent 23px 61px),
+                   repeating-linear-gradient(98deg,transparent 0 37px,rgba(190,255,250,.35) 37px 38px,transparent 38px 90px);
+  animation:rain .5s linear infinite}
+@keyframes rain{to{background-position:-12px 90px,-9px 90px}}
+#loom{z-index:1;height:105%;aspect-ratio:720/954;left:-26%;top:4%;background:#0e3a3b;opacity:.95;
+  -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:50% 0;mask-position:50% 0}
+#loomEyes{position:absolute;z-index:2;width:120px;height:20px;left:16%;top:30%;pointer-events:none}
+#loomEyes i{position:absolute;width:14px;height:6px;border-radius:50%;background:var(--red);box-shadow:0 0 14px 4px rgba(255,61,74,.7)}
+.splat{position:absolute;z-index:6;pointer-events:none;fill:var(--pink);filter:drop-shadow(3px 2px 0 rgba(23,200,184,.6))}
 .L{position:absolute;will-change:transform}
 
 /* back: grain + band + disc */
 #grain{inset:0;opacity:.13;mix-blend-mode:screen;pointer-events:none;z-index:9;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-#band{left:-30%;right:-30%;top:46%;height:30%;background:var(--pink);transform:rotate(-14deg);z-index:0}
+#band{left:-30%;right:-30%;top:58%;height:7%;background:var(--teal);transform:rotate(-14deg);z-index:0;opacity:.8}
 #band::after{content:"";position:absolute;inset:auto 0 -14px;height:5px;background:var(--red)}
-#disc{width:58vmin;height:58vmin;max-width:300px;max-height:300px;border-radius:50%;left:6%;top:16%;z-index:0;
-  background:radial-gradient(circle at 35% 30%,#ff5a6e,var(--red) 55%,#7a0617)}
-#mast{left:0;right:0;top:calc(10px + env(safe-area-inset-top,0px));z-index:1;text-align:center;
-  font-family:var(--mast);font-style:italic;font-weight:800;font-size:min(34vw,170px);line-height:.82;letter-spacing:-.04em;color:var(--bone)}
+#disc{width:46vmin;height:46vmin;max-width:240px;max-height:240px;border-radius:50%;right:-6%;top:6%;z-index:0;
+  background:radial-gradient(circle at 35% 30%,#ffd1e4,var(--pink) 45%,#6b0e3c);box-shadow:0 0 60px rgba(255,45,138,.45)}
+#mast{left:8%;right:0;top:15%;z-index:1;text-align:left;
+  font-family:var(--mast);font-style:italic;font-weight:800;font-size:min(22vw,110px);line-height:.82;letter-spacing:-.04em;color:var(--pink);
+  text-shadow:4px 3px 0 var(--teal);transform-origin:0 0}
 #issue{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));
-  display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:.14em;z-index:6;mix-blend-mode:difference}
+  display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:.14em;z-index:9;color:var(--bone);text-shadow:0 1px 3px #000}
 #beat{display:inline-block;font-family:var(--mast);font-style:italic;font-size:15px;letter-spacing:0}
 /* Serena */
 #ser{z-index:3;height:88%;aspect-ratio:720/954;right:-6%;bottom:-4%;-webkit-mask-image:linear-gradient(transparent,#000 6%);mask-image:linear-gradient(transparent,#000 6%)}
-#ser img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%}
+#ser img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:url(#riso) contrast(1.08)}
+#ser{transform-origin:50% 100%}
 #ghost{position:absolute;inset:0;background:var(--pink);-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
-  -webkit-mask-position:50% 100%;mask-position:50% 100%;transform:translate(-14px,8px);z-index:-1}
+  -webkit-mask-position:50% 100%;mask-position:50% 100%;transform:translate(-9px,5px);z-index:-1;opacity:.9;mix-blend-mode:screen}
+#ghost2{position:absolute;inset:0;background:var(--teal);-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:50% 100%;mask-position:50% 100%;transform:translate(9px,-4px);z-index:-1;opacity:.75}
 #shadowb{position:absolute;inset:0;background:#000;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
   -webkit-mask-position:50% 100%;mask-position:50% 100%;transform:translate(10px,14px);opacity:.55;z-index:-2}
 /* masthead copy that sits in front for the overlap (only lower letters) */
-#mastFront{left:0;right:0;top:calc(10px + env(safe-area-inset-top,0px));z-index:4;text-align:center;pointer-events:none;
+#mastFront{display:none;left:0;right:0;top:calc(10px + env(safe-area-inset-top,0px));z-index:4;text-align:center;pointer-events:none;
   font-family:var(--mast);font-style:italic;font-weight:800;font-size:min(34vw,170px);line-height:.82;letter-spacing:-.04em;color:transparent;
   -webkit-text-stroke:1.2px var(--bone);clip-path:inset(48% 0 0 64%)}
 /* side copy */
@@ -70,27 +90,27 @@ button:focus-visible{outline:2px solid var(--pink);outline-offset:3px}
 
 /* pill case */
 #case{position:relative;z-index:10;padding:14px max(14px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));
-  background:var(--ink);border-top:1px solid #3a2a33}
+  background:linear-gradient(#061314,#0a1d1e);border-top:2px solid var(--teal)}
 .caseHead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
 .caseHead b{font-family:var(--mast);font-style:italic;font-size:20px}
 .caseHead span{font-size:11px;letter-spacing:.12em;opacity:.7}
 #days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .day{position:relative;height:74px;border-radius:12px;display:flex;flex-direction:column;align-items:center;padding-top:6px;gap:5px;
   background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.03) 45%,rgba(255,255,255,.08));box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 -8px 12px rgba(0,0,0,.35)}
-.day.today{box-shadow:inset 0 0 0 2px var(--pink),0 0 18px rgba(255,45,138,.35)}
+.day.today{box-shadow:inset 0 0 0 2px var(--pink),0 0 18px rgba(255,45,138,.45)}
 .day small{font-size:11px;font-weight:700;opacity:.8}
 .day .mini{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;width:80%}
 .day .mini i{width:14px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--c1) 50%,var(--c2) 50%)}
 .day .mini i.done{opacity:.18}
 #bar{display:flex;gap:8px;margin-top:10px}
-#bar input{flex:1;min-width:0;height:46px;border-radius:23px;border:1px solid #3a2a33;background:#150d11;color:var(--bone);padding:0 18px;font:16px var(--ui);outline:0}
+#bar input{flex:1;min-width:0;height:46px;border-radius:23px;border:1px solid #1f4a4a;background:#08191a;color:var(--bone);padding:0 18px;font:16px var(--ui);outline:0}
 #bar input::placeholder{color:rgba(243,236,228,.4)}
 #bar button{width:46px;height:46px;border-radius:50%;background:var(--pink);display:grid;place-items:center}
 
 /* day sheet */
 #sheet{position:fixed;inset:0;z-index:30;display:grid;align-items:end;background:rgba(11,7,9,.55);opacity:0;pointer-events:none;transition:opacity .2s}
 #sheet.on{opacity:1;pointer-events:auto}
-#sheet .card{background:#140c10;border-top:2px solid var(--pink);padding:18px max(16px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+#sheet .card{background:#081a1b;border-top:2px solid var(--pink);padding:18px max(16px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
   transform:translateY(30px);transition:transform .25s cubic-bezier(.2,.9,.2,1)}
 #sheet.on .card{transform:none}
 .sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
@@ -110,17 +130,25 @@ button:focus-visible{outline:2px solid var(--pink);outline-offset:3px}
 </style>
 
 <div id="app">
-  <section id="cover" aria-label="오늘의 표지">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="riso" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/>
+    <feComponentTransfer><feFuncR type="table" tableValues="0.02 0.05 0.55 1 1"/><feFuncG type="table" tableValues="0.05 0.42 0.5 0.62 0.97"/><feFuncB type="table" tableValues="0.06 0.42 0.5 0.66 0.93"/></feComponentTransfer>
+  </filter></svg>
+  <section id="cover" aria-label="오늘의 표지"><div id="tilt">
+    <div id="loom" class="L"></div><div id="loomEyes" class="L"><i style="left:0"></i><i style="left:40px"></i></div>
     <div id="band" class="L"></div>
     <div id="disc" class="L"></div>
     <div id="mast" class="L" aria-hidden="true">Serena</div>
     <div id="ser" class="L">
-      <div id="shadowb"></div><div id="ghost"></div>
+      <div id="shadowb"></div><div id="ghost"></div><div id="ghost2"></div>
       <img id="sImg" src="s_base.webp" alt="세레나">
       <img id="sBlink" src="s_blink.webp" alt="" style="opacity:0">
       <img id="sTalk" src="s_talk.webp" alt="" style="opacity:0">
     </div>
     <div id="mastFront" class="L" aria-hidden="true">Serena</div>
+    <svg class="splat L" id="sp1" style="left:4%;top:62%;width:120px" viewBox="0 0 120 90"><path d="M60 8c14 0 18 14 30 12s20 6 16 18-14 10-12 22-10 20-24 14-18 8-30 2-6-16-18-20S0 40 10 30s24-4 28-14 8-8 22-8z"/><circle cx="108" cy="12" r="6"/><circle cx="14" cy="80" r="4"/><circle cx="96" cy="80" r="3"/></svg>
+    <svg class="splat L" id="sp2" style="right:10%;top:30%;width:70px" viewBox="0 0 70 60"><path d="M34 6c10 2 8 12 18 14s14 10 6 18-20 6-24 14-16 4-18-6-14-10-8-20 16-22 26-20z"/><circle cx="64" cy="8" r="4"/></svg>
+    </div>
     <div id="copy" class="L">
       <span class="tag">NIGHT ISSUE</span>
       <h2>오늘의<br>한 알</h2>
@@ -131,7 +159,7 @@ button:focus-visible{outline:2px solid var(--pink);outline-offset:3px}
     <p id="sub"></p>
     <div id="slices"><i style="top:22%;height:6%"></i><i style="top:51%;height:3%"></i><i style="top:70%;height:8%"></i></div>
     <div id="flash"></div>
-    <div id="grain" class="L"></div>
+    <div id="rain" class="L"></div><div id="dots" class="L"></div><div id="dots2" class="L"></div><div id="grain" class="L"></div>
   </section>
 
   <section id="case" aria-label="이번 주 알약 케이스">
@@ -192,7 +220,7 @@ const POSES=[ // src, scale, x, y (fraction tweaks so the face lands near the sa
  {s:'s_fang.webp',k:.92,x:.01,y:.04,line:'미루면… 물어요?'}];
 let pi=0,poseT;
 function setPose(i,cut=true){pi=i;const p=POSES[i];const img=$('#sImg');img.src=p.s;
-  for(const id of ['#ghost','#shadowb']){const g=$(id);g.style.webkitMaskImage=g.style.maskImage=`url(${p.s})`}
+  for(const id of ['#ghost','#ghost2','#shadowb','#loom']){const g=$(id);g.style.webkitMaskImage=g.style.maskImage=`url(${p.s})`}
   $('#ser').dataset.k=p.k;$('#ser').dataset.x=p.x;$('#ser').dataset.y=p.y;
   $('#sBlink').style.display=$('#sTalk').style.display=i===0?'':'none';
   if(cut)glitch();say(p.line)}
@@ -216,7 +244,7 @@ let tx=0,ty=0,cx=0,cy=0,drag=null;const cover=$('#cover');
 cover.addEventListener('pointerdown',e=>{if(e.target.closest('.cap'))return;drag={x:e.clientX,y:e.clientY,bx:tx,by:ty}});
 addEventListener('pointermove',e=>{if(!drag)return;const r=cover.getBoundingClientRect();tx=Math.max(-1,Math.min(1,drag.bx+(e.clientX-drag.x)/r.width*2.2));ty=Math.max(-1,Math.min(1,drag.by+(e.clientY-drag.y)/r.height*2.2))});
 addEventListener('pointerup',()=>{if(drag&&Math.abs(tx-drag.bx)+Math.abs(ty-drag.by)<.02&&!drag.x0){/* tap on cover = next cut */setPose((pi+1)%POSES.length);cycle()}drag=null});
-const depth={band:-.25,disc:-.45,mast:-.15,ser:.35,mastFront:.5,copy:.7,grain:0};
+const depth={loom:-.6,loomEyes:-.6,band:-.25,disc:-.45,mast:-.1,ser:.35,sp1:.9,sp2:.8,copy:.7,rain:.15,grain:0,dots:0,dots2:0};
 function frame(t){const s=t/1000;if(!drag){tx*=.97;ty*=.97}
   cx+=((tx+Math.sin(s*.5)*.12)-cx)*.08;cy+=((ty+Math.sin(s*.37)*.08)-cy)*.08;
   const r=cover.getBoundingClientRect();
