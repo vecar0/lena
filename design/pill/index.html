@@ -1,0 +1,242 @@
+<title>세레나 나이트 이슈</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,800&family=Noto+Sans+KR:wght@400;700;900&display=swap">
+<style>
+/* Layout: fashion-magazine cover in layers (pink band → masthead → Serena → cut lines → floating pills), MV subtitle, weekly pill case below. Single dark look. */
+:root{
+  --ink:#0b0709; --bone:#f3ece4; --pink:#ff2d8a; --red:#e3122d; --lilac:#8b6cff; --smoke:#2a1d24;
+  --mast:'Bodoni Moda','Didot','Times New Roman',serif;
+  --ui:'Noto Sans KR',system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0;background:var(--ink);color:var(--bone);font-family:var(--ui);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible{outline:2px solid var(--pink);outline-offset:3px}
+
+#app{position:fixed;inset:0;display:grid;grid-template-rows:1fr auto;overflow:hidden}
+#cover{position:relative;overflow:hidden;isolation:isolate}
+.L{position:absolute;will-change:transform}
+
+/* back: grain + band + disc */
+#grain{inset:0;opacity:.13;mix-blend-mode:screen;pointer-events:none;z-index:9;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+#band{left:-30%;right:-30%;top:46%;height:30%;background:var(--pink);transform:rotate(-14deg);z-index:0}
+#band::after{content:"";position:absolute;inset:auto 0 -14px;height:5px;background:var(--red)}
+#disc{width:58vmin;height:58vmin;max-width:300px;max-height:300px;border-radius:50%;left:6%;top:16%;z-index:0;
+  background:radial-gradient(circle at 35% 30%,#ff5a6e,var(--red) 55%,#7a0617)}
+#mast{left:0;right:0;top:calc(10px + env(safe-area-inset-top,0px));z-index:1;text-align:center;
+  font-family:var(--mast);font-style:italic;font-weight:800;font-size:min(34vw,170px);line-height:.82;letter-spacing:-.04em;color:var(--bone)}
+#issue{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:.14em;z-index:6;mix-blend-mode:difference}
+#beat{display:inline-block;font-family:var(--mast);font-style:italic;font-size:15px;letter-spacing:0}
+/* Serena */
+#ser{z-index:3;height:88%;aspect-ratio:720/954;right:-6%;bottom:-4%;-webkit-mask-image:linear-gradient(transparent,#000 6%);mask-image:linear-gradient(transparent,#000 6%)}
+#ser img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%}
+#ghost{position:absolute;inset:0;background:var(--pink);-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:50% 100%;mask-position:50% 100%;transform:translate(-14px,8px);z-index:-1}
+#shadowb{position:absolute;inset:0;background:#000;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:50% 100%;mask-position:50% 100%;transform:translate(10px,14px);opacity:.55;z-index:-2}
+/* masthead copy that sits in front for the overlap (only lower letters) */
+#mastFront{left:0;right:0;top:calc(10px + env(safe-area-inset-top,0px));z-index:4;text-align:center;pointer-events:none;
+  font-family:var(--mast);font-style:italic;font-weight:800;font-size:min(34vw,170px);line-height:.82;letter-spacing:-.04em;color:transparent;
+  -webkit-text-stroke:1.2px var(--bone);clip-path:inset(48% 0 0 64%)}
+/* side copy */
+#copy{left:max(16px,env(safe-area-inset-left,0px));top:44%;z-index:5;width:44%;display:grid;gap:10px}
+#copy h2{margin:0;font-family:var(--ui);font-weight:900;font-size:30px;line-height:1.05;letter-spacing:-.04em}
+#copy p{margin:0;font-size:12px;line-height:1.55;color:var(--bone);opacity:.85}
+#copy .tag{justify-self:start;font-size:11px;font-weight:900;padding:3px 7px;background:var(--bone);color:var(--ink);transform:rotate(-3deg)}
+/* floating capsules */
+.cap{position:absolute;width:46px;height:18px;border-radius:9px;z-index:7;cursor:pointer;
+  background:linear-gradient(90deg,var(--c1) 0 50%,var(--c2) 50% 100%);box-shadow:inset 0 -5px 7px rgba(0,0,0,.28),inset 0 4px 5px rgba(255,255,255,.45),0 8px 14px rgba(0,0,0,.4)}
+.cap::after{content:"";position:absolute;left:6px;right:6px;top:3px;height:3px;border-radius:3px;background:rgba(255,255,255,.55)}
+/* subtitle */
+#sub{position:absolute;left:12%;right:12%;bottom:18px;z-index:8;text-align:center;font-weight:700;font-size:16px;line-height:1.5;word-break:keep-all;
+  text-shadow:0 0 3px #000,0 2px 0 #000,0 -1px 0 #000,1px 0 0 #000,-1px 0 0 #000;min-height:1.5em}
+/* glitch */
+#cover.glitch #ser{animation:jit .18s steps(2) 2}
+#cover.glitch #ser img{filter:drop-shadow(5px 0 0 rgba(255,45,138,.9)) drop-shadow(-5px 0 0 rgba(80,220,255,.7))}
+#cover.glitch #mast{animation:jit .18s steps(2) 2 reverse}
+@keyframes jit{0%{transform:translate(0,0)}25%{transform:translate(-6px,2px)}50%{transform:translate(5px,-3px)}75%{transform:translate(-3px,1px)}}
+#flash{position:absolute;inset:0;z-index:20;background:var(--bone);opacity:0;pointer-events:none}
+#flash.on{animation:fl .22s steps(2) 1}
+@keyframes fl{0%{opacity:.85}50%{opacity:0}100%{opacity:0}}
+#slices{position:absolute;inset:0;z-index:19;pointer-events:none}
+#slices i{position:absolute;left:0;right:0;background:var(--pink);mix-blend-mode:difference;opacity:0}
+#cover.glitch #slices i{animation:sl .2s steps(2) 1}
+@keyframes sl{0%{opacity:.9}100%{opacity:0}}
+
+/* pill case */
+#case{position:relative;z-index:10;padding:14px max(14px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));
+  background:var(--ink);border-top:1px solid #3a2a33}
+.caseHead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.caseHead b{font-family:var(--mast);font-style:italic;font-size:20px}
+.caseHead span{font-size:11px;letter-spacing:.12em;opacity:.7}
+#days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{position:relative;height:74px;border-radius:12px;display:flex;flex-direction:column;align-items:center;padding-top:6px;gap:5px;
+  background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.03) 45%,rgba(255,255,255,.08));box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 -8px 12px rgba(0,0,0,.35)}
+.day.today{box-shadow:inset 0 0 0 2px var(--pink),0 0 18px rgba(255,45,138,.35)}
+.day small{font-size:11px;font-weight:700;opacity:.8}
+.day .mini{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;width:80%}
+.day .mini i{width:14px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--c1) 50%,var(--c2) 50%)}
+.day .mini i.done{opacity:.18}
+#bar{display:flex;gap:8px;margin-top:10px}
+#bar input{flex:1;min-width:0;height:46px;border-radius:23px;border:1px solid #3a2a33;background:#150d11;color:var(--bone);padding:0 18px;font:16px var(--ui);outline:0}
+#bar input::placeholder{color:rgba(243,236,228,.4)}
+#bar button{width:46px;height:46px;border-radius:50%;background:var(--pink);display:grid;place-items:center}
+
+/* day sheet */
+#sheet{position:fixed;inset:0;z-index:30;display:grid;align-items:end;background:rgba(11,7,9,.55);opacity:0;pointer-events:none;transition:opacity .2s}
+#sheet.on{opacity:1;pointer-events:auto}
+#sheet .card{background:#140c10;border-top:2px solid var(--pink);padding:18px max(16px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  transform:translateY(30px);transition:transform .25s cubic-bezier(.2,.9,.2,1)}
+#sheet.on .card{transform:none}
+.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sh b{font-family:var(--mast);font-style:italic;font-size:30px}
+.sh button{width:44px;height:44px;border-radius:50%;border:1px solid #3a2a33;font-size:20px}
+.pill{position:relative;display:flex;align-items:center;width:100%;height:52px;margin:8px 0;border-radius:26px;overflow:visible;text-align:left;
+  background:linear-gradient(90deg,var(--c1) 0 34%,var(--c2) 34% 100%);box-shadow:inset 0 -9px 12px rgba(0,0,0,.25),inset 0 6px 8px rgba(255,255,255,.35)}
+.pill .tm{width:34%;padding-left:18px;font-family:var(--mast);font-style:italic;font-weight:800;font-size:18px;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.3)}
+.pill .tx{flex:1;padding:0 16px;font-weight:700;font-size:15px;color:#1a0d12}
+.pill.done{opacity:.25;filter:grayscale(1)}
+.pill.done .tx{text-decoration:line-through}
+.note{font-size:11px;opacity:.5;text-align:center;margin-top:8px}
+/* pop particles */
+.pop{position:fixed;width:10px;height:10px;margin:-5px;border-radius:50%;pointer-events:none;z-index:40;background:var(--pink)}
+.bubble{position:fixed;border-radius:50%;pointer-events:none;z-index:39;background:radial-gradient(circle at 35% 30%,#ff9cc8,var(--pink) 60%);box-shadow:inset -6px -8px 0 rgba(0,0,0,.12)}
+@media (prefers-reduced-motion:reduce){#cover.glitch *{animation:none!important}.L{transition:none}}
+</style>
+
+<div id="app">
+  <section id="cover" aria-label="오늘의 표지">
+    <div id="band" class="L"></div>
+    <div id="disc" class="L"></div>
+    <div id="mast" class="L" aria-hidden="true">Serena</div>
+    <div id="ser" class="L">
+      <div id="shadowb"></div><div id="ghost"></div>
+      <img id="sImg" src="s_base.webp" alt="세레나">
+      <img id="sBlink" src="s_blink.webp" alt="" style="opacity:0">
+      <img id="sTalk" src="s_talk.webp" alt="" style="opacity:0">
+    </div>
+    <div id="mastFront" class="L" aria-hidden="true">Serena</div>
+    <div id="copy" class="L">
+      <span class="tag">NIGHT ISSUE</span>
+      <h2>오늘의<br>한 알</h2>
+      <p id="brief">일정 둘, 할 일 셋.<br>치과는 두 시예요.</p>
+    </div>
+    <div id="issue"><span>No.<b id="beat">305</b></span><span id="clk">02:14</span></div>
+    <div id="caps"></div>
+    <p id="sub"></p>
+    <div id="slices"><i style="top:22%;height:6%"></i><i style="top:51%;height:3%"></i><i style="top:70%;height:8%"></i></div>
+    <div id="flash"></div>
+    <div id="grain" class="L"></div>
+  </section>
+
+  <section id="case" aria-label="이번 주 알약 케이스">
+    <div class="caseHead"><b>this week</b><span>칸을 눌러 열기 · 예시</span></div>
+    <div id="days"></div>
+    <form id="bar"><input id="msg" placeholder="세레나에게 말하기" autocomplete="off"><button aria-label="보내기"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="#0b0709" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></form>
+  </section>
+</div>
+
+<div id="sheet" role="dialog" aria-label="하루 알약"><div class="card">
+  <div class="sh"><b id="shT">11.01</b><button id="shX" aria-label="닫기">×</button></div>
+  <div id="pills"></div>
+  <p class="note">캡슐을 누르면 끝낸 걸로 표시돼요 · 시안 예시</p>
+</div></div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const C=[['#ff2d8a','#f3ece4'],['#e3122d','#ffd6e4'],['#8b6cff','#f3ece4'],['#1fd1c1','#f3ece4'],['#ffcc33','#ff2d8a']];
+const now=new Date(), dow=(now.getDay()+6)%7;
+const W='월화수목금토일';
+const week=Array.from({length:7},(_,i)=>{const d=new Date(now);d.setDate(now.getDate()-dow+i);return{d,items:[]}});
+const seed=[[['09:00','주간 회의'],['','보고서 초안 보내기']],[['','택배 반품 신청']],[['14:00','치과'],['19:30','운동'],['','관리비 내기']],[],[['20:00','지민 생일 저녁']],[['','방 청소'],['','장보기']],[['','다음 주 계획 세우기']]];
+week.forEach((w,i)=>w.items=(seed[(i-dow+2+7)%7]||[]).map(([t,x],k)=>({t,x,done:false,c:C[(i+k)%C.length]})));
+
+/* ---------- pill case ---------- */
+function drawDays(){const D=$('#days');D.innerHTML='';week.forEach((w,i)=>{
+  const b=document.createElement('button');b.className='day'+(i===dow?' today':'');b.setAttribute('aria-label',`${W[i]}요일, 캡슐 ${w.items.length}개`);
+  b.innerHTML=`<small>${W[i]}</small><div class="mini">${w.items.map(it=>`<i class="${it.done?'done':''}" style="--c1:${it.c[0]};--c2:${it.c[1]}"></i>`).join('')}</div>`;
+  b.onclick=()=>openDay(i);D.appendChild(b)})}
+let cur=dow;
+function openDay(i){cur=i;const w=week[i];$('#shT').textContent=`${w.d.getMonth()+1}.${String(w.d.getDate()).padStart(2,'0')} ${W[i]}`;
+  const P=$('#pills');P.innerHTML='';
+  if(!w.items.length)P.innerHTML='<p class="note" style="font-size:14px;opacity:.7">비어 있는 칸이에요. 아래에 말하면 세레나가 넣어 줘요.</p>';
+  w.items.forEach(it=>{const b=document.createElement('button');b.className='pill'+(it.done?' done':'');b.style.setProperty('--c1',it.c[0]);b.style.setProperty('--c2',it.c[1]);
+    b.innerHTML=`<span class="tm">${it.t||'할 일'}</span><span class="tx"></span>`;b.querySelector('.tx').textContent=it.x;
+    b.onclick=e=>{if(it.done){it.done=false;b.classList.remove('done');drawDays();return}it.done=true;pop(e.clientX,e.clientY,it.c);b.classList.add('done');drawDays();
+      const left=week[dow].items.filter(x=>!x.done).length;say(left?`…하나 삼키셨네요. 남은 건 ${left}알.`:'오늘 치는 다 드셨어요. 착하네요, 주인님.')};P.appendChild(b)});
+  $('#sheet').classList.add('on')}
+$('#shX').onclick=()=>$('#sheet').classList.remove('on');
+$('#sheet').onclick=e=>{if(e.target.id==='sheet')$('#sheet').classList.remove('on')};
+
+/* ---------- pop ---------- */
+function pop(x,y,c){const bb=document.createElement('div');bb.className='bubble';document.body.appendChild(bb);
+  const t0=performance.now();(function g(t){const k=(t-t0)/260;const r=20+k*90;Object.assign(bb.style,{left:x-r+'px',top:y-r+'px',width:r*2+'px',height:r*2+'px',opacity:k<1?1:0});
+    if(k<1)requestAnimationFrame(g);else{bb.remove();burst(x,y,c)}})(t0);flash()}
+function burst(x,y,c){for(let i=0;i<16;i++){const p=document.createElement('i');p.className='pop';p.style.background=i%2?c[0]:'#ff9cc8';document.body.appendChild(p);
+  const a=i/16*6.283,v=120+Math.random()*90,t0=performance.now();(function f(t){const k=(t-t0)/520;
+    Object.assign(p.style,{left:x+Math.cos(a)*v*k+'px',top:y+Math.sin(a)*v*k+90*k*k+'px',opacity:1-k,transform:`scale(${1-k*.6})`});if(k<1)requestAnimationFrame(f);else p.remove()})(t0)}}
+function flash(){const f=$('#flash');f.classList.remove('on');void f.offsetWidth;f.classList.add('on')}
+
+/* ---------- Serena: cut-edited poses ---------- */
+const POSES=[ // src, scale, x, y (fraction tweaks so the face lands near the same spot)
+ {s:'s_base.webp',k:1,x:0,y:0,line:'…또 늦게 주무시게요, 주인님?'},
+ {s:'s_think.webp',k:.9,x:.02,y:.03,line:'내일 오후에 비는 시간이라…'},
+ {s:'s_book.webp',k:1.02,x:-.02,y:.06,line:'이번 주 캡슐, 제가 다 세어 뒀어요.'},
+ {s:'s_yawn.webp',k:.88,x:0,y:.04,line:'하아… 낮엔 좀 봐주세요.'},
+ {s:'s_fang.webp',k:.92,x:.01,y:.04,line:'미루면… 물어요?'}];
+let pi=0,poseT;
+function setPose(i,cut=true){pi=i;const p=POSES[i];const img=$('#sImg');img.src=p.s;
+  for(const id of ['#ghost','#shadowb']){const g=$(id);g.style.webkitMaskImage=g.style.maskImage=`url(${p.s})`}
+  $('#ser').dataset.k=p.k;$('#ser').dataset.x=p.x;$('#ser').dataset.y=p.y;
+  $('#sBlink').style.display=$('#sTalk').style.display=i===0?'':'none';
+  if(cut)glitch();say(p.line)}
+function glitch(){const c=$('#cover');c.classList.remove('glitch');void c.offsetWidth;c.classList.add('glitch');setTimeout(()=>c.classList.remove('glitch'),400)}
+function cycle(){clearTimeout(poseT);poseT=setTimeout(()=>{setPose((pi+1)%POSES.length);cycle()},6500)}
+
+/* ---------- subtitle typing ---------- */
+let typ;function say(t){const el=$('#sub');clearInterval(typ);let i=0;el.textContent='';
+  typ=setInterval(()=>{el.textContent=t.slice(0,++i);if(pi===0)$('#sTalk').style.opacity=(i%3&&i<t.length)?1:0;if(i>=t.length){clearInterval(typ);$('#sTalk').style.opacity=0}},60)}
+function blink(){if(pi===0){$('#sBlink').style.opacity=1;setTimeout(()=>$('#sBlink').style.opacity=0,120)}setTimeout(blink,2400+Math.random()*3200)}
+
+/* ---------- floating capsules ---------- */
+const caps=[];for(let i=0;i<6;i++){const c=document.createElement('button');c.className='cap';const col=C[i%C.length];
+  c.style.setProperty('--c1',col[0]);c.style.setProperty('--c2',col[1]);c.setAttribute('aria-label','떠다니는 캡슐');
+  caps.push({el:c,x:.08+Math.random()*.84,y:.12+Math.random()*.7,z:.4+Math.random()*1.2,r:Math.random()*360,vr:(Math.random()-.5)*.5,ph:Math.random()*6});
+  c.onclick=e=>{e.stopPropagation();pop(e.clientX,e.clientY,col);c.style.visibility='hidden';setTimeout(()=>c.style.visibility='',4000);say('그건 장식이에요. …맛있었어요?')};
+  $('#caps').appendChild(c)}
+
+/* ---------- depth on drag / idle ---------- */
+let tx=0,ty=0,cx=0,cy=0,drag=null;const cover=$('#cover');
+cover.addEventListener('pointerdown',e=>{if(e.target.closest('.cap'))return;drag={x:e.clientX,y:e.clientY,bx:tx,by:ty}});
+addEventListener('pointermove',e=>{if(!drag)return;const r=cover.getBoundingClientRect();tx=Math.max(-1,Math.min(1,drag.bx+(e.clientX-drag.x)/r.width*2.2));ty=Math.max(-1,Math.min(1,drag.by+(e.clientY-drag.y)/r.height*2.2))});
+addEventListener('pointerup',()=>{if(drag&&Math.abs(tx-drag.bx)+Math.abs(ty-drag.by)<.02&&!drag.x0){/* tap on cover = next cut */setPose((pi+1)%POSES.length);cycle()}drag=null});
+const depth={band:-.25,disc:-.45,mast:-.15,ser:.35,mastFront:.5,copy:.7,grain:0};
+function frame(t){const s=t/1000;if(!drag){tx*=.97;ty*=.97}
+  cx+=((tx+Math.sin(s*.5)*.12)-cx)*.08;cy+=((ty+Math.sin(s*.37)*.08)-cy)*.08;
+  const r=cover.getBoundingClientRect();
+  for(const [id,d] of Object.entries(depth)){const el=document.getElementById(id);let tr=`translate(${cx*d*28}px,${cy*d*18}px)`;
+    if(id==='band')tr+=' rotate(-14deg)';
+    if(id==='ser'){const se=el.dataset;const k=+se.k||1;tr+=` translate(${(+se.x||0)*r.width}px,${(+se.y||0)*r.height}px) scale(${k*(1+Math.sin(s*1.7)*.006)})`;el.style.transformOrigin='50% 100%'}
+    el.style.transform=tr}
+  caps.forEach(c=>{c.r+=c.vr;const x=(c.x*r.width)+cx*c.z*40+Math.sin(s*.6+c.ph)*10,y=(c.y*r.height)+cy*c.z*26+Math.cos(s*.5+c.ph)*12;
+    c.el.style.transform=`translate(${x}px,${y}px) rotate(${c.r}deg) scale(${.6+c.z*.45})`;c.el.style.zIndex=c.z>1?7:2;c.el.style.filter=c.z>1.3?'blur(1.5px)':'none'});
+  const beat=(s*1.15)%1;$('#beat').style.transform=`scale(${1+(beat<.12?(.12-beat)*1.3:0)})`;
+  requestAnimationFrame(frame)}
+
+/* ---------- misc ---------- */
+function tick(){const d=new Date();$('#clk').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  const start=new Date(d.getFullYear(),0,0);$('#beat').textContent=Math.floor((d-start)/864e5)}
+$('#bar').addEventListener('submit',e=>{e.preventDefault();const v=$('#msg').value.trim();if(!v)return;$('#msg').value='';$('#msg').blur();
+  week[dow].items.push({t:'',x:v,done:false,c:C[week[dow].items.length%C.length]});drawDays();setPose(1);setTimeout(()=>{setPose(0,false);say(`"${v}", 오늘 칸에 한 알 넣어 뒀어요.`)},1300)});
+tick();setInterval(tick,20000);drawDays();
+// opening sequence: black → masthead → Serena cut
+document.body.style.background='#000';cover.style.opacity=0;
+setTimeout(()=>{cover.style.opacity=1;flash();setPose(0);requestAnimationFrame(frame);setTimeout(blink,1800);cycle()},250);
+})();
+</script>
