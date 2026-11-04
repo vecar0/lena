@@ -48,6 +48,11 @@ const css = `
 .map{display:flex;flex-direction:column-reverse;gap:6px;margin-top:14px}
 .rooms{display:flex;gap:8px;margin-top:10px}
 .room{flex:1;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 8px;border-radius:14px;border:2.5px solid #000;background:var(--paper);color:#111;box-shadow:4px 4px 0 var(--teal);text-align:center}
+.room img{width:48px;height:48px;object-fit:contain}
+.pots{display:flex;gap:6px;justify-content:center;padding:4px 0}
+.pot{width:44px;height:44px;border-radius:12px;border:2px dashed rgba(255,255,255,.25);background:rgba(0,0,0,.35);display:grid;place-items:center;padding:0}
+.pot img{width:36px;height:36px;object-fit:contain}
+.pot.full{border:2px solid #000;background:var(--paper)}
 .room b{font-family:'Black Han Sans';font-weight:400;font-size:19px}.room small{font-size:11.5px;opacity:.7;line-height:1.3;word-break:keep-all}
 .room.r-e{box-shadow:4px 4px 0 var(--hot)}.room.r-boss{background:#2a0f17;color:#fff;box-shadow:4px 4px 0 var(--hot)}.room.r-r{box-shadow:4px 4px 0 var(--mint)}.room.r-s{box-shadow:4px 4px 0 var(--yel)}.room.r-q{box-shadow:4px 4px 0 #b89cff}
 .room:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #000}
@@ -93,6 +98,10 @@ const FLOORS = ['f', 'f', 'f', 'r', 'e', 'f', 'f', 'r', 'e', 'boss'];
 const ft = n => (R && R.cur && n === R.floor) ? R.cur : FLOORS[(n - 1) % 10];
 const ROOM = { f: ['해골', '싸우면 카드·골드'], e: ['강한 해골', '세지만 유물을 줘요'], r: ['쉼터', '쉬기·카드 강화'], s: ['해골 상점', '골드로 카드·유물'], q: ['?', '무슨 일이 생길지 몰라요'], boss: ['해골 사장', '이 층의 끝'] };
 const GOLD = () => '<i class="gld"></i>';
+const RICON = { f: 'm_f', e: 'm_e', r: 'm_r', s: 'm_s', q: 'm_q', boss: 'm_boss' };
+// 물약: 3칸까지 들고 다니다가 전투 중에 마신다
+const POT = { red: ['회복 물약', '체력 20 회복', 'p_red', () => { R.hp = Math.min(R.mhp, R.hp + 20); }], teal: ['에너지 물약', '에너지 +2, 카드 2장', 'p_teal', () => { Bt.en += 2; draw(Bt, 2); }], heart: ['유혹의 물약', '적에게 취약 3, 약화 3', 'p_heart', () => { Bt.e.vul += 3; Bt.e.wk += 3; }] };
+const potAdd = () => { R.pots = R.pots || []; if (R.pots.length >= 3) return null; const k = pick(Object.keys(POT)); R.pots.push(k); return k; };
 function roomOpts(n) { const i = (n - 1) % 10 + 1; if (i === 1) return ['f']; if (i === 10) return ['boss']; if (i === 9) return ['r'];
   const w = [['f', 45], ['q', 22], ['e', i >= 4 ? 16 : 0], ['s', i >= 3 ? 11 : 0], ['r', i >= 5 ? 9 : 0]], k = Math.random() < .4 ? 3 : 2, out = [];
   while (out.length < k) { const tot = w.reduce((a, x) => a + (out.includes(x[0]) ? 0 : x[1]), 0); let r = Math.random() * tot; for (const [t, v] of w) { if (out.includes(t)) continue; r -= v; if (r <= 0) { out.push(t); break; } } }
@@ -132,7 +141,7 @@ function intro() {
   R = S.cardRun || null;
   frame('해골과 카드 대결', B => {
     talk(B, 'l', R ? `${R.floor}층에서 멈췄었죠? 이어서 내려가요.` : '지하 클럽 10층 맨 아래에 해골 사장이 있어요. 카드로 한 층씩 뚫고 내려가요. 제가 응원할게요.');
-    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 매 턴 <b>에너지 3</b>과 카드 5장. 카드 왼쪽 위 숫자만큼 에너지를 써요.<br>· 적 머리 위에 <b>다음 행동</b>이 보여요. 공격이 오면 <b>방어</b> 카드로 막아요(방어는 내 턴이 오면 사라져요).<br>· 층마다 <b>갈림길</b>에서 방을 골라요: 해골 · 강한 해골(유물) · 쉼터 · 상점 · ?(사건).<br>· 이기면 새 카드 하나와 <b>골드</b>. 골드는 상점에서 카드·유물·카드 빼기에 써요.<br>· 상태: 취약(받는 피해 +50%) · 약화(주는 피해 −25%) · 중독(매 턴 피해, 1씩 줄어듦) · 힘(공격마다 +).<br>· 내려간 층만큼, 사장을 이기면 +10 게임 동전.';
+    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 매 턴 <b>에너지 3</b>과 카드 5장. 카드 왼쪽 위 숫자만큼 에너지를 써요.<br>· 적 머리 위에 <b>다음 행동</b>이 보여요. 공격이 오면 <b>방어</b> 카드로 막아요(방어는 내 턴이 오면 사라져요).<br>· 층마다 <b>갈림길</b>에서 방을 골라요: 해골 · 강한 해골(유물) · 쉼터 · 상점 · ?(사건).<br>· <b>물약</b>은 3개까지 들고 다니다 전투 중에 눌러 마셔요.<br>· 이기면 새 카드 하나와 <b>골드</b>. 골드는 상점에서 카드·유물·카드 빼기에 써요.<br>· 상태: 취약(받는 피해 +50%) · 약화(주는 피해 −25%) · 중독(매 턴 피해, 1씩 줄어듦) · 힘(공격마다 +).<br>· 내려간 층만큼, 사장을 이기면 +10 게임 동전.';
     B.appendChild(r);
     B.appendChild(el('div', 'rules', `최고 기록: ${S.cardBest ? S.cardBest + '층' : '없음'}${S.cardWin ? ` · 사장 격파 ${S.cardWin}번` : ''} · 강한 해골을 이기면 유물, 쉼터에서 카드 강화`));
     if (!R) { B.appendChild(lbl('위험도 (사장을 이기면 다음 단계가 열려요)')); const P = el('div', 'pills'); for (let n = 0; n <= Math.min(10, S.cardAscMax || 0); n++) { const b = el('button', ASC() === n ? 'on' : ''); b.innerHTML = n ? `${ci('danger')}위험 ${n}` : '기본'; b.onclick = () => { S.cardAsc = n; save(); intro(); }; P.appendChild(b); } B.appendChild(P); B.appendChild(el('div', 'hint', ASC() ? `적 체력 +${ASC() * 12}% · 적 힘 +${Math.floor(ASC() / 2)} · 시작 체력 −${ASC() * 3} · 강화 카드가 더 자주 나와요` : '처음이면 기본으로 해요.')); }
@@ -140,15 +149,15 @@ function intro() {
     else B.appendChild(row(btn('클럽으로 내려가기', 'wide', start)));
   }, true);
 }
-function start() { const hp = 75 - ASC() * 3; R = { hp, mhp: hp, relics: [], gold: 60, path: [], floor: 1, deck: ['whip', 'whip', 'whip', 'whip', 'whip', 'shield', 'shield', 'shield', 'shield', 'laser', 'umb'] }; S.cardRun = R; save(); map(); }
+function start() { const hp = 75 - ASC() * 3; R = { hp, mhp: hp, relics: [], gold: 60, pots: ['red'], path: [], floor: 1, deck: ['whip', 'whip', 'whip', 'whip', 'whip', 'shield', 'shield', 'shield', 'shield', 'laser', 'umb'] }; S.cardRun = R; save(); map(); }
 function map() {
   R.path = R.path || []; R.gold = R.gold || 0;
   if (!R.opts || R.optsFor !== R.floor) { R.opts = roomOpts(R.floor); R.optsFor = R.floor; R.cur = null; S.cardRun = R; save(); }
   frame('해골과 카드 대결', B => {
     if (R.floor > 10) B.appendChild(el('div', 'rules', `끝없는 지하 ${Math.floor((R.floor - 1) / 10) + 1}번째 바퀴 · 적이 더 세요`));
     talk(B, 'l', R.opts.length > 1 ? pick(['갈림길이에요. 어느 문으로 갈래요?', '어디로 갈지 골라요. 저는 송휘님 따라갈게요.', '왼쪽? 오른쪽? …송휘님 감을 믿어요.']) : R.opts[0] === 'boss' ? '저 문 너머가 사장실이에요. …준비됐어요?' : R.opts[0] === 'r' ? '사장실 앞 쉼터예요. 숨 고르고 가요.' : '내려가 볼까요?');
-    const st = el('div', 'rules'); st.innerHTML = `체력 <b>${R.hp}/${R.mhp}</b> · ${GOLD()}<b>${R.gold || 0}</b> · 덱 ${R.deck.length}장 · 위험도 ${ASC()}${(R.relics || []).length ? '<br>유물: ' + R.relics.map(k => RELIC[k][0]).join(', ') : ''}`; B.appendChild(st);
-    const O = el('div', 'rooms'); R.opts.forEach(t => { const b = el('button', 'room r-' + t); b.append(el('b', null, ROOM[t][0]), el('small', null, ROOM[t][1])); b.onclick = () => enter(t); O.appendChild(b); }); B.appendChild(O);
+    const st = el('div', 'rules'); st.innerHTML = `체력 <b>${R.hp}/${R.mhp}</b> · ${GOLD()}<b>${R.gold || 0}</b> · 물약 ${(R.pots || []).length}/3 · 덱 ${R.deck.length}장 · 위험도 ${ASC()}${(R.relics || []).length ? '<br>유물: ' + R.relics.map(k => RELIC[k][0]).join(', ') : ''}`; B.appendChild(st);
+    const O = el('div', 'rooms'); R.opts.forEach(t => { const b = el('button', 'room r-' + t), ri = el('img'); ri.src = gimg(RICON[t]); ri.alt = ''; b.append(ri, el('b', null, ROOM[t][0]), el('small', null, ROOM[t][1])); b.onclick = () => enter(t); O.appendChild(b); }); B.appendChild(O);
     const M = el('div', 'map'); const base0 = Math.floor((R.floor - 1) / 10) * 10;
     for (let i = 1; i <= 10; i++) { const n = base0 + i, done = n < R.floor, now = n === R.floor, d = el('div', 'fl' + (now ? ' now' : done ? ' done' : '')); const t = done ? R.path[n - 1] : now ? null : i === 10 ? 'boss' : i === 9 ? 'r' : null; d.append(el('b', null, `B${n}`), document.createTextNode(now ? '여기서 고르기' : t ? ROOM[t][0] : '· · ·')); M.appendChild(d); }
     B.appendChild(M);
@@ -175,6 +184,8 @@ function shop() {
     const st = el('div', 'rules'); st.innerHTML = `가진 골드 ${GOLD()}<b>${R.gold || 0}</b> · 덱 ${R.deck.length}장`; B.appendChild(st);
     const W = el('div', 'rew'); K.cards.forEach(c => { const w = el('div', 'sitem'), cd = cardEl(c.k); if (c.sold) cd.classList.add('no'); cd.onclick = () => { if (c.sold) return; buy(c.p, () => { R.deck.push(c.k); c.sold = 1; }); }; const pr = el('div', 'price'); pr.innerHTML = c.sold ? '팔림' : `${GOLD()}${c.p}`; w.append(cd, pr); W.appendChild(w); }); B.appendChild(W);
     if (K.relic) { const [n, d, im] = RELIC[K.relic], o = el('div', 'offer'), i = el('img'); i.src = `assets/lena/s/${im}.webp`; i.alt = ''; const t = el('div'); t.append(el('b', null, '유물 · ' + n), el('small', null, d)); const bb = btn('', '', () => buy(K.rp, () => { R.relics.push(K.relic); if (K.relic === 'cake') { R.mhp += 12; R.hp += 12; } K.relic = null; })); bb.innerHTML = `${GOLD()}${K.rp}`; o.append(i, t, bb); const sh = el('div', 'shop'); sh.style.marginTop = '12px'; sh.appendChild(o); B.appendChild(sh); }
+    if (K.pot === undefined) K.pot = pick(Object.keys(POT));
+    if (K.pot) { const [n, d, im] = POT[K.pot], o = el('div', 'offer'), i = el('img'); i.src = gimg(im); i.alt = ''; const t = el('div'); t.append(el('b', null, '물약 · ' + n), el('small', null, d)); const bb = btn('', '', () => { if ((R.pots || []).length >= 3) { toast('물약은 3개까지예요.'); return; } buy(50, () => { R.pots = R.pots || []; R.pots.push(K.pot); K.pot = null; }); }); bb.innerHTML = `${GOLD()}50`; o.append(i, t, bb); const sh = el('div', 'shop'); sh.style.marginTop = '10px'; sh.appendChild(o); B.appendChild(sh); }
     const rmP = 60 + K.rm * 25, rb = btn('', 'ghost wide', () => { if ((R.gold || 0) < rmP) { toast('골드가 모자라요.'); return; } frame('카드 빼기', B2 => { talk(B2, 'sk', '(어느 카드를 버릴래?)'); const W2 = el('div', 'rew'); [...new Set(R.deck)].forEach(k => { const c = cardEl(k, true); c.onclick = () => { R.gold -= rmP; K.rm++; R.deck.splice(R.deck.indexOf(k), 1); coinSound(); S.cardRun = R; save(); shop(); }; W2.appendChild(c); }); B2.appendChild(W2); B2.appendChild(row(btn('그만두기', 'ghost wide', shop))); }, true); });
     rb.innerHTML = `카드 하나 빼기 · ${GOLD()}${rmP}`; B.appendChild(row(rb));
     B.appendChild(row(btn('상점 나가기', 'wide', next)));
@@ -224,6 +235,7 @@ function drawUI() {
   const ph = el('div', 'hpb'); const pi = el('i'); pi.style.width = (R.hp / R.mhp * 100) + '%'; ph.append(pi, el('span', null, `${R.hp} / ${R.mhp}`));
   const ms = el('div', 'sts'); if (b.blk) ms.appendChild(el('span', 'blk', `방어 ${b.blk}`)); if (b.str) ms.appendChild(el('span', 'str', `힘 ${b.str}`)); if (b.vul) ms.appendChild(el('span', 'vul', `취약 ${b.vul}`)); if (b.wk) ms.appendChild(el('span', 'wk', `약화 ${b.wk}`));
   me.append(en, ph, ms); W.appendChild(me);
+  const PT = el('div', 'pots'); for (let i = 0; i < 3; i++) { const k = (R.pots || [])[i], bt = el('button', 'pot' + (k ? ' full' : '')); if (k) { const im2 = el('img'); im2.src = gimg(POT[k][2]); im2.alt = POT[k][0]; bt.appendChild(im2); bt.onclick = () => { if (!confirm(`${POT[k][0]}: ${POT[k][1]}. 마실까요?`)) return; R.pots.splice(i, 1); POT[k][3](); coinSound(); S.cardRun = R; save(); drawUI(); }; } PT.appendChild(bt); } W.appendChild(PT);
   const H = el('div', 'khand'); b.hand.forEach((k, i) => { const c = cardEl(k); if (cost(k) > b.en) c.classList.add('no'); c.onclick = () => play(i); H.appendChild(c); }); W.appendChild(H);
   const bb = el('div', 'cbb'); bb.appendChild(el('span', 'pile', `뽑을 ${b.draw.length} · 버린 ${b.disc.length}`)); bb.appendChild(btn('턴 끝내기', '', endTurn)); W.appendChild(bb);
 }
@@ -251,7 +263,7 @@ function win() {
   const opts = shuffle(REWARD).slice(0, 3);
   frame('해골과 카드 대결', B => {
     B.appendChild(el('div', 'res w', `B${R.floor} 돌파!`));
-    talk(B, 'l', pick(['깔끔했어요. 카드 하나 골라 가요.', '해골이 울면서 도망갔어요. 뭐 가져갈래요?', '역시. 다음 층도 부탁해요.'])); const gl = el('div', 'rules'); gl.innerHTML = `${GOLD()}골드 +${gg} (가진 골드 ${R.gold})`; B.appendChild(gl);
+    talk(B, 'l', pick(['깔끔했어요. 카드 하나 골라 가요.', '해골이 울면서 도망갔어요. 뭐 가져갈래요?', '역시. 다음 층도 부탁해요.'])); const pd = Math.random() < (elite ? .7 : .4) ? potAdd() : null; const gl = el('div', 'rules'); gl.innerHTML = `${GOLD()}골드 +${gg} (가진 골드 ${R.gold})${pd ? ` · 물약 획득: ${POT[pd][0]}` : ''}`; B.appendChild(gl);
     const go = () => elite ? relicPick(next) : next();
     const W = el('div', 'rew'); opts.forEach(k => { const c = cardEl(Math.random() < .12 + ASC() * .01 ? k + '+' : k); c.onclick = () => { R.deck.push(c.querySelector('b').textContent.endsWith('+') ? k + '+' : k); go(); }; W.appendChild(c); }); B.appendChild(W);
     B.appendChild(row(btn('안 받기', 'ghost wide', go)));

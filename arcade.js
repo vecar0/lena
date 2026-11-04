@@ -55,6 +55,24 @@ const css = `
 .lever{width:100%;height:58px;border-radius:14px;background:linear-gradient(#ff6fb6,#e0247a);border:3px solid #000;box-shadow:0 4px 0 #000;font-family:'Black Han Sans';font-size:22px;color:#fff;letter-spacing:2px;margin-top:10px}
 .lever:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
 .lever:disabled{filter:grayscale(.6);opacity:.6}
+.cabw{position:relative;width:100%;max-width:330px;margin:0 auto;padding-right:30px}
+.cab{position:relative;width:100%;aspect-ratio:760/1144;background:url(assets/lena/g/slot_cab.webp) center/100% 100% no-repeat;filter:drop-shadow(5px 7px 0 rgba(0,0,0,.55))}
+.rwin{position:absolute;left:17.9%;top:28.3%;width:64%;height:24.7%;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:#0b0b0f;border-radius:4px;overflow:hidden}
+.rwin::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(0,0,0,.55),transparent 22%,transparent 78%,rgba(0,0,0,.55)),linear-gradient(105deg,transparent 30%,rgba(255,255,255,.18) 38%,transparent 46%)}
+.reel{position:relative;overflow:hidden;background:#f3efe6}
+.strip{position:absolute;left:0;right:0;top:0;will-change:transform}
+.sc{height:calc(100% / var(--n));display:grid;place-items:center;position:relative}
+.sc img{width:78%;height:78%;object-fit:contain}
+.strip.blur .sc img{filter:blur(2px) saturate(.8)}
+.sc.hit{background:#fff36b;animation:hit .5s var(--ease) 3}
+.sc.hit::after{content:"";position:absolute;inset:1px;border:2px solid var(--pink);border-radius:3px}
+.tray{position:absolute;left:28%;right:28%;bottom:8.5%;height:6%;display:grid;place-items:center;font-family:'Black Han Sans';font-size:clamp(16px,6vw,24px);color:var(--yel);text-shadow:2px 2px 0 #000,0 0 10px rgba(242,234,58,.7);pointer-events:none}
+.lvr{position:absolute;right:0;top:22%;width:30px;height:46%;touch-action:none;cursor:grab}
+.lvr .bs{position:absolute;left:4px;right:4px;top:46%;height:16%;border-radius:6px;background:linear-gradient(#3a3f47,#15181c);border:2px solid #000}
+.lvr .arm{position:absolute;left:11px;width:8px;border-radius:4px;background:linear-gradient(90deg,#8a8f96,#f2f4f6 45%,#6d7279);border:1.5px solid #000}
+.lvr .ball{position:absolute;left:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd1e6,#ff3d9a 45%,#a3105a);border:2px solid #000;box-shadow:2px 3px 0 rgba(0,0,0,.5)}
+.pullb{display:block;margin:10px auto 0;height:44px;padding:0 18px;border-radius:22px;border:2px solid #000;background:var(--pink);color:#fff;font-weight:800;font-size:14px;box-shadow:0 3px 0 #000}
+.pullb:disabled{filter:grayscale(.6);opacity:.6}
 .charms{display:flex;gap:6px;flex-wrap:wrap;min-height:34px}
 .charm{display:flex;align-items:center;gap:6px;height:32px;padding:0 10px 0 4px;border-radius:16px;background:var(--panel2);border:1px solid var(--line);font-size:12.5px;font-weight:700}
 .charm img{width:24px;height:24px}
@@ -146,7 +164,7 @@ function slotEnter() {
   frame('해골 빚 슬롯', B => {
     talk(B, 'sk', '(해골이 두꺼운 장부를 펼쳐 보인다. 첫 장에 당신 이름이 적혀 있다)');
     talk(B, 'l', '빚 갚는 게임이에요. 밤마다 정해진 만큼 벌어서 해골한테 갚으면 돼요. …못 갚으면? 끝이죠, 뭐.');
-    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 밤마다 레버를 <b>8번</b> 당길 수 있어요. 5×3칸에 그림이 나와요.<br>· 같은 그림이 <b>가로로 3칸 이상</b>, <b>세로 3칸</b>, <b>대각선 3칸</b> 이어지면 칩을 벌어요. 해골은 아무 그림 대신이 돼요.<br>· 그림 값: 동전 1 · 하트 2 · 입술 3 · 번개 3 · 별 5. 가로 3칸 ×2, 4칸 ×5, 5칸 ×12, 세로 ×3, 대각선 ×2.<br>· 빚을 갚으면 <b>기계에 그림 하나를 넣어요</b>. 넣은 그림은 더 자주, 더 비싸게 나와요. 나만의 기계를 키우는 게 핵심!<br>· 밤이 끝나면 벌어 둔 칩으로 <b>빚</b>을 갚아요. 남은 칩으로 <b>부적</b>을 사서 기계를 유리하게 바꿔요.<br>· 빚은 밤마다 커져요. 못 갚으면 끝. 버틴 밤 × 3개만큼 게임 동전을 받아요.';
+    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 밤마다 레버를 <b>8번</b> 당길 수 있어요. 5×3칸에 그림이 나와요.<br>· 같은 그림이 <b>가로로 3칸 이상</b>, <b>세로 3칸</b>, <b>대각선 3칸</b> 이어지면 칩을 벌어요. 해골은 아무 그림 대신이 돼요.<br>· 그림 값: 동전 1 · 하트 2 · 입술 3 · 번개 3 · 별 5. 가로 3칸 ×2, 4칸 ×5, 5칸 ×12, 세로 ×3, 대각선 ×2.<br>· 빚을 갚고 남은 칩에는 <b>이자 10%</b>(최대 15)가 붙어요.<br>· 빚을 갚으면 <b>기계에 그림 하나를 넣어요</b>. 넣은 그림은 더 자주, 더 비싸게 나와요. 나만의 기계를 키우는 게 핵심!<br>· 밤이 끝나면 벌어 둔 칩으로 <b>빚</b>을 갚아요. 남은 칩으로 <b>부적</b>을 사서 기계를 유리하게 바꿔요.<br>· 빚은 밤마다 커져요. 못 갚으면 끝. 버틴 밤 × 3개만큼 게임 동전을 받아요.';
     B.appendChild(r);
     B.appendChild(row(btn(gc() >= 3 ? '동전 3개 넣고 시작' : '동전이 모자라요 (3개 필요)', 'wide', () => { if (gc() < 3) { toast('게임 동전이 모자라요.'); return; } gcAdd(-3); coinSound(); R = { night: 1, spins: 7, chips: 0, ch: [], rr: true, grid: null, offers: null }; R.spins = spinsPer(); S.slotRun = R; save(); slotDraw(); })));
   }, true);
@@ -165,46 +183,76 @@ function score(g) {
 function slotDraw(gain, hits) {
   cur = 'slot';
   frame('해골 빚 슬롯', B => {
-    const M = el('div', 'mach'), st = el('div', 'stat');
+    const st = el('div', 'stat');
     [['NIGHT', R.night, '', 'danger'], ['CHIPS', R.chips, '', 'chip'], ['DEBT', quota(R.night), 'due', 'debt']].forEach(([a, b, c, k]) => { const d = el('div', c), sm = el('small'); sm.innerHTML = ci(k) + a; d.append(sm, el('b', null, b)); st.appendChild(d); });
-    M.appendChild(st);
-    const G = el('div', 'grid'); G.id = 'sgrid';
+    B.appendChild(st);
+    // 진짜 슬롯머신: 기계 그림의 창 안에 릴 5개, 오른쪽에 당기는 레버
+    const W = el('div', 'cabw'), C = el('div', 'cab'), win = el('div', 'rwin'); win.id = 'rwin';
     const g = R.grid || [0, 1, 2].map(() => [0, 1, 2, 3, 4].map(roll));
-    for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) { const cell = el('div', 'cell' + (hits && hits.has(r * 5 + c) ? ' hit' : '')), i = el('img'); i.src = img(SIMG[g[r][c]]); i.alt = SYM[g[r][c]].n; cell.appendChild(i); G.appendChild(cell); }
-    M.appendChild(G);
-    M.appendChild(el('div', 'gain', gain == null ? '' : gain ? `+${gain}` : '꽝'));
-    if (!R.offers) {
-      const L = el('button', 'lever', R.spins > 0 ? `레버 당기기 · 남은 ${R.spins}번` : '빚 갚으러 가기'); L.id = 'lever';
-      L.onclick = () => R.spins > 0 ? spin() : settle(); M.appendChild(L);
-    }
-    B.appendChild(M);
-    if (R.offers) shop(B);
+    for (let c = 0; c < 5; c++) { const reel = el('div', 'reel'), strip = el('div', 'strip'); strip.style.setProperty('--n', 3); strip.style.height = '100%';
+      for (let r = 0; r < 3; r++) { const sc = el('div', 'sc' + (hits && hits.has(r * 5 + c) ? ' hit' : '')), i = el('img'); i.src = img(SIMG[g[r][c]]); i.alt = SYM[g[r][c]].n; sc.appendChild(i); strip.appendChild(sc); }
+      reel.appendChild(strip); win.appendChild(reel); }
+    C.appendChild(win);
+    const tray = el('div', 'tray', gain == null ? '' : gain ? `+${gain}` : '꽝'); tray.id = 'tray'; C.appendChild(tray);
+    W.appendChild(C);
+    if (!R.offers && !R.symOpts) W.appendChild(lever());
+    B.appendChild(W);
+    if (!R.offers && !R.symOpts) { const pb = el('button', 'pullb', R.spins > 0 ? `레버 당기기 · 남은 ${R.spins}번` : '빚 갚으러 가기'); pb.id = 'lever'; pb.onclick = () => R.spins > 0 ? pullAnim() : settle(); B.appendChild(pb); }
+    if (R.offers || R.symOpts) shop(B);
     else talk(B, R.chips >= quota(R.night) ? 'l' : 'sk', R.say || (R.chips >= quota(R.night) ? '빚은 다 모았어요. 남은 건 더 벌어서 부적 사요.' : `(해골이 장부를 톡톡 친다) 오늘 밤 갚을 빚 ${quota(R.night)}.`));
-    const C = el('div', 'charms'); if (!R.ch.length) C.appendChild(el('span', 'hint', '부적 없음 — 밤을 넘기면 살 수 있어요')); R.ch.forEach(id => { const x = CH.find(c => c.id === id); const t = el('div', 'charm'), i = el('img'); i.src = img(x.i); i.alt = ''; t.append(i, document.createTextNode(x.n)); t.title = x.d; t.onclick = () => toast(`${x.n}: ${x.d}`); C.appendChild(t); });
-    B.append(lbl('내 부적 (최대 5개)'), C);
+    const CC = el('div', 'charms'); if (!R.ch.length) CC.appendChild(el('span', 'hint', '부적 없음 — 밤을 넘기면 살 수 있어요')); R.ch.forEach(id => { const x = CH.find(c => c.id === id); const t = el('div', 'charm'), i = el('img'); i.src = img(x.i); i.alt = ''; t.append(i, document.createTextNode(x.n)); t.title = x.d; t.onclick = () => toast(`${x.n}: ${x.d}`); CC.appendChild(t); });
+    B.append(lbl('내 부적 (최대 5개)'), CC);
     B.appendChild(row(btn('그만두기', 'ghost wide', () => { if (!confirm('이번 판을 그만둘까요? 버틴 밤만큼 동전을 받아요.')) return; over(true); })));
   }, true);
 }
+// 레버: 공을 아래로 끌어내리면(또는 누르면) 당겨진다. p=0 위, p=1 끝까지 내림
+let lvSet = null;
+function lever() {
+  const L = el('div', 'lvr'), bs = el('div', 'bs'), arm = el('div', 'arm'), ball = el('div', 'ball'); L.append(bs, arm, ball); L.id = 'lvr';
+  const set = p => { const H = L.clientHeight || 200, piv = H * .54, len = H * .48, by = piv - len * Math.cos(Math.PI * p), sc = 1 + .35 * Math.sin(Math.PI * p);
+    ball.style.top = by + 'px'; ball.style.transform = `scale(${sc})`; arm.style.top = Math.min(by, piv) + 'px'; arm.style.height = Math.abs(by - piv) + 'px'; arm.style.width = (8 * (1 + .3 * Math.sin(Math.PI * p))) + 'px'; };
+  lvSet = set; requestAnimationFrame(() => set(0));
+  let drag = null;
+  L.onpointerdown = e => { if (spinning || R.spins <= 0) { if (!spinning && R.spins <= 0) settle(); return; } drag = { y: e.clientY, p: 0 }; L.setPointerCapture(e.pointerId); };
+  L.onpointermove = e => { if (!drag) return; drag.p = Math.max(0, Math.min(1, (e.clientY - drag.y) / (L.clientHeight * .8))); set(drag.p); };
+  L.onpointerup = L.onpointercancel = () => { if (!drag) return; const p = drag.p; drag = null; if (p < .08) return pullAnim(); if (p > .55) { springBack(p); spin(); } else springBack(p); };
+  return L;
+}
+function springBack(from) { const t0 = performance.now(); const f = now => { const u = Math.min(1, (now - t0) / 380), p = from * (1 - u) * Math.cos(u * 8) ** 2; lvSet && lvSet(Math.max(0, p)); if (u < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); tone([180], .06, .04, 'square'); }
+function pullAnim() { if (spinning || R.spins <= 0) return; const t0 = performance.now(); const f = now => { const u = Math.min(1, (now - t0) / 260); lvSet && lvSet(u); if (u < 1) requestAnimationFrame(f); else { springBack(1); spin(); } }; requestAnimationFrame(f); }
 async function spin() {
   if (spinning || R.spins <= 0) return; spinning = true; R.spins--; R.say = '';
-  const g = [0, 1, 2].map(() => [0, 1, 2, 3, 4].map(roll));
-  const cells = [...document.querySelectorAll('#sgrid .cell')], lv = $('lever'); if (lv) lv.disabled = true;
-  cells.forEach(c => { c.classList.remove('hit'); c.classList.add('spin'); });
-  const keys = Object.keys(SYM); const t0 = Date.now();
-  const iv = setInterval(() => cells.forEach(c => { if (c.classList.contains('spin')) c.firstChild.src = img(SIMG[pick(keys)]); }), 70);
-  for (let c = 0; c < 5; c++) { await sleep(c ? 220 : 480); for (let r = 0; r < 3; r++) { const cell = cells[r * 5 + c]; cell.classList.remove('spin'); cell.firstChild.src = img(SIMG[g[r][c]]); } tone([300 + c * 70], .05, .05, 'square'); }
-  clearInterval(iv);
+  const g = [0, 1, 2].map(() => [0, 1, 2, 3, 4].map(roll)), old = R.grid || g;
+  const pb = $('lever'); if (pb) { pb.disabled = true; pb.textContent = `돌아가는 중… · 남은 ${R.spins}번`; }
+  const tray = $('tray'); if (tray) tray.textContent = '';
+  const keys = Object.keys(SYM).filter(k => k !== 'skull'), N = 20;
+  const reels = [...document.querySelectorAll('#rwin .reel')];
+  // 릴마다 긴 띠를 만들어 위에서 아래로 굴린다: [새 3칸][무작위 14칸][지금 3칸]
+  const done = reels.map((reel, c) => new Promise(res => {
+    const strip = reel.querySelector('.strip'); strip.innerHTML = ''; strip.style.setProperty('--n', N); strip.style.height = (N / 3 * 100) + '%';
+    const list = [g[0][c], g[1][c], g[2][c], ...Array.from({ length: N - 6 }, () => pick(keys)), old[0][c], old[1][c], old[2][c]];
+    list.forEach(k => { const sc = el('div', 'sc'), i = el('img'); i.src = img(SIMG[k]); i.alt = ''; sc.appendChild(i); strip.appendChild(sc); });
+    strip.style.transition = 'none'; strip.style.transform = `translateY(${-(N - 3) / N * 100}%)`; strip.classList.add('blur');
+    void strip.offsetHeight;
+    const dur = 900 + c * 260;
+    strip.style.transition = `transform ${dur}ms cubic-bezier(.25,.75,.3,1.06)`; strip.style.transform = 'translateY(0)';
+    setTimeout(() => { strip.classList.remove('blur'); tone([300 + c * 70], .05, .05, 'square'); res(); }, dur);
+  }));
+  const tick = setInterval(() => tone([900 + Math.random() * 200], .015, .015, 'square'), 90);
+  await Promise.all(done); clearInterval(tick);
   let s = score(g);
   if (!s.tot && has('rr') && R.rr) { R.rr = false; R.spins++; R.say = '(다시 걸기 부적이 반짝였다) 꽝은 없던 걸로 해요.'; }
   R.grid = g; R.chips += s.tot; S.slotRun = R; save();
   if (s.tot >= 20) { coinSound(); setTimeout(coinSound, 180); } else if (s.tot) coinSound();
   if (!R.say) R.say = s.tot >= 40 ? pick(['대박! …지금 저 보고 웃은 거 맞죠?', '와, 기계가 송휘님한테 반했나 봐요.']) : s.tot >= 15 ? pick(['좋아요, 그 손맛.', '해골이 장부에 뭔가 적다가 멈췄어요.']) : s.tot ? pick(['조금씩이라도 모아요.', '티끌 모아 빚 갚기.']) : pick(['꽝. …괜찮아요, 저 아직 여기 있어요.', '(해골이 어깨를 으쓱한다)']);
   spinning = false; slotDraw(s.tot, s.hits);
+  // 받은 칩 숫자가 동전 받침에서 올라가며 세어진다
+  const tr = $('tray'); if (tr && s.tot) { let v = 0; const step = Math.max(1, Math.ceil(s.tot / 18)); const iv = setInterval(() => { v = Math.min(s.tot, v + step); tr.textContent = `+${v}`; tone([1200 + v * 3], .02, .02, 'triangle'); if (v >= s.tot) clearInterval(iv); }, 45); }
 }
 function settle() {
   const q = quota(R.night);
   if (R.chips < q) { if (!R.loan) return loanAsk(q); return over(false); }
-  R.chips -= q; R.night++; R.spins = spinsPer(); R.rr = true; R.grid = null;
+  R.chips -= q; const intr = Math.min(15, Math.floor(R.chips * .1)); R.chips += intr; R.intr = intr; R.night++; R.spins = spinsPer(); R.rr = true; R.grid = null;
   const pool = CH.filter(c => !R.ch.includes(c.id)); R.offers = []; while (R.offers.length < 3 && pool.length) R.offers.push(pool.splice(Math.random() * pool.length | 0, 1)[0].id);
   R.symOpts = Object.keys(SYM).filter(k => k !== 'skull').sort(() => Math.random() - .5).slice(0, 3);
   R.say = ''; S.slotBest = Math.max(S.slotBest || 0, R.night - 1); S.slotRun = R; save(); coinSound();
@@ -220,7 +268,7 @@ function loanAsk(q) {
 }
 function shop(B) {
   if (R.symOpts) { // 밤마다 기계에 그림 하나를 더 넣어 나만의 슬롯을 만든다
-    talk(B, 'l', `빚 갚았어요! ${R.night - 1}번째 밤 통과. 먼저 기계에 그림 하나 넣어요. 넣은 그림은 더 자주 나오고 값도 +1이에요.`);
+    talk(B, 'l', `빚 갚았어요! ${R.night - 1}번째 밤 통과.${R.intr ? ` 남은 칩 이자 +${R.intr}.` : ''} 먼저 기계에 그림 하나 넣어요. 넣은 그림은 더 자주 나오고 값도 +1이에요.`);
     const P = el('div', 'shop'); R.symOpts.forEach(k => { const o = el('div', 'offer'), i = el('img'); i.src = img(SIMG[k]); i.alt = ''; const t = el('div'), n = (R.add || {})[k] || 0; t.append(el('b', null, `${SYM[k].n} 넣기${n ? ` (지금 ${n}개)` : ''}`), el('small', null, `값 ${symVal(k)} → ${symVal(k) + 1} · 더 자주 나와요`)); o.append(i, t, btn('넣기', '', () => { R.add = R.add || {}; R.add[k] = (R.add[k] || 0) + 1; R.symOpts = null; S.slotRun = R; save(); coinSound(); slotDraw(); })); P.appendChild(o); });
     B.appendChild(P); B.appendChild(row(btn('안 넣기', 'ghost wide', () => { R.symOpts = null; S.slotRun = R; save(); slotDraw(); }))); return;
   }

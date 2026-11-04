@@ -10,6 +10,8 @@ const css = `
 .rsc{font-family:'Space Mono',monospace;font-weight:700;font-size:24px;color:var(--mint);text-shadow:2px 2px 0 #000}
 .rcb{font-family:'Black Han Sans';font-size:30px;color:var(--yel);text-shadow:3px 3px 0 #000;min-width:80px;text-align:right}
 .rjudge{font-family:'Black Han Sans';font-size:26px;height:32px;text-shadow:3px 3px 0 #000}
+.rjudge small{display:block;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;opacity:.85}
+.rjudge.gr{color:#9ff5e4}
 .rjudge.p{color:var(--yel)}.rjudge.g{color:var(--teal)}.rjudge.m{color:var(--hot)}
 .rpad{width:100%;max-width:360px;border-radius:24px;padding:16px;background:linear-gradient(160deg,#1fa65a,#11753d);border:3px solid #000;box-shadow:6px 6px 0 var(--pink),inset 0 1px 0 rgba(255,255,255,.35)}
 .rkeys{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -114,7 +116,7 @@ function menu() {
     const P = el('div', 'pills'); P.style.margin = '0 0 10px'; DIF.forEach((d, i) => { const lock = i > unl(); const b = el('button', dif() === i ? 'on' : '', lock ? '🔒 ' + d.n : d.n); b.onclick = () => { if (lock) { toast(i === 2 ? '아무 곡이나 A 등급을 받으면 열려요.' : '어려움에서 S 등급을 받으면 열려요.'); return; } S.rhDif = i; save(); menu(); }; P.appendChild(b); });
     B.appendChild(P); B.appendChild(L);
     B.appendChild(el('div', 'hint', `${DIF[dif()].n}: 링이 ${DIF[dif()].ap}초 동안 줄어들어요 · 점수 ×${DIF[dif()].mul} · 동전 ×${DIF[dif()].rw}`));
-    B.appendChild(el('div', 'rules', '판정: 딱 맞으면 PERFECT, 조금 어긋나면 GOOD, 놓치면 MISS. 콤보가 이어질수록 점수가 커져요. 등급에 따라 게임 동전을 받아요(S 8 · A 5 · B 3 · C 1). 점수는 100만 점 만점, 아래 게이지가 끝날 때 70%를 넘어야 클리어예요. 소리를 켜고 해 주세요.'));
+    B.appendChild(el('div', 'rules', '판정: PERFECT · GREAT · GOOD · MISS (어긋나면 FAST/SLOW로 알려 줘요). 콤보가 이어질수록 점수가 커져요. 등급에 따라 게임 동전을 받아요(S 8 · A 5 · B 3 · C 1). 점수는 100만 점 만점, 아래 게이지가 끝날 때 70%를 넘어야 클리어예요. 소리를 켜고 해 주세요.'));
   }, true);
 }
 
@@ -127,20 +129,21 @@ function play(song) {
   const { notes, len } = chart(song); const D = DIF[dif()], AP = D.ap; // 테두리가 줄어드는 시간
   const a = audio(); if (!a) { toast('소리를 켤 수 없어요.'); return; }
   const t0 = a.currentTime + 1.2; let raf = 0;
-  st = { stop: false, score: 0, combo: 0, max: 0, p: 0, g: 0, m: 0, idx: 0, live: [], life: 10, ga: 20 };
+  st = { stop: false, score: 0, combo: 0, max: 0, p: 0, gr: 0, g: 0, m: 0, idx: 0, live: [], life: 10, ga: 20 };
   const unit = 1e6 / Math.max(1, notes.length), gu = 100 / Math.max(1, notes.length); // 100만 점 만점, 클리어 게이지
   const out = sound(t0, song);
   ARC.cleanup = () => { if (st) st.stop = true; clearTimeout(sched); cancelAnimationFrame(raf); try { out && out.disconnect(); } catch (e) {} st = null; };
-  const J = (txt, c) => { const j = $('rJd'); j.textContent = txt; j.className = 'rjudge ' + c; };
+  const J = (txt, c, fs) => { const j = $('rJd'); j.textContent = txt; if (fs) j.appendChild(el('small', null, fs)); j.className = 'rjudge ' + c; };
   function judge(k) {
     if (!st) return; const now = a.currentTime - t0; let best = null, bd = 1;
-    for (const n of st.live) if (!n.done && n.k === k) { const d = Math.abs(n.t - now); if (d < bd) { bd = d; best = n; } }
+    let sd = 0; for (const n of st.live) if (!n.done && n.k === k) { const d = Math.abs(n.t - now); if (d < bd) { bd = d; best = n; sd = now - n.t; } }
     blip(out, freq(song.root * 2, best ? best.m + 2 : k));
     const key = keys[k]; key.classList.add('dn'); setTimeout(() => key.classList.remove('dn'), 90);
     if (!best || bd > D.g + .05) return;
     best.done = true; best.el && best.el.remove();
     if (song.endless && st.life < 10) st.life = Math.min(10, st.life + (bd <= .07 ? .25 : .1));
-    if (bd <= D.p) { st.p++; st.combo++; st.score += song.endless ? Math.round((100 + st.combo * 4) * D.mul) : unit; st.ga = Math.min(100, st.ga + gu * 1.7); J('PERFECT', 'p'); } else if (bd <= D.g) { st.g++; st.combo++; st.score += song.endless ? Math.round((50 + st.combo * 2) * D.mul) : unit * .7; st.ga = Math.min(100, st.ga + gu * .9); J('GOOD', 'g'); } else { miss(); return; }
+    const fs = sd < 0 ? 'FAST' : 'SLOW', grW = (D.p + D.g) / 2;
+    if (bd <= D.p) { st.p++; st.combo++; st.score += song.endless ? Math.round((100 + st.combo * 4) * D.mul) : unit; st.ga = Math.min(100, st.ga + gu * 1.7); J('PERFECT', 'p'); } else if (bd <= grW) { st.gr++; st.combo++; st.score += song.endless ? Math.round((75 + st.combo * 3) * D.mul) : unit * .8; st.ga = Math.min(100, st.ga + gu * 1.3); J('GREAT', 'gr', fs); } else if (bd <= D.g) { st.g++; st.combo++; st.score += song.endless ? Math.round((50 + st.combo * 2) * D.mul) : unit * .5; st.ga = Math.min(100, st.ga + gu * .6); J('GOOD', 'g', fs); } else { miss(); return; }
     st.max = Math.max(st.max, st.combo); const gl = key.querySelector('.glow'); gl.classList.remove('on'); void gl.offsetWidth; gl.classList.add('on');
   }
   function miss() { st.m++; st.combo = 0; st.ga = Math.max(0, st.ga - 4); J('MISS', 'm'); if (song.endless) { st.life--; if (st.life <= 0) setTimeout(finish, 50); } }
@@ -163,12 +166,12 @@ function play(song) {
   }
   raf = requestAnimationFrame(loop);
   function finish() {
-    if (!st || st.stop) return; const done = song.endless ? (st.p + st.g + st.m) : notes.length; const tot = done || 1, acc = (st.p + st.g * .7) / tot; st.score = Math.round(st.score); const clr = song.endless || st.ga >= 70, sc = st.score, g = song.endless ? (acc >= .92 ? 'S' : acc >= .8 ? 'A' : acc >= .6 ? 'B' : 'C') : !clr ? 'C' : sc >= 950000 ? 'S' : sc >= 900000 ? 'A' : sc >= 800000 ? 'B' : 'C', fc = !song.endless && st.m === 0, ap = fc && st.g === 0, reward = !clr ? 1 : song.endless ? Math.min(20, 1 + Math.floor((st.p + st.g) / 50)) : Math.max(1, Math.round({ S: 8, A: 5, B: 3, C: 1 }[g] * D.rw));
+    if (!st || st.stop) return; const done = song.endless ? (st.p + st.gr + st.g + st.m) : notes.length; const tot = done || 1, acc = (st.p + st.gr * .8 + st.g * .5) / tot; st.score = Math.round(st.score); const clr = song.endless || st.ga >= 70, sc = st.score, g = song.endless ? (acc >= .92 ? 'S' : acc >= .8 ? 'A' : acc >= .6 ? 'B' : 'C') : !clr ? 'C' : sc >= 950000 ? 'S' : sc >= 900000 ? 'A' : sc >= 800000 ? 'B' : 'C', fc = !song.endless && st.m === 0, ap = fc && st.g === 0 && st.gr === 0, reward = !clr ? 1 : song.endless ? Math.min(20, 1 + Math.floor((st.p + st.g) / 50)) : Math.max(1, Math.round({ S: 8, A: 5, B: 3, C: 1 }[g] * D.rw));
     S.rh = S.rh || {}; const prev = S.rh[rk(song)]; if (!prev || st.score > prev.s) S.rh[rk(song)] = { s: st.score, g }; save(); gcAdd(reward);
     const res = { ...st }; ARC.cleanup = null; st.stop = true; clearTimeout(sched); setTimeout(() => { try { out.disconnect(); } catch (e) {} }, 400); st = null;
     frame(song.n, B2 => {
       B2.appendChild(el('div', 'grade', g)); if (!song.endless) B2.appendChild(el('div', 'rbadge ' + (ap ? 'ap' : fc ? 'fc' : clr ? '' : 'fail'), ap ? 'ALL PERFECT' : fc ? 'FULL COMBO' : clr ? 'CLEAR' : 'FAILED · 게이지 70% 못 넘음'));
-      const s = el('div', 'rules'); s.innerHTML = `점수 <b>${res.score.toLocaleString()}</b> · 최대 콤보 <b>${res.max}</b><br>PERFECT ${res.p} · GOOD ${res.g} · MISS ${res.m} · 정확도 ${Math.round(acc * 100)}%<br>${ci('gc')}게임 동전 <b>+${reward}</b>`; B2.appendChild(s);
+      const s = el('div', 'rules'); s.innerHTML = `점수 <b>${res.score.toLocaleString()}</b> · 최대 콤보 <b>${res.max}</b><br>PERFECT ${res.p} · GREAT ${res.gr} · GOOD ${res.g} · MISS ${res.m} · 정확도 ${Math.round(acc * 100)}%<br>${ci('gc')}게임 동전 <b>+${reward}</b>`; B2.appendChild(s);
       talk(B2, 'l', !clr ? '게이지가 모자랐어요. 놓치지 말고 끝까지 가요.' : ap ? '…하나도 안 틀렸어요? 저 지금 심장 떨려요.' : g === 'S' ? '…지금 그 손가락, 반칙이에요. 너무 잘하잖아요.' : g === 'A' ? '박자 감각 좋은데요? 춤도 잘 춰요?' : g === 'B' ? '나쁘지 않아요. 한 번 더 하면 A예요.' : '박자보다 제 얼굴을 너무 봤죠?');
       B2.appendChild(row(btn('다시 하기', 'wide', () => play(song)), btn('노래 고르기', 'ghost wide', menu)));
     }, true);
