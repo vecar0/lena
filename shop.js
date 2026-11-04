@@ -6,12 +6,33 @@ const css = `
 .affb{display:inline-flex;align-items:center;gap:6px;margin-top:8px;height:30px;padding:0 12px 0 8px;border-radius:15px;background:rgba(0,0,0,.5);border:1px solid var(--line);font-size:12.5px;font-weight:700;color:#ffd3e8}
 .affb i{font-style:normal;color:var(--pink);font-size:15px}
 .affb u{text-decoration:none;font-family:'Space Mono',monospace;color:var(--mint)}
-.affc{display:flex;align-items:center;gap:14px}
-.affc .ava2{width:76px;height:76px;flex:none;border-radius:50%;background:url(assets/lena/face.jpg) 50% 30%/cover;border:3px solid #000;box-shadow:4px 4px 0 var(--pink)}
-.affc b{display:block;font-family:'Black Han Sans';font-weight:400;font-size:22px}
-.affc small{display:block;font-size:12.5px;color:var(--mute);margin-top:2px;line-height:1.45;word-break:keep-all}
-.hbar{height:12px;border-radius:6px;background:#0b0d10;border:2px solid #000;overflow:hidden;margin-top:8px}
-.hbar i{display:block;height:100%;background:linear-gradient(90deg,#ff6fb6,#ff2e6e)}
+.tcard{--f1:#d9d4c7;--f2:#f3efe6;--f3:#bdb6a6;--ink:#1a1a1a;position:relative;aspect-ratio:1.586;border-radius:14px;padding:14px 16px;color:var(--ink);overflow:hidden;
+  background:linear-gradient(125deg,var(--f1),var(--f2) 42%,var(--f3) 58%,var(--f2) 75%,var(--f1));border:2.5px solid #000;box-shadow:5px 5px 0 #000,inset 0 1px 0 rgba(255,255,255,.6)}
+.tcard::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,0) 0 9px,rgba(255,255,255,.07) 9px 10px);pointer-events:none}
+.tcard::after{content:"";position:absolute;inset:-40% -60%;background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.55) 50%,transparent 58%);transform:translateX(-60%);animation:foil 6s ease-in-out infinite;pointer-events:none;mix-blend-mode:soft-light}
+@keyframes foil{0%,70%{transform:translateX(-60%)}100%{transform:translateX(60%)}}
+@media (prefers-reduced-motion:reduce){.tcard::after{animation:none}}
+.tcard>*{position:relative;z-index:1}
+.tc-top{display:flex;justify-content:space-between;align-items:flex-start}
+.tc-brand{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;opacity:.7}
+.tc-mood{font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;border:1.5px solid currentColor;transform:rotate(4deg)}
+.tc-chip{position:absolute;left:16px;top:44px;width:42px;height:32px;border-radius:7px;background:linear-gradient(135deg,#f6e27a,#c9a227 55%,#f3dc7a);border:1.5px solid rgba(0,0,0,.55);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
+.tc-chip::before{content:"";position:absolute;inset:6px 8px;border:1.5px solid rgba(0,0,0,.35);border-radius:3px;background:linear-gradient(rgba(0,0,0,.3),rgba(0,0,0,.3)) center/100% 1.5px no-repeat,linear-gradient(90deg,rgba(0,0,0,.3),rgba(0,0,0,.3)) center/1.5px 100% no-repeat}
+.tc-face{position:absolute;right:14px;top:40px;width:64px;height:64px;border-radius:50%;background:url(assets/lena/face.jpg) 50% 30%/cover;border:2.5px solid #000;box-shadow:0 0 0 3px rgba(255,255,255,.55)}
+.tc-name{position:absolute;left:16px;right:90px;bottom:42px;font-family:'Black Han Sans';font-weight:400;font-size:25px;line-height:1.05;letter-spacing:-.01em;word-break:keep-all}
+.tc-lv{display:block;font-family:'Pretendard',sans-serif;font-size:12px;font-weight:700;opacity:.72;margin-bottom:3px;letter-spacing:0}
+.tc-units{position:absolute;left:16px;right:16px;bottom:14px;display:flex;align-items:center;gap:5px}
+.tc-units i{flex:1;height:12px;border-radius:6px;border:1.5px solid rgba(0,0,0,.55);background:rgba(255,255,255,.35)}
+.tc-units i.on{background:var(--ink);box-shadow:inset 0 2px 3px rgba(0,0,0,.5)}
+.tc-units small{flex:none;font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;margin-left:4px;opacity:.75}
+.tcard.t1{--f1:#9aa3ad;--f2:#eef2f6;--f3:#b9c2cc}
+.tcard.t2{--f1:#e7a3b8;--f2:#ffe3ec;--f3:#f2b9c9;--ink:#4a0f22}
+.tcard.t3{--f1:#c9a227;--f2:#fff1b8;--f3:#e2bf4a;--ink:#3a2800}
+.tcard.t4{--f1:#7fe7ff;--f2:#ffd1f3;--f3:#d6ff9e;--ink:#1d1440}
+.tcard.t5{--f1:#0e0e12;--f2:#2a1220;--f3:#120a10;--ink:#ffd6e8}.tcard.t5 .tc-units i{border-color:rgba(255,214,232,.6);background:rgba(255,255,255,.08)}.tcard.t5 .tc-units i.on{background:var(--pink);box-shadow:0 0 6px var(--pink)}
+.tcard.t6{--f1:#120f1e;--f2:#3b2a6b;--f3:#0d3b44;--ink:#f3efe6}.tcard.t6::before{background:conic-gradient(from 200deg at 70% 30%,rgba(255,61,154,.25),rgba(47,224,200,.25),rgba(242,234,58,.2),rgba(255,61,154,.25))}.tcard.t6 .tc-units i{border-color:rgba(243,239,230,.5);background:rgba(255,255,255,.06)}.tcard.t6 .tc-units i.on{background:var(--mint);box-shadow:0 0 6px var(--mint)}
+.tc-note{font-size:12.5px;color:var(--mute);line-height:1.5;margin-top:12px;word-break:keep-all}
+.affb .ci{width:18px;height:18px}
 .want{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 10px;border-radius:12px;background:rgba(255,61,154,.12);border:1px dashed rgba(255,61,154,.6);font-size:13px;font-weight:700}
 .want img{width:34px;height:34px;object-fit:contain}
 .vend{border-radius:20px;padding:12px;background:linear-gradient(160deg,#2a8f86,#1a5f5a);border:3px solid #000;box-shadow:5px 5px 0 var(--pink),inset 0 1px 0 rgba(255,255,255,.3)}
@@ -54,7 +75,8 @@ const css = `
 .app.dedit .home,.app.dedit .callv{opacity:0;pointer-events:none}
 .dbar{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:61;display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:18px;background:rgba(10,12,15,.88);border:1px solid var(--line)}
 .dbar p{font-size:13px;color:var(--mute);line-height:1.45;word-break:keep-all}
-.dbar>.btn{height:46px;flex:none}.dbar .r{display:flex;gap:8px}.dbar .r .btn{flex:1;height:44px;font-size:14px}
+.dbar>.btn{height:46px;flex:none}.dbar .r{display:flex;gap:8px}.trow{display:flex;align-items:center;gap:10px;font-size:13px}.trow b{flex:none;color:var(--mint);font-weight:700}.trow .tv{flex:none;width:40px;text-align:right;font-family:'Space Mono',monospace;color:var(--yel)}
+.tilt{flex:1;height:32px;accent-color:var(--pink)}.dbar .r .btn{flex:1;height:44px;font-size:14px}
 .gpop{position:absolute;z-index:70;width:84px;pointer-events:none;animation:gpop 1.4s var(--ease) forwards}
 @keyframes gpop{0%{opacity:0;transform:translateY(40px) scale(.4)}25%{opacity:1;transform:translateY(0) scale(1.1)}70%{opacity:1;transform:translateY(-20px) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(.8)}}
 .hearts{position:absolute;z-index:70;pointer-events:none;font-size:26px;color:var(--pink);text-shadow:2px 2px 0 #000;animation:hearts 1.2s ease-out forwards}
@@ -104,7 +126,10 @@ const SECRET = [
 ];
 const lv = p => Math.floor(Math.sqrt((p || 0) / 5));
 const need = n => 5 * n * n;
-const A = () => { if (!S.aff) S.aff = { pt: 0, last: dk(new Date()), dday: dk(new Date()), notes: [] }; return S.aff; };
+// 호감도 등급 = 레나 텔레카드(공중전화 카드). 단계가 오를수록 카드 재질이 바뀐다
+const TIER = [['모르는 번호', 0], ['저장된 번호', 1], ['밤의 단골', 2], ['단축번호 1번', 3], ['새벽 세 시의 목소리', 4], ['비밀 회선', 5], ['레나 전용선', 6]];
+const tierOf = n => { const t = TIER[Math.min(n, TIER.length - 1)]; return { name: t[0] + (n >= TIER.length ? ` ${n - TIER.length + 2}` : ''), cls: 't' + t[1] }; };
+const A = () => { if (!S.aff) S.aff = { pt: 0, last: dk(new Date()), dday: dk(new Date()), notes: [] }; S.aff.notes = S.aff.notes || []; return S.aff; };
 const daysSince = d => Math.max(0, Math.round((new Date(dk(new Date()) + 'T00:00') - new Date(d + 'T00:00')) / DAY));
 function decay() { const a = A(), d = daysSince(a.dday || dk(new Date())); if (d > 0) { a.pt = Math.max(0, a.pt - d * 6); a.dday = dk(new Date()); save(); } }
 function mood() { if (!A().gifts) return ['설렘', '아직 선물 받은 적 없어요. …기대해도 돼요?']; const d = daysSince(A().last); return d === 0 ? ['두근두근', '오늘 선물 받아서 기분 최고예요.'] : d === 1 ? ['보통', '오늘은 아직 아무것도 못 받았네요…'] : d <= 3 ? ['서운', `${d}일째 빈손이에요. …서운해요.`] : ['삐침', `${d}일 동안 연락만 하고 선물은 없었죠. 흥.`]; }
@@ -130,7 +155,7 @@ function give(g) {
   const bonus = today().want === g.id ? 2 : 1; a.pt += g.h * bonus; a.last = dk(new Date()); a.gifts = a.gifts || {}; a.gifts[g.id] = (a.gifts[g.id] || 0) + 1; save();
   fx(SI(g.i)); tone([880, 1320], .1, .04, 'triangle', .1);
   const after = lv(a.pt); let line = pick(g.say) + (bonus > 1 ? ' …제가 갖고 싶었던 거 어떻게 알았어요?' : '');
-  if (after > before) { line += `\n(호감도 ${after}단계! 레나 수첩에 새 이야기가 생겼어요)`; unlockNote(after); }
+  if (after > before) { line += `\n(텔레카드가 「${tierOf(after).name}」로 바뀌었어요. 레나 수첩에 새 이야기가 생겼어요)`; unlockNote(after); }
   refreshSheet(); renderAff(); setTimeout(() => say(line, 'happy', false), 600);
 }
 async function unlockNote(n) {
@@ -147,11 +172,15 @@ async function letter() {
 }
 // 부스 꾸미기
 function D() { if (!S.decor) S.decor = { own: [], on: [] }; return S.decor; }
-// 부스 유리에 붙은 스티커: 배경 그림 속 뒤쪽 유리판(원근 사각형)에 맞춰 matrix3d로 기울이고,
-// 레나 가림판(dotmask)으로 잘라서 레나 뒤 유리에 붙은 것처럼 보인다. 위치는 유리판 좌표(a,b: 0~1)로 저장.
+// 부스 유리에 붙은 스티커: 배경 그림 속 유리판(원근 사각형)에 맞춰 matrix3d로 기울이고,
+// 레나 가림판(dotmask)으로 잘라서 레나 뒤 유리에 붙은 것처럼 보인다. 유리판은 셋: 0 뒤쪽(해골), 1 왼쪽 옆판(벽 전화기), 2 오른쪽 창.
+// 위치는 {g 유리판, a,b 유리판 좌표 0~1, r 기울기(도), s 크기(그림 px), f 좌우 뒤집기}
 const IMW = 1050, IMH = 1872;
-const QUAD = [[.035, .12], [.66, .04], [.74, .76], [.10, .80]]; // 유리판 네 모서리(그림 기준 비율): 왼위, 오른위, 오른아래, 왼아래
-const GLASS = [[.035, .12], [.65, .04], [.70, .30], [.79, .72], [.30, .79], [.035, .34]]; // 실제로 붙일 수 있는 유리 영역
+const PLANES = [
+  { q: [[.035, .12], [.66, .04], [.74, .76], [.10, .80]], poly: [[.035, .12], [.65, .04], [.70, .30], [.79, .72], [.30, .79], [.035, .34]] },
+  { q: [[-.15, .25], [.06, .33], [.32, .82], [-.15, .90]], poly: [[-.12, .36], [.035, .36], [.30, .80], [-.12, .80]] },
+  { q: [[.86, .02], [1.06, 0], [1.06, .92], [.90, .80]], poly: [[.865, .02], [1.12, .02], [1.12, .9], [.90, .80]] }
+];
 const SLOTS = [[.2, .1, -6], [.62, .07, 5], [.14, .42, 4], [.5, .2, -4]];
 const RXS = [[.42, .2, -8], [.22, .07, 6], [.3, .3, -4], [.7, .12, 6], [.52, .1, 0], [.1, .2, -10]]; // 리액션 스티커 기본 자리: 레나 머리 둘레
 function homog(src, dst) { // 네 점 → 네 점 사영 변환 [a,b,c,d,e,f,g,h]
@@ -161,29 +190,38 @@ function homog(src, dst) { // 네 점 → 네 점 사영 변환 [a,b,c,d,e,f,g,h
   return B.map((b, i) => b / A[i][i]);
 }
 const ap = (h, [x, y]) => { const w = h[6] * x + h[7] * y + 1; return [(h[0] * x + h[1] * y + h[2]) / w, (h[3] * x + h[4] * y + h[5]) / w]; };
+const dist = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
 function view() { // 지금 화면에서 그림이 놓인 자리(cover, 가운데 위)
   const L = $('decorL'), W = L.clientWidth, H = L.clientHeight, s = Math.max(W / IMW, H / IMH);
-  const toS = ([u, v]) => [(W - IMW * s) / 2 + u * IMW * s, v * IMH * s];
-  const q = QUAD.map(toS); return { W, H, toS, H1: homog([[0, 0], [1, 0], [1, 1], [0, 1]], q), H2: homog(q, [[0, 0], [1, 0], [1, 1], [0, 1]]), poly: GLASS.map(toS), q };
+  const toS = ([u, v]) => [(W - IMW * s) / 2 + u * IMW * s, v * IMH * s], U = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  return { W, H, s, pl: PLANES.map(P => { const q = P.q.map(toS); return { q, H1: homog(U, q), H2: homog(q, U), poly: P.poly.map(toS), Sa: dist(q[0], q[1]), Sb: dist(q[0], q[3]) }; }) };
 }
 const inPoly = (pt, P) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi) c = !c; } return c; };
-const P = id => { const D0 = D(); D0.gl = D0.gl || {}; if (!D0.gl[id]) { const i = D0.on.indexOf(id), rx = (DECOR.find(x => x.id === id) || {}).rx, [a, b, r] = rx ? RXS[Math.max(0, i) % RXS.length] : SLOTS[Math.max(0, i) % 4]; D0.gl[id] = { a, b, r, w: .2 }; } return D0.gl[id]; };
-function corners(V, p) { // 스티커 네 모서리(유리판 좌표) → 화면 좌표
-  const k = Math.hypot(V.q[1][0] - V.q[0][0], V.q[1][1] - V.q[0][1]) / Math.hypot(V.q[3][0] - V.q[0][0], V.q[3][1] - V.q[0][1]); // 유리판 가로/세로 비
-  const h = p.w / 2, c = Math.cos(p.r * Math.PI / 180), s = Math.sin(p.r * Math.PI / 180);
-  return [[-h, -h], [h, -h], [h, h], [-h, h]].map(([x, y]) => ap(V.H1, [p.a + x * c - y * s, p.b + (x * s + y * c) * k]));
+const P = id => { const D0 = D(); D0.gl = D0.gl || {}; let p = D0.gl[id];
+  if (!p) { const i = D0.on.indexOf(id), rx = (DECOR.find(x => x.id === id) || {}).rx, [a, b, r] = rx ? RXS[Math.max(0, i) % RXS.length] : SLOTS[Math.max(0, i) % 4]; p = D0.gl[id] = { g: 0, a, b, r, s: 130, f: 0 }; }
+  if (p.s == null) { p.s = Math.round((p.w || .2) * 650); p.g = 0; p.f = 0; } return p; };
+function corners(V, p) { // 스티커 네 모서리 → 화면 좌표 (왼위, 오른위, 오른아래, 왼아래)
+  const pl = V.pl[p.g || 0], h = p.s * V.s / 2, c = Math.cos(p.r * Math.PI / 180), s = Math.sin(p.r * Math.PI / 180);
+  return [[-h, -h], [h, -h], [h, h], [-h, h]].map(([x, y]) => ap(pl.H1, [p.a + (x * c - y * s) / pl.Sa, p.b + (x * s + y * c) / pl.Sb]));
 }
-const okPos = (V, p) => corners(V, p).every(pt => inPoly(pt, V.poly));
+const okPos = (V, p) => corners(V, p).every(pt => inPoly(pt, V.pl[p.g || 0].poly));
 let edSel = null;
+function freeSpot(V, p, id) { // 유리 밖에 있으면 다른 스티커와 가장 먼 빈자리로
+  const others = D().on.filter(x => x !== id && D().gl && D().gl[x]).map(x => ap(V.pl[D().gl[x].g || 0].H1, [D().gl[x].a, D().gl[x].b]));
+  let best = null; p.g = 0; p.s = Math.min(p.s, 130);
+  for (let a = .12; a < .9; a += .07) for (let b = .06; b < .7; b += .06) { const n = { ...p, a, b }; if (!okPos(V, n)) continue; const c = ap(V.pl[0].H1, [a, b]), d = others.length ? Math.min(...others.map(o => dist(o, c))) : 0; if (!best || d > best.d) best = { d, a, b }; }
+  if (best) { p.a = best.a; p.b = best.b; }
+}
+window.lenaStk = () => { const V = view(); return D().on.slice(0, 6).map(id => { const c = corners(V, P(id)); return [id, c.reduce((a, p) => a + p[0], 0) / 4, c.reduce((a, p) => a + p[1], 0) / 4]; }); }; // 점검용: 스티커 화면 중심
 function renderDecor() {
   let L = $('decorL'); if (!L) { L = el('div', 'decor'); L.id = 'decorL'; document.querySelector('.dots').before(L); }
   L.innerHTML = ''; if (!L.clientWidth) return; const V = view();
-  if (document.getElementById('app').classList.contains('dedit')) { const sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sv.setAttribute('class', 'gzone'); sv.setAttribute('viewBox', `0 0 ${V.W} ${V.H}`); sv.innerHTML = `<polygon points="${V.poly.map(p => p.join(',')).join(' ')}"/>`; L.appendChild(sv); }
+  if (document.getElementById('app').classList.contains('dedit')) { const sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sv.setAttribute('class', 'gzone'); sv.setAttribute('viewBox', `0 0 ${V.W} ${V.H}`); sv.innerHTML = V.pl.map(pl => `<polygon points="${pl.poly.map(p => p.join(',')).join(' ')}"/>`).join(''); L.appendChild(sv); }
   D().on.slice(0, 6).forEach(id => {
     const d = DECOR.find(x => x.id === id); if (!d) return; const p = P(id);
-    if (!okPos(V, p)) { p.a = Math.min(.8, Math.max(.2, p.a)); p.b = Math.min(.6, Math.max(.1, p.b)); }
+    if (!okPos(V, p)) freeSpot(V, p, id);
     const s = el('div', 'stk' + (edSel === id ? ' sel' : '')); s.style.setProperty('--im', `url(${SI(d.i)})`); s.dataset.id = id;
-    const m = homog([[0, 0], [100, 0], [100, 100], [0, 100]], corners(V, p));
+    const c = corners(V, p), m = homog([[0, 0], [100, 0], [100, 100], [0, 100]], p.f ? [c[1], c[0], c[3], c[2]] : c);
     s.style.transform = `matrix3d(${m[0]},${m[3]},0,${m[6]},${m[1]},${m[4]},0,${m[7]},0,0,1,0,${m[2]},${m[5]},0,1)`;
     L.appendChild(s);
   });
@@ -193,9 +231,9 @@ let dropC = null;
 function drops(V) { // 유리 위 물방울(스티커 위에 맺힘) — 유리판 모양으로 잘라 냄
   const key = V.W + 'x' + V.H; if (dropC && dropC.key === key) return dropC.c;
   const dpr = Math.min(2, devicePixelRatio || 1), c = el('canvas', 'gdrop'); c.width = V.W * dpr; c.height = V.H * dpr; const x = c.getContext('2d'); x.scale(dpr, dpr);
-  c.style.clipPath = `polygon(${V.poly.map(([a, b]) => `${a}px ${b}px`).join(',')})`;
+  c.style.clipPath = `polygon(${V.pl[0].poly.map(([a, b]) => `${a}px ${b}px`).join(',')})`;
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const xs = V.poly.map(p => p[0]), ys = V.poly.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const xs = V.pl[0].poly.map(p => p[0]), ys = V.pl[0].poly.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
   for (let i = 0; i < 26; i++) { const sx = x0 + rnd() * (x1 - x0), sy = y0 + rnd() * (y1 - y0) * .7, len = 30 + rnd() * 120, g = x.createLinearGradient(sx, sy, sx, sy + len); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.7, 'rgba(220,240,255,.16)'); g.addColorStop(1, 'rgba(255,255,255,.3)'); x.strokeStyle = g; x.lineWidth = 1 + rnd() * 1.6; x.beginPath(); x.moveTo(sx, sy); x.bezierCurveTo(sx + rnd() * 4 - 2, sy + len * .4, sx + rnd() * 6 - 3, sy + len * .7, sx + rnd() * 4 - 2, sy + len); x.stroke(); }
   for (let i = 0; i < 230; i++) {
     const px = x0 + rnd() * (x1 - x0), py = y0 + rnd() * (y1 - y0), r = rnd() < .85 ? .7 + rnd() * 1.8 : 2.5 + rnd() * 3, ry = r * (1 + rnd() * .35);
@@ -210,18 +248,33 @@ function decorEdit() {
   closeSheet(); const app = $('app');
   if (!D().on.length) { toast('먼저 부스 꾸미기에서 장식을 골라 주세요.'); return; }
   app.classList.add('dedit'); edSel = D().on[0]; renderDecor(); const L = $('decorL');
-  const bar = el('div', 'dbar'); bar.appendChild(el('p', null, '밝게 표시된 뒤쪽 유리에만 붙일 수 있어요. 끌어서 옮기고, 레나 뒤로 가면 레나에 가려져요.'));
-  const mod = f => () => { if (!edSel) return; const p = P(edSel), old = { ...p }; f(p); if (!okPos(view(), p)) { Object.assign(p, old); toast('유리 밖으로 나가요.'); return; } save(); renderDecor(); };
-  const r = row(btn('작게', 'ghost', mod(p => p.w = Math.max(.1, p.w - .03))), btn('크게', 'ghost', mod(p => p.w = Math.min(.42, p.w + .03))), btn('↺', 'ghost', mod(p => p.r -= 8)), btn('↻', 'ghost', mod(p => p.r += 8)));
+  const bar = el('div', 'dbar'); bar.appendChild(el('p', null, '점선 안 유리(뒤쪽·왼쪽 옆판·오른쪽 창)에만 붙어요. 끌어서 옮기고, 고른 스티커는 아래에서 크기·뒤집기·기울기를 바꿔요.'));
+  const tilt = el('input'); tilt.type = 'range'; tilt.min = -60; tilt.max = 60; tilt.step = 1; tilt.className = 'tilt';
+  const tl = el('span', 'tv');
+  const sync = () => { if (!edSel) return; const p = P(edSel); tilt.value = Math.max(-60, Math.min(60, p.r)); tl.textContent = `${Math.round(p.r)}°`; };
+  const mod = f => () => { if (!edSel) return; const p = P(edSel), old = { ...p }; f(p); if (!okPos(view(), p)) { Object.assign(p, old); toast('유리 밖으로 나가요.'); sync(); return; } save(); renderDecor(); sync(); };
+  const r = row(btn('작게', 'ghost', mod(p => p.s = Math.max(60, p.s - 18))), btn('크게', 'ghost', mod(p => p.s = Math.min(320, p.s + 18))), btn('⇋ 뒤집기', 'ghost', mod(p => p.f = p.f ? 0 : 1)));
   r.className = 'r'; bar.appendChild(r);
+  const tr = el('label', 'trow'); tr.append(el('b', null, '기울기'), tilt, tl); bar.appendChild(tr);
+  tilt.oninput = () => { if (!edSel) return; const p = P(edSel), old = p.r; p.r = +tilt.value; if (!okPos(view(), p)) { p.r = old; tilt.value = old; return; } tl.textContent = `${p.r}°`; renderDecor(); };
+  tilt.onchange = () => save();
   bar.appendChild(btn('다 붙였어요', 'wide', () => { app.classList.remove('dedit'); edSel = null; bar.remove(); L.onpointerdown = null; save(); renderDecor(); toast('부스 유리에 붙였어요.'); }));
-  app.appendChild(bar);
+  app.appendChild(bar); sync();
   L.onpointerdown = e => {
-    const t = e.target.closest('.stk'); if (!t) return; e.preventDefault(); edSel = t.dataset.id; L.querySelectorAll('.stk').forEach(x => x.classList.toggle('sel', x === t));
-    const V = view(), rc = L.getBoundingClientRect(), p = P(edSel), at = ev => ap(V.H2, [ev.clientX - rc.left, ev.clientY - rc.top]), [a0, b0] = at(e), off = [p.a - a0, p.b - b0];
+    // 기울어진 스티커는 브라우저 판정이 어긋날 수 있어서, 화면 속 실제 네 모서리로 직접 고른다(위에 있는 것 먼저)
+    const V = view(), rc = L.getBoundingClientRect(), pt = [e.clientX - rc.left, e.clientY - rc.top];
+    const hitId = [...D().on.slice(0, 6)].reverse().find(id => inPoly(pt, corners(V, P(id)))); if (!hitId) return;
+    e.preventDefault(); edSel = hitId; L.querySelectorAll('.stk').forEach(x => x.classList.toggle('sel', x.dataset.id === hitId)); sync();
+    const p = P(edSel), cen = ap(V.pl[p.g || 0].H1, [p.a, p.b]), off = [e.clientX - rc.left - cen[0], e.clientY - rc.top - cen[1]];
     L.setPointerCapture(e.pointerId);
-    L.onpointermove = ev => { const [a, b] = at(ev), n = { ...p, a: a + off[0], b: b + off[1] }; if (okPos(V, n)) { p.a = n.a; p.b = n.b; renderDecor(); } else { // 벽에 닿으면 한 축씩만이라도 따라가게
-        const na = { ...p, a: n.a }, nb = { ...p, b: n.b }; if (okPos(V, na)) { p.a = na.a; renderDecor(); } else if (okPos(V, nb)) { p.b = nb.b; renderDecor(); } } };
+    L.onpointermove = ev => {
+      const c = [ev.clientX - rc.left - off[0], ev.clientY - rc.top - off[1]];
+      const order = [p.g || 0, ...[0, 1, 2].filter(g => g !== (p.g || 0))]; // 지금 유리판 먼저, 손가락이 넘어가면 옆 유리판으로
+      for (const g of order) { if (!inPoly(c, V.pl[g].poly)) continue; const [a, b] = ap(V.pl[g].H2, c), n = { ...p, g, a, b };
+        // 옆 유리는 화면에 좁게 보여서, 안 들어가면 바깥쪽으로 조금씩 밀어 붙인다
+        for (let k = 0; k < 30 && !okPos(V, n) && g; k++) n.a += g === 2 ? .03 : -.03;
+        if (okPos(V, n)) { Object.assign(p, n); renderDecor(); } break; }
+    };
     L.onpointerup = L.onpointercancel = () => { L.onpointermove = null; tone([900], .03, .03); save(); };
   };
 }
@@ -229,16 +282,19 @@ function decorEdit() {
 function renderAff() {
   const hd = document.querySelector('.ahead .hd'); if (!hd) return; let b = $('affB');
   if (!b) { b = el('button', 'affb'); b.id = 'affB'; b.onclick = () => { dtmf(8); openSheet('shop'); }; hd.appendChild(b); }
-  const a = A(), [m] = mood(); b.innerHTML = `${ci('heart')}호감도 <u>${lv(a.pt)}</u> · ${m}`;
+  const a = A(), [m] = mood(); b.innerHTML = `${ci('heart')}<u>${tierOf(lv(a.pt)).name}</u> · ${m}`;
 }
 // 자판기 시트
 let tab = 'today';
 SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매일 자정에 바뀌어요`, r: B => {
   decay(); const a = A(), n = lv(a.pt), [m, mt] = mood(), s = today();
-  const c = el('div', 'card'), top = el('div', 'affc'), av = el('div', 'ava2'), tx = el('div'); tx.append(el('b', null, `호감도 ${n}단계 · ${m}`), el('small', null, mt + ' 하루 지날 때마다 호감도가 조금씩 내려가요.'));
-  top.append(av, tx); c.appendChild(top);
-  const hb = el('div', 'hbar'), hi = el('i'); hi.style.width = Math.min(100, (a.pt - need(n)) / Math.max(1, need(n + 1) - need(n)) * 100) + '%'; hb.appendChild(hi); c.appendChild(hb);
-  c.appendChild(el('div', 'hint', `다음 단계까지 ${need(n + 1) - a.pt}점 · 단계가 오르면 레나 수첩에 비밀 이야기가 하나씩 열려요`));
+  const c = el('div'), tr = tierOf(n), tc = el('div', 'tcard ' + tr.cls), units = 10, filled = Math.floor(Math.min(1, (a.pt - need(n)) / Math.max(1, need(n + 1) - need(n))) * units);
+  const top = el('div', 'tc-top'); top.append(el('span', 'tc-brand', '레나 텔레카드'), el('span', 'tc-mood', m)); tc.appendChild(top);
+  tc.append(el('div', 'tc-chip'), el('div', 'tc-face'));
+  const nm = el('div', 'tc-name'); nm.append(el('span', 'tc-lv', `호감도 ${n}단계`), document.createTextNode(tr.name)); tc.appendChild(nm);
+  const U = el('div', 'tc-units'); for (let i = 0; i < units; i++) U.appendChild(el('i', i < filled ? 'on' : '')); U.appendChild(el('small', null, `${need(n + 1) - a.pt}점 남음`)); tc.appendChild(U);
+  c.appendChild(tc);
+  c.appendChild(el('div', 'tc-note', `${mt} 칸이 다 차면 카드가 바뀌고 수첩에 비밀이 열려요. 선물이 없는 날은 조금씩 줄어요.`));
   const w = GIFT.find(g => g.id === s.want); const wb = el('div', 'want'), wi = el('img'); wi.src = SI(w.i); wi.alt = ''; wb.append(wi, document.createTextNode(`오늘 레나가 갖고 싶은 것: ${w.n} (호감도 2배)`)); c.appendChild(wb);
   B.appendChild(c);
   const T = el('div', 'tabs'); [['today', '오늘의 자판기'], ['gift', '선물'], ['decor', '부스 꾸미기'], ['note', '레나 수첩']].forEach(([v, l]) => { const b = el('button', tab === v ? 'on' : '', l); b.onclick = () => { tab = v; refreshSheet(); }; T.appendChild(b); }); T.style.marginTop = '14px'; B.appendChild(T);
@@ -262,16 +318,16 @@ SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 �
       t.onclick = () => { if (!own) { toast(`${d.n}: 오늘의 자판기에 나오면 살 수 있어요 (동전 ${d.p}개).`); return; } const o = D().on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 6) o.shift(); o.push(d.id); } save(); renderDecor(); refreshSheet(); }; G.appendChild(t); });
     B.appendChild(G); if (D().on.length) B.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', decorEdit))); B.appendChild(el('div', 'hint', `모은 장식 ${D().own.length}/${DECOR.length} · 6개까지 붙일 수 있어요. 누르면 붙이고 떼요. 붙인 장식은 레나 뒤 유리에 붙어 영상통화 화면에 보여요. 장식은 오늘의 자판기에 날마다 하나씩 나와요.`));
   } else {
-    const L = a.notes; if (!L.length) B.appendChild(empty('아직 비어 있어요. 호감도 1단계가 되면 첫 비밀이 열려요.', 'st_heart'));
+    const L = a.notes; if (!L.length) B.appendChild(empty('아직 비어 있어요. 텔레카드가 「저장된 번호」가 되면 첫 비밀이 열려요.', 'st_heart'));
     L.forEach((t, i) => { const d = el('div', 'note2'); d.append(el('h5', null, `${i + 1}단계 · 레나의 비밀`), document.createTextNode(t)); B.appendChild(d); });
-    const nx = el('div', 'note2 lock'); nx.textContent = `${L.length + 1}단계가 되면 다음 이야기가 열려요.`; B.appendChild(nx);
+    const nx = el('div', 'note2 lock'); nx.textContent = `텔레카드가 「${tierOf(L.length + 1).name}」가 되면 다음 이야기가 열려요.`; B.appendChild(nx);
   }
 } };
 // 홈의 동전 배지 → 자판기
 const _rh = renderHome; renderHome = function () { _rh(); const c = document.querySelector('.coinb'); if (c) c.onclick = () => { dtmf(8); openSheet('shop'); }; renderAff(); };
 // 오락실의 운세 버튼 → 자판기
 // 레나 대화에 호감도 반영
-const _sys = sysPrompt; sysPrompt = function (sp) { const a = A(), [m] = mood(); return _sys(sp).replace('JSON만 출력:', `- 지금 레나의 호감도 ${lv(a.pt)}단계, 기분 "${m}". 단계가 높을수록 더 다정하고 솔직하게, 서운/삐침이면 장난스럽게 투정한다(선물 얘기는 가끔만).\nJSON만 출력:`); };
+const _sys = sysPrompt; sysPrompt = function (sp) { const a = A(), [m] = mood(); return _sys(sp).replace('JSON만 출력:', `- 지금 레나의 호감도 ${lv(a.pt)}단계(「${tierOf(lv(a.pt)).name}」), 기분 "${m}". 단계가 높을수록 더 다정하고 솔직하게, 서운/삐침이면 장난스럽게 투정한다(선물 얘기는 가끔만).\nJSON만 출력:`); };
 decay(); D(); setTimeout(() => { renderDecor(); renderAff(); }, 0);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { decay(); renderAff(); } });
 window.openShop = () => openSheet('shop');
