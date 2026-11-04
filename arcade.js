@@ -13,6 +13,7 @@ const css = `
 .abody{position:relative;flex:1;overflow-y:auto;padding:4px 14px calc(var(--sb) + 16px);display:flex;flex-direction:column;gap:12px}
 .talkr{display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 12px;background:rgba(0,0,0,.5);border:1px solid var(--line);border-radius:14px}
 .talkr i{width:38px;height:38px;flex:none;border-radius:50%;background:url(assets/lena/cat.jpg) center/cover;border:2px solid #000;box-shadow:2px 2px 0 var(--pink)}
+.talkr i.face{background:url(assets/lena/face.jpg) 50% 30%/cover}
 .talkr i.sk{background:#151515 url(assets/lena/st_skull.webp) center/80% no-repeat;box-shadow:2px 2px 0 var(--teal)}
 .talkr span{font-size:14.5px;font-weight:700;line-height:1.45;word-break:keep-all}
 .gcards{display:grid;gap:12px}
@@ -90,7 +91,7 @@ function frame(title, body, back, flat) {
   const B = el('div', 'abody' + (flat ? ' flat' : '')); A.append(h, B); body(B); hdr(); return B;
 }
 function hdr() { const g = $('gcb'); if (!g) return; g.innerHTML = ''; const i = el('img'); i.src = img('st_coin'); i.alt = ''; g.append(i, document.createTextNode(gc())); }
-function talk(B, who, t) { const r = el('div', 'talkr'), i = el('i', who === 'sk' ? 'sk' : ''); const s = el('span', null, t); r.append(i, s); B.appendChild(r); return s; }
+function talk(B, who, t) { const r = el('div', 'talkr'), i = el('i', who === 'sk' ? 'sk' : $('app').classList.contains('outside') ? '' : 'face'); const s = el('span', null, t); r.append(i, s); B.appendChild(r); return s; }
 function openArc() { const fresh = gcInit(); A.classList.add('on'); hub(fresh); }
 function closeArc() { if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; } A.classList.remove('on'); cur = ''; if (typeof renderHome === 'function') renderHome(); }
 window.openArc = openArc;

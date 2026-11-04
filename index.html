@@ -35,9 +35,11 @@ body{position:fixed;inset:0;overflow:hidden}
 /* ---------- booth (home) ---------- */
 .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;background:#000 url(assets/lena/poster.jpg) center top/cover;transition:filter .35s var(--ease),transform .35s var(--ease)}
 .app.dim .bg{filter:blur(7px) brightness(.4) saturate(1.15);transform:scale(1.06)}
+.dots{position:absolute;inset:0;pointer-events:none;background:radial-gradient(rgba(0,0,0,.26) 1px,transparent 1.25px) 0 0/4px 4px;mix-blend-mode:multiply;
+  -webkit-mask:url(assets/lena/dotmask.png) center top/cover no-repeat;mask:url(assets/lena/dotmask.png) center top/cover no-repeat}
+.app.outside .dots{display:none}
 .fx{position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(rgba(0,0,0,.2) 1px,transparent 1.2px) 0 0/4px 4px,
-  linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 15%,rgba(0,0,0,0) 56%,rgba(0,0,0,.8) 80%,#000 100%);mix-blend-mode:multiply}
+  background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 15%,rgba(0,0,0,0) 56%,rgba(0,0,0,.8) 80%,#000 100%);mix-blend-mode:multiply}
 .top{position:absolute;left:16px;right:16px;top:calc(var(--st) + 12px);display:flex;justify-content:space-between;align-items:flex-start;z-index:5}
 .miss{display:flex;align-items:center;gap:7px;height:36px;padding:0 13px 0 10px;border-radius:18px;background:var(--hot);color:#fff;font-weight:800;font-size:14px;box-shadow:3px 3px 0 #000;transform:rotate(-3deg);transition:transform .2s}
 .miss:active{transform:rotate(-3deg) scale(.95)}
@@ -52,7 +54,8 @@ body{position:fixed;inset:0;overflow:hidden}
 .fly:active{transform:scale(.96) rotate(var(--r))}
 .fly .tp{position:absolute;left:50%;top:-10px;width:70px;height:18px;margin-left:-35px;background-size:100% 100%;transform:rotate(-4deg)}
 .fly small{display:block;font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;opacity:.72;letter-spacing:.5px}
-.fly b{display:block;font-size:15px;font-weight:800;line-height:1.3;word-break:keep-all}
+.fly b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:15px;font-weight:800;line-height:1.3;word-break:keep-all}
+.fly i{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fly i{display:block;font-style:normal;font-size:12.5px;font-weight:600;line-height:1.45}
 .fly i.d{text-decoration:line-through;opacity:.45}
 .f1{right:12px;top:calc(var(--st) + 92px);width:136px;transform:rotate(5deg);--r:5deg;background-image:url(assets/lena/paper_pink.webp);color:#fff}
@@ -275,6 +278,19 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .vtog{height:36px;padding:0 13px;border-radius:18px;background:rgba(0,0,0,.6);border:1.5px solid var(--green);box-shadow:2px 2px 0 #000;font-size:13px;font-weight:700;color:#e6eef0;display:flex;align-items:center;gap:6px}
 .vtog svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @media (max-height:640px){.app.outside .agrid{display:none}.aava{width:72px;height:72px}.ahead h1{font-size:26px}}
+
+@media (max-height:740px){
+ .app.outside .ahead{padding-top:calc(var(--st) + 14px);flex-direction:row;justify-content:center;gap:12px}
+ .aava{width:58px;height:58px;border-width:2px;box-shadow:3px 3px 0 var(--pink)}
+ .ahead h1{font-size:26px;margin-top:0}
+ .ahead p{margin-top:0}
+ .app.outside .agrid{gap:6px 0;padding:4px 18px 8px}
+ .ab i{width:50px;height:50px}.ab svg{width:22px;height:22px}.ab{font-size:11px;gap:4px}
+ .quick{padding-bottom:6px}
+ .f1{width:118px;padding:10px 11px 11px}.f1 b{font-size:13.5px}
+ .f2{width:112px}.knock{width:118px;top:44%}
+}
+.ahead .hd{display:flex;flex-direction:column;align-items:center}
 @media (max-height:700px){.f1{top:calc(var(--st) + 78px)}.f2{top:calc(var(--st) + 170px)}.coinb{top:calc(var(--st) + 182px)}.sub{bottom:calc(var(--sb) + 118px)}.line{font-size:17px}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
@@ -282,7 +298,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 <body>
 <div class="app" id="app">
   <video class="bg" id="bg" src="assets/lena/bg.mp4" poster="assets/lena/poster.jpg" muted loop playsinline preload="auto" aria-hidden="true"></video>
-  <div class="fx"></div>
+  <div class="dots"></div><div class="fx"></div>
 
   <!-- HOME -->
   <section class="home" id="home">
@@ -304,7 +320,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 
   <!-- CALL -->
   <section class="callv" id="callv">
-    <div class="ahead"><div class="aava"></div><h1>레나</h1><p id="aT">통화 중 00:00</p></div>
+    <div class="ahead"><div class="aava"></div><div class="hd"><h1>레나</h1><p id="aT">통화 중 00:00</p></div></div>
     <div class="ctop"><div class="chip"><i></i><span id="callT">통화 중 00:00</span></div><button class="vtog" id="toAudio2"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z" fill="#21c55d" stroke="none"/></svg>음성통화로</button></div>
     <div class="log" id="log"></div>
     <div class="attp" id="attp"><img id="attImg" alt=""><span>사진을 같이 보낼게요</span><button id="attX" aria-label="사진 빼기">×</button></div>
