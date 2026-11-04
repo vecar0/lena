@@ -119,7 +119,7 @@ function play() {
   }
   function revive() {
     G.lvlup = true; const M = el('div', 'lvl'); M.appendChild(el('h3', null, '쓰러지기 직전!'));
-    const tk = el('div', 'talkr'), ti = el('i'); tk.append(ti, el('span', null, '안 돼요. …딱 한 번, 제가 일으켜 줄게요.')); M.appendChild(tk);
+    const tk = el('div', 'talkr'), ti = el('i', $('app').classList.contains('outside') ? '' : 'face'); tk.append(ti, el('span', null, '안 돼요. …딱 한 번, 제가 일으켜 줄게요.')); M.appendChild(tk);
     M.appendChild(row(btn('레나 손 잡고 일어나기', 'teal wide', () => { G.rev = 1; G.p.hp = G.p.mhp * .6; G.p.inv = 2; G.en = G.en.filter(e => dist2(e, G.p) > 260 * 260); G.lvlup = false; M.remove(); last = performance.now(); coinSound(); }), btn('그만하기', 'ghost wide', () => { M.remove(); G.lvlup = false; end(false); })));
     W.appendChild(M);
   }
@@ -128,7 +128,7 @@ function play() {
     S.svBest = Math.max(S.svBest || 0, t); S.svKill = Math.max(S.svKill || 0, G.kills); save(); if (reward) gcAdd(reward);
     const M = el('div', 'lvl'); M.appendChild(el('h3', null, win ? '새벽이 왔어요!' : '쓰러졌어요…'));
     const s = el('div', 'rules'); s.innerHTML = `버틴 시간 <b>${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}</b> · 처치 <b>${G.kills}</b> · 레벨 <b>${G.lv}</b><br>게임 동전 <b>+${reward}</b>`; M.appendChild(s);
-    const tk = el('div', 'talkr'), ti = el('i'); tk.append(ti, el('span', null, win ? '진짜 버텼어요? …멋있다. 오늘은 제가 반했어요.' : pick(['괜찮아요, 고양이는 무사해요. 다시 해요.', '해골들이 너무 많았죠. 다음엔 레이저부터 챙겨요.'])));
+    const tk = el('div', 'talkr'), ti = el('i', $('app').classList.contains('outside') ? '' : 'face'); tk.append(ti, el('span', null, win ? '진짜 버텼어요? …멋있다. 오늘은 제가 반했어요.' : pick(['괜찮아요, 고양이는 무사해요. 다시 해요.', '해골들이 너무 많았죠. 다음엔 레이저부터 챙겨요.'])));
     M.appendChild(tk); if (win && !G.endless) M.appendChild(row(btn('계속 버티기 (끝없는 밤)', 'teal wide', () => { M.remove(); G.over = false; G.endless = true; G.nb = G.t + 60; last = performance.now(); }))); M.appendChild(row(btn('다시 하기', 'wide', play), btn('오락실로', 'ghost wide', () => ARC.hub())));
     W.appendChild(M); win ? (coinSound(), setTimeout(coinSound, 200)) : tone([220, 160], .5, .08, 'triangle');
   }
