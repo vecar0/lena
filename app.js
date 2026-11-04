@@ -339,9 +339,9 @@ function toVideo() {
 function kissFromMouth() {
   const W = app.clientWidth, H = app.clientHeight, sc = Math.max(W / 1136, H / 2048), dw = 1136 * sc, dh = 2048 * sc;
   const x = (W - dw) / 2 + dw * .554, y = dh * .493;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 1; i++) {
     const k = el('img', 'kiss'); k.src = 'assets/lena/st_lips.webp'; k.alt = '';
-    k.style.left = x + 'px'; k.style.top = y + 'px'; k.style.setProperty('--dx', (90 + i * 45) + 'px'); k.style.setProperty('--dy', (10 - i * 38) + 'px'); k.style.setProperty('--r', (-14 + i * 16) + 'deg'); k.style.animationDelay = (i * .16) + 's';
+    k.style.left = x + 'px'; k.style.top = y + 'px'; k.style.setProperty('--dx', '110px'); k.style.setProperty('--dy', '-24px'); k.style.setProperty('--r', '12deg'); k.style.animationDelay = (i * .16) + 's';
     app.appendChild(k); setTimeout(() => k.remove(), 1700 + i * 160);
   }
   tone([1320], .05, .04, 'triangle'); tone([1760], .08, .035, 'triangle', .08);
@@ -376,13 +376,13 @@ function toast(text, undo) { $('toastTx').textContent = text; $('toastUndo').hid
 let callStart = 0, callTimer = 0, busy = false, pendImg = null;
 const QUICK = () => {
   const h = new Date().getHours();
-  return [h >= 20 || h < 4 ? '오늘 하루 정리하자' : '오늘 뭐 있어?', '30분 뒤에 전화해 줘', '남은 할 일 뭐야?', '칭찬해 줘', '내일 일정 알려 줘'];
+  return [h >= 20 || h < 4 ? '오늘 하루 정리하자' : '오늘 뭐 있어?', '🔮 오늘의 운세', '30분 뒤에 전화해 줘', '남은 할 일 뭐야?', '칭찬해 줘', '내일 일정 알려 줘'];
 };
 function openCall() {
   closePad(); if ($('sheet').classList.contains('open')) closeSheet();
   app.classList.add('calling'); callStart = Date.now(); clearInterval(callTimer);
   const up = () => { const s = (Date.now() - callStart) / 1000 | 0, t = `${pad(s / 60 | 0)}:${pad(s % 60)}`; $('callT').textContent = '통화 중 ' + t; $('aT').textContent = '통화 중 ' + t; }; up(); callTimer = setInterval(up, 1000);
-  renderLog(); const Q = $('quick'); Q.innerHTML = ''; Q.classList.toggle('hidden', !S.name); QUICK().forEach(t => { const b = el('button', null, t); b.onclick = () => { dtmf(Math.random() * 9 + 1 | 0); sendText(t); }; Q.appendChild(b); });
+  renderLog(); const Q = $('quick'); Q.innerHTML = ''; Q.classList.toggle('hidden', !S.name); QUICK().forEach(t => { const b = el('button', null, t); b.onclick = () => { dtmf(Math.random() * 9 + 1 | 0); if (t === '🔮 오늘의 운세') fortuneCall(); else sendText(t); }; Q.appendChild(b); });
   tone([350, 440], .25, .04);
 }
 function hangUp() { if (app.classList.contains('outside')) return; stopVoice(); recStop(); app.classList.remove('calling'); clearInterval(callTimer); tone([480, 620], .12, .05); tone([480, 620], .12, .05, 'sine', .2); renderHome(); const last = S.history.filter(h => h.role === 'assistant').slice(-1)[0]; if (last && Date.now() - (last.at || 0) < 5 * 60e3) say(pick(['끊는다고 끝난 거 아니에요. …또 걸어요.', '들어가요. 저는 여기 있을게요.', '…벌써요? 아쉽다.']), 'tease', false); }
@@ -421,6 +421,19 @@ $('micBtn').onclick = () => {
   rec.onerror = () => recStop();
   try { rec.start(); $('micBtn').classList.add('rec'); tone([880], .08, .05); } catch (e) { recStop(); }
 };
+
+// ---------------- 오늘의 운세 전화 (할 일 동전 1개, 하루 한 번) ----------------
+const FORT = { all: ['오늘은 미뤄 둔 걸 하나 끝내면 운이 확 풀려요.', '말 한마디가 행운을 불러요. 먼저 연락해 봐요.', '조금 느려도 괜찮은 날. 대신 끝까지는 가요.', '뜻밖의 칭찬을 듣는 날이에요. 표정 관리해요.', '돈 쓸 일이 생겨요. 지갑은 반만 열어요.', '오후부터 기운이 올라와요. 중요한 건 그때.'], color: ['핑크', '민트', '검정', '은색', '청록', '노랑', '흰색'], warn: ['늦잠', '충동구매', '야식', '답장 미루기', '우산 깜빡하기', '괜한 걱정'] };
+function fortuneCall() {
+  if (S.fortDay === dk(new Date())) { toast('오늘 운세는 이미 들었어요. 내일 또 와요.'); return false; }
+  if ((S.coins || 0) < 1) { toast('할 일 동전이 없어요. 전단지 하나 떼고 와요.'); return false; }
+  S.coins--; S.fortDay = dk(new Date()); save(); coinSound();
+  if (!app.classList.contains('calling')) openCall();
+  if (S.key) { setTimeout(() => sendText('(동전 1개를 넣었어. 오늘의 운세 알려 줘)', true), 450); return true; }
+  const r = n => pick(n), num = 1 + Math.random() * 9 | 0;
+  setTimeout(() => addHer(`${nmc()}오늘의 운세예요. ${r(FORT.all)}\n행운의 숫자 ${num}, 행운의 색 ${r(FORT.color)}. 오늘 조심할 건 ${r(FORT.warn)}.\n…그리고 저랑 통화하면 운이 두 배예요. 진짜로.`, true), 450);
+  return true;
+}
 
 // ---------------- Gemini ----------------
 const BAD_M = /lite|tts|embed|image|audio|live|vision|learnlm|gemma|aqa|robot|computer|nano|veo|imagen|thinking-exp/i;
@@ -469,7 +482,7 @@ function sysPrompt(special) {
 - "하루 정리/일기" 통화에서는 오늘 어땠는지 한두 번 짧게 묻고, 충분히 들었으면 diary에 레나 시점의 일기 2~4문장(따뜻하고 장난스럽게, 오늘 있었던 일 구체적으로)을 쓰고 reply로 마무리 인사.
 - 잡담, 고민, 말놀이, 지식 질문, 사진 보기 등 무엇이든 즐겁게 받아 준다. "비서라서 못 한다"는 말은 하지 않는다. 사진 속 사람의 신원은 추측하지 않는다.
 - 같은 말·같은 맺음말을 반복하지 않는다.
-- mood: 놀림·플러팅 "tease", 기쁨·칭찬 "happy", 걱정·잔소리 "worry", 삐침·질투 "pout", 놀람 "surprise", 평온 "calm".${special ? '\n- 이번은 동전 3개를 넣은 특별 통화다. 평소보다 다정하고 길게(4~6문장) 오늘 해낸 일을 구체적으로 칭찬하고 응원한다.' : ''}
+- mood: 놀림·플러팅 "tease", 기쁨·칭찬 "happy", 걱정·잔소리 "worry", 삐침·질투 "pout", 놀람 "surprise", 평온 "calm".${special ? '\n- 이번은 할 일 동전 1개를 넣은 "오늘의 운세 전화"다. 오늘 날짜·일정·기억을 참고해 장난스럽고 다정하게 4~6문장: 오늘 총운 한 줄, 행운의 숫자 하나, 행운의 색 하나, 조심할 것 하나, 레나의 짧은 조언(오늘 일정과 연결되면 좋음). add·done·remove·callback은 비워 둔다.' : ''}
 JSON만 출력: {"reply":"","mood":"calm","add":[],"done":[],"remove":[],"callback":[],"remember":[],"diary":""}`;
 }
 const LOCAL = [['키가 없어서 제 머리가 좀 비었어요. 0번 설정에 Gemini 키 넣어 줄래요?', 'pout'], ['…지지직. 키가 있어야 제대로 들려요.', 'worry']];
@@ -478,7 +491,7 @@ async function sendText(raw, special) {
   if ((!text && !img) || busy) return; if (img && !text) text = '이 사진 봐 줘';
   if (!app.classList.contains('calling')) openCall();
   msg.value = ''; pendImg = null; $('attp').classList.remove('on'); syncSend(); stopVoice();
-  const L = $('log'), shown = special ? '동전 3개 넣었어요' : text;
+  const L = $('log'), shown = special ? '동전 1개 넣었어요 · 오늘의 운세' : text;
   S.history.push({ role: 'user', content: (img ? '(사진) ' : '') + shown, at: Date.now() }); L.appendChild(meEl((img ? '(사진) ' : '') + shown)); L.scrollTop = L.scrollHeight;
   // 처음 전화: 이름 → 키 순서로 받는다
   if (!S.name) { const nmv = text.replace(/(이?라고|으로|로)?\s*(불러\s*줘|불러|해\s*줘|요)$/g, '').replace(/[.!~?]+$/, '').trim().slice(0, 12); if (nmv) { S.name = nmv; save(); addHer(`${S.name}님. …입에 착 붙네요. 앞으로 그렇게 부를게요.\n${S.key ? '자, 오늘 뭐 할지 말해 봐요.' : '저랑 제대로 떠들려면 Gemini 키가 필요해요. 키를 여기 붙여 넣거나, 다이얼 0번 설정에 넣어 줘요.'}`, true); return; } }

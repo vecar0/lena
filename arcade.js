@@ -112,9 +112,9 @@ function hub(fresh) {
     B.appendChild(G);
     B.appendChild(el('div', 'rules', '게임 동전은 매일 10개씩 들어와요(최대 99). 게임을 잘하면 더 받아요. 다 잃으면 하루 한 번 레나가 3개 빌려줘요.'));
     if (gc() < 1) B.appendChild(row(btn('레나에게 동전 빌리기', 'wide', () => { if (S.gcLoan === dk(new Date())) { toast('오늘은 이미 빌렸어요. 내일 또 와요.'); return; } S.gcLoan = dk(new Date()); gcAdd(3); coinSound(); hub(); })));
-    const sp = el('div', 'rules'); sp.innerHTML = `할 일 동전 <b>${S.coins}</b>개 · 3개로 레나와 <b>특별 통화</b>(길게 칭찬)`;
+    const sp = el('div', 'rules'); sp.innerHTML = `할 일 동전 <b>${S.coins}</b>개 · 1개로 레나의 <b>오늘의 운세 전화</b> (하루 한 번)`;
     B.appendChild(sp);
-    B.appendChild(row(btn('할 일 동전 3개로 특별 통화', 'ghost wide', () => { if (S.coins < 3) { toast(`할 일 동전이 ${3 - S.coins}개 모자라요.`); return; } S.coins -= 3; save(); closeArc(); openCall(); setTimeout(() => sendText('(동전 3개를 넣었어. 특별 통화로 칭찬이랑 응원 듬뿍 해줘)', true), 500); })));
+    B.appendChild(row(btn(S.fortDay === dk(new Date()) ? '🔮 오늘 운세는 이미 들었어요' : '🔮 할 일 동전 1개로 오늘의 운세', 'ghost wide', () => { if (fortuneCall()) closeArc(); })));
   });
 }
 
