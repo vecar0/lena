@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v19). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v20). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -36,7 +36,7 @@
 2. 실제 폰에서 전단지·버튼 위치 미세 조정.
 
 ## 앱 아이콘
-- `icon-512.png`/`icon-180.png`: 핑크 바탕 안쪽에 여백을 두고(아이폰이 모서리를 깎아도 안 잘리게) 검은 테두리 민트 고양이 카드, 오른쪽 아래에 검은 두께 + 광택(`art/new/avatar/cat_pin_5.png`), 위쪽 광택과 부드러운 그림자로 입체감.
+- `icon-512.png`/`icon-180.png`: 핑크 없이 민트 고양이 그림이 꽉 차고, 아이폰 아이콘 모양(모서리 22.37%)에 딱 맞춘 검은 테두리 + 광택 + 광택(`art/new/avatar/cat_pin_5.png`), 위쪽 광택과 부드러운 그림자로 입체감.
 
 ## 오락실 (다이얼 8번, 홈의 동전 배지)
 - 파일: `arcade.js`(허브·게임 동전·해골 빚 슬롯, 전역 `ARC`), 게임마다 `g_surv.js` `g_rhythm.js` `g_idle.js` `g_cards.js` — `ARC.reg({id,order,name,ban,sub,start})`로 등록. 화면은 `ARC.frame(제목, 내용함수, 뒤로버튼, flat)`, 루프·소리는 `ARC.cleanup`에 정리 함수를 넣는다.
