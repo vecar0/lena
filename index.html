@@ -125,9 +125,11 @@ input,select,textarea{font:inherit;font-size:16px;color:inherit}
 /* ---------- incoming ---------- */
 .inc{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;padding-top:calc(var(--st) + 100px);background:rgba(0,0,0,.35)}
 .inc.on{display:flex}
-.app.ringing .home,.app.ringing .callv{display:none}
+.app.ringing .home,.app.ringing .callv{display:none!important}
+.ab em[hidden],.k em[hidden]{display:none}
+.app.outside .inc{background:rgba(6,9,11,.55)}
 .app.dim .flyers,.app.dim .knock,.app.dim .lenahit{opacity:0;pointer-events:none;transition:opacity .25s}
-.ava{width:136px;height:136px;border-radius:50%;background:url(assets/lena/face.jpg) center/cover;border:3px solid #000;box-shadow:5px 5px 0 var(--pink);animation:ring 1.2s infinite}
+.ava{width:136px;height:136px;border-radius:50%;background:url(assets/lena/cat.jpg) center/cover;border:3px solid #000;box-shadow:5px 5px 0 var(--pink);animation:ring 1.2s infinite}
 @keyframes ring{0%,100%{box-shadow:5px 5px 0 var(--pink),0 0 0 0 rgba(47,224,200,.45)}70%{box-shadow:5px 5px 0 var(--pink),0 0 0 26px rgba(47,224,200,0)}}
 .inc h1{font-family:'Black Han Sans';font-weight:400;font-size:46px;margin-top:24px;letter-spacing:1px;text-shadow:3px 3px 0 var(--pink)}
 .inc p{font-family:'Space Mono',monospace;color:var(--mint);font-size:13px;letter-spacing:2px;margin-top:6px;text-transform:uppercase}
@@ -244,19 +246,47 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .toast span{flex:1;line-height:1.4;word-break:keep-all}
 .toast button{text-decoration:underline;font-weight:800;flex:none}
 .hidden{display:none!important}
+
+/* ---------- 밖 모드 (음성통화) ---------- */
+.ahead,.agrid{display:none}
+.app.outside{background:#0b0f12}
+.app.outside .bg,.app.outside .fx,.app.outside .home{display:none}
+.app.outside::before{content:"";position:absolute;inset:-60px;background:url(assets/lena/cat.jpg) center 35%/cover;filter:blur(42px) brightness(.36) saturate(1.35)}
+.app.outside::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(rgba(0,0,0,.22) 1px,transparent 1.2px) 0 0/4px 4px}
+.app.outside .callv{display:flex}
+.app.outside .ctop{display:none}
+.app.outside #hangBtn{display:none}
+.app.outside .ahead{display:flex;flex-direction:column;align-items:center;padding:calc(var(--st) + 30px) 16px 4px;flex:none}
+.aava{width:104px;height:104px;border-radius:50%;background:url(assets/lena/cat.jpg) center/cover;border:3px solid #000;box-shadow:4px 4px 0 var(--pink)}
+.ahead h1{font-family:'Black Han Sans';font-weight:400;font-size:34px;margin-top:12px;letter-spacing:1px;text-shadow:2px 2px 0 var(--pink);line-height:1}
+.ahead p{font-family:'Space Mono',monospace;font-size:13px;color:var(--mint);margin-top:6px;letter-spacing:1px}
+.app.outside .agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 0;padding:6px 24px 12px;flex:none}
+.ab{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#e3ecee;position:relative}
+.ab i{width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.13);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);display:grid;place-items:center;transition:transform .15s}
+.ab:active i{transform:scale(.92)}
+.ab svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ab.on i{background:#fff}.ab.on svg{stroke:#111}
+.ab.vid i{background:var(--pink);border:2px solid #000;box-shadow:3px 3px 0 #000}
+.ab em{position:absolute;top:-4px;left:calc(50% + 16px);min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--hot);color:#fff;border:2px solid #000;font-style:normal;font-size:11.5px;font-weight:800;display:grid;place-items:center}
+.app.outside .log{-webkit-mask:linear-gradient(transparent,#000 18%);mask:linear-gradient(transparent,#000 18%)}
+.app.outside .pop{width:52px}
+.vtog{height:36px;padding:0 13px;border-radius:18px;background:rgba(0,0,0,.55);border:1px solid var(--line);font-size:13px;font-weight:700;color:#e6eef0;display:flex;align-items:center;gap:6px}
+.vtog svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (max-height:640px){.app.outside .agrid{display:none}.aava{width:72px;height:72px}.ahead h1{font-size:26px}}
 @media (max-height:700px){.f1{top:calc(var(--st) + 78px)}.f2{top:calc(var(--st) + 170px)}.coinb{top:calc(var(--st) + 182px)}.sub{bottom:calc(var(--sb) + 118px)}.line{font-size:17px}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
 <div class="app" id="app">
-  <video class="bg" id="bg" src="assets/lena/bg.mp4" poster="assets/lena/poster.jpg" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+  <video class="bg" id="bg" src="assets/lena/bg.mp4" poster="assets/lena/poster.jpg" muted loop playsinline preload="auto" aria-hidden="true"></video>
   <div class="fx"></div>
 
   <!-- HOME -->
   <section class="home" id="home">
     <div class="top">
       <button class="miss zero" id="missBtn"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z"/></svg><span id="missTx">부재중 없음</span></button>
+      <button class="vtog" id="toAudio"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.5 4.5 0 010 6"/></svg>음성으로</button>
       <div class="clock"><b id="clk">--:--</b><span id="dte"></span></div>
     </div>
     <div class="flyers" id="flyers"></div>
@@ -272,9 +302,18 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 
   <!-- CALL -->
   <section class="callv" id="callv">
+    <div class="ahead"><div class="aava"></div><h1>레나</h1><p id="aT">통화 중 00:00</p></div>
     <div class="ctop"><div class="chip"><i></i><span id="callT">통화 중 00:00</span></div><div class="clock"><b id="clk2">--:--</b></div></div>
     <div class="log" id="log"></div>
     <div class="attp" id="attp"><img id="attImg" alt=""><span>사진을 같이 보낼게요</span><button id="attX" aria-label="사진 빼기">×</button></div>
+    <div class="agrid" id="agrid">
+      <button class="ab" id="aPad"><i><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="1.3"/><circle cx="12" cy="6" r="1.3"/><circle cx="18" cy="6" r="1.3"/><circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/><circle cx="6" cy="18" r="1.3"/><circle cx="12" cy="18" r="1.3"/><circle cx="18" cy="18" r="1.3"/></svg></i>키패드</button>
+      <button class="ab" id="aBoard"><i><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 11h8M8 15h8M8 19h5"/></svg></i>전단지</button>
+      <button class="ab vid" id="aVid"><i><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5l6-3.5v10l-6-3.5z"/></svg></i>영상통화</button>
+      <button class="ab" id="aCall"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9 2.5h6"/></svg></i>예약 전화</button>
+      <button class="ab" id="aMiss"><i><svg viewBox="0 0 24 24"><path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg></i>부재중<em id="aMissN" hidden></em></button>
+      <button class="ab" id="aSpk"><i><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.5 4.5 0 010 6M18 6.5a8 8 0 010 11"/></svg></i>스피커</button>
+    </div>
     <div class="quick" id="quick"></div>
     <div class="inrow">
       <button class="sq" id="attBtn" aria-label="사진"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="3"/><circle cx="9" cy="10.5" r="1.8"/><path d="M5 17l4.5-4.2 3.2 3 2.6-2.3L19.5 17"/></svg></button>

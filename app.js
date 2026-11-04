@@ -107,11 +107,12 @@ const STK = { tease: 'st_lips', happy: 'st_heart', worry: 'st_bolt', pout: 'st_s
 function popSticker(mood) {
   const s = STK[mood]; if (!s || app.classList.contains('calling') && !$('log')) return;
   const i = el('img', 'pop'); i.src = `assets/lena/${s}.webp`;
-  const W = app.clientWidth, H = app.clientHeight;
-  i.style.left = (W * (.55 + Math.random() * .25)) + 'px'; i.style.top = (H * (.3 + Math.random() * .1)) + 'px';
+  const W = app.clientWidth, H = app.clientHeight, out = app.classList.contains('outside');
+  i.style.left = (out ? W / 2 + 40 + Math.random() * 30 : W * (.55 + Math.random() * .25)) + 'px'; i.style.top = (out ? 40 + Math.random() * 40 : H * (.3 + Math.random() * .1)) + 'px';
   app.appendChild(i); setTimeout(() => i.remove(), 1700);
 }
 function say(text, mood = 'calm', speakIt) {
+  if (app.classList.contains('calling')) { const G = $('log'); G.appendChild(herEl(String(text))); G.scrollTop = G.scrollHeight; popSticker(mood); if (speakIt !== false) speak(text); $('line').textContent = text; return; }
   const L = $('line'); clearInterval(lineT); L.textContent = ''; const ch = [...String(text)]; let i = 0;
   lineT = setInterval(() => { L.textContent += ch[i++] || ''; if (i >= ch.length) clearInterval(lineT); }, 28);
   popSticker(mood);
@@ -142,6 +143,7 @@ function renderHome() {
   const K = $('knock'); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openSheet(1); };
   // 열린 키패드 숫자 배지
   const k9 = document.querySelector('.k[data-k="9"] em'); if (k9) { k9.textContent = M.length; k9.hidden = !M.length; }
+  $('aMissN').textContent = M.length; $('aMissN').hidden = !M.length; $('aSpk').classList.toggle('on', !!S.voice);
 }
 let knockAt = 0;
 function knockNow() { const K = $('knock'); if (!K.classList.contains('on') || Date.now() - knockAt < 30 * 60e3) return; knockAt = Date.now(); K.classList.remove('tap'); void K.offsetWidth; K.classList.add('tap'); tone([180], .06, .15, 'square'); tone([160], .06, .15, 'square', .2); }
@@ -340,6 +342,21 @@ SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
     c.append(row(btn('내보내기', 'ghost wide', () => { const d = JSON.parse(JSON.stringify(S)); delete d.key; delete d.sec; const u = URL.createObjectURL(new Blob([JSON.stringify(d)], { type: 'application/json' })); const a = document.createElement('a'); a.href = u; a.download = 'lena-backup.json'; a.click(); }), btn('불러오기', 'ghost wide', () => f.click())), f); }
 }, open: () => { if (S.key && !(S.mlist && S.mlist.length)) loadModels().then(refreshSheet); pushStatus().then(() => { if (curSheet === 0) refreshSheet(); }); } };
 
+
+// ---------------- 밖 모드(음성통화) ↔ 영상통화(부스) ----------------
+function toAudio() { app.classList.add('outside'); $('bg').pause(); if (!app.classList.contains('calling')) openCall(); else renderLog(); renderHome(); }
+function toVideo() {
+  stopVoice(); recStop(); dtmf('#'); app.classList.remove('outside', 'calling'); clearInterval(callTimer);
+  const v = $('bg'); v.play().catch(() => {}); renderHome(); say(pick([`${nmc()}짜잔. …얼굴 보니까 좋죠?`, '영상으로 보니까 더 예쁘죠? 솔직하게.', '어머, 카메라 켰어요? 잠깐, 머리 정리 좀…']), 'tease', false);
+}
+$('toAudio').onclick = () => { dtmf(1); toAudio(); };
+$('aVid').onclick = toVideo;
+$('aPad').onclick = () => { dtmf(0); openPad(); };
+$('aBoard').onclick = () => { dtmf(1); openSheet(1); };
+$('aCall').onclick = () => { dtmf(4); openSheet(4); };
+$('aMiss').onclick = () => { dtmf(9); openSheet(9); };
+$('aSpk').onclick = () => { S.voice = !S.voice; save(); renderHome(); if (S.voice) { if (!S.key) toast('목소리는 Gemini 키가 있어야 나와요. 0번 설정에서 넣어 주세요.'); else speak(`${nmc()}이제 제 목소리 들려요?`); } else stopVoice(); };
+
 // ---------------- dial pad ----------------
 const KEYS = [[1, '오늘'], [2, '할 일'], [3, '이번 주'], [4, '예약 전화'], [5, '음성사서함'], [6, '통화 일기'], [7, '모닝콜'], [8, '동전함'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
 (function buildPad() {
@@ -367,11 +384,11 @@ const QUICK = () => {
 function openCall() {
   closePad(); if ($('sheet').classList.contains('open')) closeSheet();
   app.classList.add('calling'); callStart = Date.now(); clearInterval(callTimer);
-  const up = () => { const s = (Date.now() - callStart) / 1000 | 0; $('callT').textContent = `통화 중 ${pad(s / 60 | 0)}:${pad(s % 60)}`; }; up(); callTimer = setInterval(up, 1000);
+  const up = () => { const s = (Date.now() - callStart) / 1000 | 0, t = `${pad(s / 60 | 0)}:${pad(s % 60)}`; $('callT').textContent = '통화 중 ' + t; $('aT').textContent = '통화 중 ' + t; }; up(); callTimer = setInterval(up, 1000);
   renderLog(); const Q = $('quick'); Q.innerHTML = ''; Q.classList.toggle('hidden', !S.name); QUICK().forEach(t => { const b = el('button', null, t); b.onclick = () => { dtmf(Math.random() * 9 + 1 | 0); sendText(t); }; Q.appendChild(b); });
   tone([350, 440], .25, .04);
 }
-function hangUp() { stopVoice(); recStop(); app.classList.remove('calling'); clearInterval(callTimer); tone([480, 620], .12, .05); tone([480, 620], .12, .05, 'sine', .2); renderHome(); const last = S.history.filter(h => h.role === 'assistant').slice(-1)[0]; if (last && Date.now() - (last.at || 0) < 5 * 60e3) say(pick(['끊는다고 끝난 거 아니에요. …또 걸어요.', '들어가요. 저는 여기 있을게요.', '…벌써요? 아쉽다.']), 'tease', false); }
+function hangUp() { if (app.classList.contains('outside')) return; stopVoice(); recStop(); app.classList.remove('calling'); clearInterval(callTimer); tone([480, 620], .12, .05); tone([480, 620], .12, .05, 'sine', .2); renderHome(); const last = S.history.filter(h => h.role === 'assistant').slice(-1)[0]; if (last && Date.now() - (last.at || 0) < 5 * 60e3) say(pick(['끊는다고 끝난 거 아니에요. …또 걸어요.', '들어가요. 저는 여기 있을게요.', '…벌써요? 아쉽다.']), 'tease', false); }
 $('pickBtn').onclick = () => { audio(); if (!S.name && !S.key) { incoming('first', true); return; } openCall(); if (!S.history.length || Date.now() - (S.history[S.history.length - 1].at || 0) > 30 * 60e3) addHer(pick([`${nmc()}여보세요? …목소리 듣고 싶었어요.`, `네, 레나예요. 무슨 일이에요?`, `${nmc()}이 시간에 웬일이에요? 좋아서 그래요.`]), true); };
 $('hangBtn').onclick = hangUp;
 function renderLog() {
@@ -545,7 +562,7 @@ function incoming(kind, manual, data) {
   else { sub.textContent = 'UNKNOWN NUMBER'; Q.textContent = '모르는 번호예요.\n…받아 볼래요?'; $('incNoL').textContent = '거절'; }
   $('inc').classList.add('on'); app.classList.add('dim', 'ringing'); ringStart();
 }
-function incClose() { $('inc').classList.remove('on'); app.classList.remove('ringing'); ringStop(); if (!$('sheet').classList.contains('open') && !$('sPad').classList.contains('open')) app.classList.remove('dim'); }
+function incClose() { $('inc').classList.remove('on'); app.classList.remove('ringing'); ringStop(); if (app.classList.contains('outside') && !app.classList.contains('calling')) openCall(); if (!$('sheet').classList.contains('open') && !$('sPad').classList.contains('open')) app.classList.remove('dim'); }
 $('incYes').onclick = () => {
   audio(); incClose(); openCall(); const k = incKind;
   if (k === 'morning') { S.mcDone = dk(new Date()); save(); addHer(`${nmc()}좋은 아침. ${briefText()}\n…자, 이제 일어나요. 제가 지켜보고 있어요.`, true); }
@@ -608,7 +625,7 @@ async function pushTest() {
     else { const reg = await navigator.serviceWorker.ready; let s = await reg.pushManager.getSubscription(); if (s) { try { await s.unsubscribe(); } catch (e) {} } S.pushOn = false; save(); toast('알림 연결이 끊겨 있었어요. "폰 알림 켜기"를 한 번 더 눌러 주세요.'); refreshSheet(); }
   } catch (e) { toast('알림 서버에 연결하지 못했어요.'); }
 }
-document.addEventListener('visibilitychange', () => { const v = $('bg'); if (document.hidden) { S.seen = Date.now(); try { localStorage.setItem('lena1', JSON.stringify(S)); } catch (e) {} pushSend(false, true); v.pause(); } else { v.play().catch(() => {}); check(); } });
+document.addEventListener('visibilitychange', () => { const v = $('bg'); if (document.hidden) { S.seen = Date.now(); try { localStorage.setItem('lena1', JSON.stringify(S)); } catch (e) {} pushSend(false, true); v.pause(); } else { if (!app.classList.contains('outside')) v.play().catch(() => {}); check(); } });
 window.addEventListener('pagehide', () => pushSend(false, true));
 
 // 키보드가 올라오면 화면을 보이는 부분에 맞춘다(iOS)
@@ -622,11 +639,12 @@ load();
 syncSend(); tick(); renderHome();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 setInterval(check, 15000); (function clk() { tick(); setTimeout(clk, 60000 - Date.now() % 60000 + 50); })();
-if (!S.name) { say('…', 'calm', false); setTimeout(() => incoming('first'), 1200); }
+app.classList.add('outside');
+if (!S.name) { setTimeout(() => incoming('first'), 900); }
 else {
-  say(greetLine(), 'tease', false);
+  openCall(); say(greetLine(), 'tease', false);
   setTimeout(() => { check(); knockNow(); }, 1500);
   if (S.key && !(S.mlist && S.mlist.length)) setTimeout(loadModels, 2000);
   if (S.pushOn) setTimeout(() => pushSend(true), 2500);
 }
-$('bg').play && $('bg').play().catch(() => {});
+

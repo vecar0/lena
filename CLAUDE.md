@@ -5,14 +5,15 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/haru/ — 이 저장소(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v1). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v2). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512. 목소리 `gemini-2.5-flash-preview-tts`, 기본 목소리 Leda.
 
 ## 앱 구조 (app.js)
 - 저장: `localStorage['lena1']` → `S` (name, key, items, calls, memory, diary, history, coins, coinDays, morning, mcDone, voice, vname, srv, uid/sec/sub/pushOn, ack, fired). 처음 실행 때 예전 `haru2`에서 이름·키·알림 연결만 가져온다.
-- 홈 = 비 오는 공중전화 부스(배경 영상 `assets/lena/bg.mp4`, 끊김 없이 반복, 번쩍임 줄임). 위: 부재중 배지·시계. 유리에 붙은 전단지(다음 일정 분홍, 할 일 노랑), 동전 수. 지난 일정이 있으면 해골 손이 유리를 "똑똑". 아래: 레나 자막, 버튼 다이얼/수화기 들기/전단지.
+- **앱을 열면 밖 모드(음성통화 화면)**: 고양이 프사(`assets/lena/cat.jpg`, 레나를 닮은 단순한 낙서풍 고양이 — 원본 후보 `art/new/cat/`), 이름·통화 시간, 대화, 버튼 6개(키패드·전단지·**영상통화**·예약 전화·부재중·스피커=목소리 켜기). 배경 영상은 멈춰 둔다. "영상통화"를 누르면 아래 부스 화면으로, 부스 화면 위쪽 "음성으로"를 누르면 다시 밖 모드로.
+- 홈(영상통화) = 비 오는 공중전화 부스(배경 영상 `assets/lena/bg.mp4`, 끊김 없이 반복, 번쩍임 줄임). 위: 부재중 배지·시계. 유리에 붙은 전단지(다음 일정 분홍, 할 일 노랑), 동전 수. 지난 일정이 있으면 해골 손이 유리를 "똑똑". 아래: 레나 자막, 버튼 다이얼/수화기 들기/전단지.
 - 다이얼(공중전화 키패드, DTMF 소리): 1 오늘 2 할 일 3 이번 주(전단지 시트 탭) 4 예약 전화 5 음성사서함(기억) 6 통화 일기 7 모닝콜 8 동전함 9 부재중 ✱ 통화 기록 0 설정 # 닫기.
 - 통화 = Gemini 대화(스트리밍 자막, 사진, 음성 입력 SpeechRecognition, 목소리). 답 JSON: reply, mood(tease/happy/worry/pout/surprise/calm → 스티커 팝), add, done, remove, callback, remember, diary. 저장하면 "✓ … 되돌리기" 쪽지.
 - 전단지를 떼면(끝냄) 찢어지는 연출 + 동전 1개. 동전 3개로 "특별 통화"(길게 칭찬).
