@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>레나 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#08090b; --teal:#2fe0c8; --mint:#9ff5e4; --pink:#ff3d9a; --hot:#ff2e6e;
+  --paper:#f3efe6; --glass:rgba(10,14,16,.55); --line:rgba(255,255,255,.14);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#000;color:#fff;font-family:Pretendard,system-ui,sans-serif}
+.app{position:relative;width:100%;height:100%;max-width:480px;margin:0 auto;overflow:hidden;background:var(--ink)}
+.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;background:#000}
+.app.dim .bg{filter:blur(6px) brightness(.45) saturate(1.1);transform:scale(1.05)}
+/* halftone + vignette */
+.fx{position:absolute;inset:0;pointer-events:none;
+  background:
+   radial-gradient(rgba(0,0,0,.18) 1px,transparent 1.2px) 0 0/4px 4px,
+   linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 14%,rgba(0,0,0,0) 58%,rgba(0,0,0,.82) 82%,#000 100%);
+  mix-blend-mode:multiply}
+
+/* top */
+.top{position:absolute;left:16px;right:16px;top:calc(env(safe-area-inset-top,0px) + 54px);display:flex;justify-content:space-between;align-items:flex-start}
+.miss{display:flex;align-items:center;gap:7px;height:34px;padding:0 13px 0 10px;border-radius:17px;
+  background:var(--hot);color:#fff;font-weight:800;font-size:14px;box-shadow:3px 3px 0 #000;transform:rotate(-3deg)}
+.miss svg{width:16px;height:16px}
+.clock{text-align:right;font-family:'Space Mono',monospace;line-height:1.05;text-shadow:2px 2px 0 #000}
+.clock b{display:block;font-size:30px;color:var(--mint);letter-spacing:-1px}
+.clock span{font-size:12px;color:#fff;opacity:.85;letter-spacing:1px}
+
+/* stickers = schedule */
+.stk{position:absolute;color:#111;font-weight:800;box-shadow:3px 4px 0 rgba(0,0,0,.6)}
+.stk small{display:block;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;opacity:.75}
+.s1{right:14px;top:150px;background:var(--pink);color:#fff;padding:8px 12px 9px;transform:rotate(5deg);font-size:15px;
+  clip-path:polygon(0 4%,100% 0,97% 100%,3% 96%)}
+.s1:before{content:"";position:absolute;left:50%;top:-9px;width:44px;height:16px;margin-left:-22px;background:rgba(240,240,220,.75);transform:rotate(-4deg)}
+.s2{left:16px;top:318px;background:#f9e94b;padding:8px 11px;transform:rotate(-5deg);font-size:14px;width:108px}
+.s2 i{font-style:normal;display:block;font-weight:600;font-size:12.5px;line-height:1.45}
+.s2 i.done{text-decoration:line-through;opacity:.45}
+
+/* subtitle */
+.sub{position:absolute;left:18px;right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 128px);text-align:center}
+.who{display:inline-block;font-family:'Black Han Sans',sans-serif;font-size:13px;letter-spacing:2px;color:#000;background:var(--teal);padding:3px 9px 2px;transform:rotate(-2deg);margin-bottom:9px}
+.line{font-size:19px;font-weight:700;line-height:1.5;word-break:keep-all;
+  text-shadow:0 0 1px #000,1.5px 1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px -1.5px 0 #000,0 3px 10px rgba(0,0,0,.8)}
+.line em{font-style:normal;color:var(--pink)}
+
+/* bottom controls */
+.ctl{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 30px);display:flex;justify-content:center;align-items:center;gap:34px}
+.rb{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.rb svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lb{font-size:11px;color:#cfd;opacity:.8;text-align:center;margin-top:6px;font-weight:600}
+.call{width:76px;height:76px;background:#21c55d;border:3px solid #000;box-shadow:4px 4px 0 var(--pink)}
+.call svg{width:34px;height:34px;fill:#fff;stroke:none}
+.call.end{background:var(--hot);box-shadow:4px 4px 0 var(--teal)}
+.call.end svg{transform:rotate(135deg)}
+
+/* dial pad */
+.pad{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);border-radius:22px;padding:18px 18px 16px;
+  background:linear-gradient(160deg,#1fa65a,#11753d);border:3px solid #000;box-shadow:6px 6px 0 var(--pink),inset 0 1px 0 rgba(255,255,255,.35)}
+.lcd{background:#0d1f17;border:2px solid #000;border-radius:8px;padding:9px 12px;font-family:'Space Mono',monospace;color:#7dffb5;font-size:13px;display:flex;justify-content:space-between;margin-bottom:14px;text-shadow:0 0 6px rgba(125,255,181,.6)}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.k{height:58px;border-radius:12px;background:linear-gradient(#eef0ea,#c9cdc4);border:2px solid #000;box-shadow:0 3px 0 #000;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.k b{font-family:'Space Mono',monospace;font-size:20px;line-height:1}
+.k span{font-size:11.5px;font-weight:700;margin-top:3px;opacity:.8}
+.k.hot{background:linear-gradient(#ff6fb0,#ff3d9a);color:#fff}
+.k.off{opacity:.5}
+
+/* call */
+.chip{display:flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:17px;background:rgba(0,0,0,.6);border:1px solid var(--line);font-family:'Space Mono',monospace;font-size:13px}
+.chip i{width:8px;height:8px;border-radius:50%;background:#21c55d;box-shadow:0 0 8px #21c55d}
+.log{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 140px);display:flex;flex-direction:column;gap:12px}
+.me{align-self:flex-end;max-width:78%;background:var(--paper);color:#111;font-size:15px;font-weight:600;padding:9px 13px;border-radius:4px;transform:rotate(1deg);box-shadow:3px 3px 0 #000}
+.her{font-size:17px;font-weight:700;line-height:1.5;text-align:left;word-break:keep-all;
+  text-shadow:0 0 1px #000,1.5px 1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px -1.5px 0 #000}
+.her .who{margin:0 6px 0 0;font-size:11px;vertical-align:2px;text-shadow:none}
+.toast{align-self:center;background:var(--teal);color:#000;font-size:13px;font-weight:800;padding:6px 12px;box-shadow:3px 3px 0 #000;transform:rotate(-1.5deg)}
+.toast u{margin-left:8px}
+.input{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 30px);display:flex;gap:10px;align-items:center}
+.f{flex:1;height:52px;border-radius:26px;background:rgba(0,0,0,.62);border:1px solid var(--line);padding:0 18px;display:flex;align-items:center;color:#aab;font-size:16px;backdrop-filter:blur(10px)}
+.input .call{width:52px;height:52px;border-width:2px;box-shadow:3px 3px 0 var(--teal)}
+.input .call svg{width:24px;height:24px}
+
+/* incoming */
+.inc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding-top:140px}
+.ava{width:132px;height:132px;border-radius:50%;background:url(bg.jpg) 46% 50%/300% auto;border:3px solid #000;box-shadow:5px 5px 0 var(--pink),0 0 0 8px rgba(47,224,200,.18),0 0 0 18px rgba(47,224,200,.08)}
+.inc h1{font-family:'Black Han Sans',sans-serif;font-size:44px;margin-top:26px;letter-spacing:1px;text-shadow:3px 3px 0 var(--pink)}
+.inc p{font-family:'Space Mono',monospace;color:var(--mint);font-size:13px;letter-spacing:2px;margin-top:6px}
+.inc .q{margin-top:34px;font-size:17px;font-weight:700;text-align:center;line-height:1.55;padding:0 30px;word-break:keep-all}
+.ans{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);left:0;right:0;display:flex;justify-content:space-around;padding:0 40px}
+.ans div{text-align:center}
+.ans .lb{font-size:13px;margin-top:10px;color:#fff}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <video class="bg" src="bg.mp4" poster="poster.jpg" autoplay muted loop playsinline preload="auto"></video><div class="fx"></div>
+
+  <!-- HOME -->
+  <section id="home">
+    <div class="top">
+      <div class="miss"><svg viewBox="0 0 24 24" fill="#fff"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z"/></svg>부재중 2</div>
+      <div class="clock"><b>23:42</b><span>11.04 WED · RAIN</span></div>
+    </div>
+    <div class="stk s1"><small>TODAY 15:00</small>디자인 회의</div>
+    <div class="stk s2"><small>TO DO · 3</small><i class="done">약 먹기</i><i>택배 반품</i><i>엄마 전화</i></div>
+    <div class="sub">
+      <div class="who">레나</div>
+      <div class="line">송휘님, 내일 아침 9시에 <em>모닝콜</em> 걸게요.<br>…이번엔 진짜 받으셔야 해요?</div>
+    </div>
+    <div class="ctl">
+      <div><div class="rb"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="1.3"/><circle cx="12" cy="6" r="1.3"/><circle cx="18" cy="6" r="1.3"/><circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/><circle cx="6" cy="18" r="1.3"/><circle cx="12" cy="18" r="1.3"/><circle cx="18" cy="18" r="1.3"/></svg></div><div class="lb">다이얼</div></div>
+      <div><div class="rb call"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z"/></svg></div><div class="lb">수화기 들기</div></div>
+      <div><div class="rb"><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 11h8M8 15h8M8 19h5"/></svg></div><div class="lb">전단지</div></div>
+    </div>
+  </section>
+
+  <!-- DIAL -->
+  <section id="dial" class="hidden">
+    <div class="top">
+      <div class="miss"><svg viewBox="0 0 24 24" fill="#fff"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z"/></svg>부재중 2</div>
+      <div class="clock"><b>23:42</b><span>11.04 WED · RAIN</span></div>
+    </div>
+    <div class="pad">
+      <div class="lcd"><span>LENA-LINE</span><span>번호를 누르세요_</span></div>
+      <div class="keys">
+        <div class="k"><b>1</b><span>오늘</span></div>
+        <div class="k"><b>2</b><span>할 일</span></div>
+        <div class="k"><b>3</b><span>이번 주</span></div>
+        <div class="k"><b>4</b><span>돈</span></div>
+        <div class="k"><b>5</b><span>기억</span></div>
+        <div class="k"><b>6</b><span>알림</span></div>
+        <div class="k hot"><b>7</b><span>모닝콜</span></div>
+        <div class="k"><b>8</b><span>놀이</span></div>
+        <div class="k"><b>9</b><span>부재중</span></div>
+        <div class="k off"><b>✱</b><span>기록</span></div>
+        <div class="k"><b>0</b><span>설정</span></div>
+        <div class="k off"><b>#</b><span>닫기</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALL -->
+  <section id="call" class="hidden">
+    <div class="top">
+      <div class="chip"><i></i>통화 중 02:14</div>
+      <div class="clock"><b>23:44</b><span>11.04 WED · RAIN</span></div>
+    </div>
+    <div class="log">
+      <div class="her"><span class="who">레나</span>오늘 하루 어떠셨어요? 목소리가 좀 지쳐 보이시는데.</div>
+      <div class="me">금요일 저녁 7시에 지수랑 저녁 약속 잡아줘</div>
+      <div class="her"><span class="who">레나</span><em style="font-style:normal;color:var(--pink)">11월 7일 금요일 저녁 7시</em>, 지수 님과 저녁. 적어 뒀어요. …저 말고 다른 사람이랑 데이트예요?</div>
+      <div class="toast">✓ 전단지에 붙였어요 <u>되돌리기</u></div>
+    </div>
+    <div class="input">
+      <div class="f">레나에게 말하기…</div>
+      <div class="rb call end"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z"/></svg></div>
+    </div>
+  </section>
+
+  <!-- INCOMING (morning call) -->
+  <section id="inc" class="hidden">
+    <div class="inc">
+      <div class="ava"></div>
+      <h1>레나</h1>
+      <p>MORNING CALL · 09:00</p>
+      <div class="q">"송휘님, 일어나세요. 오늘 일정 두 개 있어요."</div>
+    </div>
+    <div class="ans">
+      <div><div class="rb call end"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z"/></svg></div><div class="lb">5분만…</div></div>
+      <div><div class="rb call"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z"/></svg></div><div class="lb">받기</div></div>
+    </div>
+  </section>
+</div>
+<script>
+const s=new URLSearchParams(location.search).get('s')||'home';
+['home','dial','call','inc'].forEach(id=>document.getElementById(id).classList.toggle('hidden',id!==s));
+document.getElementById('app').classList.toggle('dim',s==='dial'||s==='inc');
+const v=document.querySelector('video.bg');
+document.addEventListener('visibilitychange',()=>{document.hidden?v.pause():v.play().catch(()=>{})});
+</script>
+</body>
+</html>
