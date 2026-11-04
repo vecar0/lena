@@ -66,7 +66,7 @@ function ringStop() { clearInterval(ringT); ringT = 0; }
 // ---------------- clock ----------------
 function tick() {
   const d = new Date();
-  $('clk').textContent = $('clk2').textContent = hm(d);
+  $('clk').textContent = hm(d);
   $('dte').textContent = `${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${'SUN MON TUE WED THU FRI SAT'.split(' ')[d.getDay()]}`;
 }
 
@@ -349,7 +349,7 @@ function toVideo() {
   stopVoice(); recStop(); dtmf('#'); app.classList.remove('outside', 'calling'); clearInterval(callTimer);
   const v = $('bg'); v.play().catch(() => {}); renderHome(); say(pick([`${nmc()}짜잔. …얼굴 보니까 좋죠?`, '영상으로 보니까 더 예쁘죠? 솔직하게.', '어머, 카메라 켰어요? 잠깐, 머리 정리 좀…']), 'tease', false);
 }
-$('toAudio').onclick = () => { dtmf(1); toAudio(); };
+$('toAudio').onclick = $('toAudio2').onclick = () => { dtmf(1); toAudio(); };
 $('aVid').onclick = toVideo;
 $('aPad').onclick = () => { dtmf(0); openPad(); };
 $('aBoard').onclick = () => { dtmf(1); openSheet(1); };

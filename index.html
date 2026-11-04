@@ -22,10 +22,12 @@
   --ease:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:#000;color:#fff;font-family:Pretendard,system-ui,-apple-system,sans-serif;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+html,body{height:100%;background:#08090b;color:#fff;font-family:Pretendard,system-ui,-apple-system,sans-serif;overscroll-behavior:none;-webkit-text-size-adjust:100%}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,select,textarea{font:inherit;font-size:16px;color:inherit}
-.app{position:fixed;inset:0;max-width:520px;margin:0 auto;overflow:hidden;background:var(--ink)}
+body{position:fixed;inset:0;overflow:hidden}
+.app{position:fixed;left:0;right:0;top:0;height:100vh;height:100dvh;max-width:520px;margin:0 auto;overflow:hidden;background:var(--ink)}
+@media (display-mode:standalone){.app{height:100lvh}}
 .home,.ctl,.keys,.ctop,.inc,.shead,button{user-select:none;-webkit-user-select:none}
 .mono{font-family:'Space Mono',ui-monospace,monospace}
 .han{font-family:'Black Han Sans',Pretendard,sans-serif;font-weight:400}
@@ -270,7 +272,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .ab em{position:absolute;top:-4px;left:calc(50% + 16px);min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--hot);color:#fff;border:2px solid #000;font-style:normal;font-size:11.5px;font-weight:800;display:grid;place-items:center}
 .app.outside .log{-webkit-mask:linear-gradient(transparent,#000 18%);mask:linear-gradient(transparent,#000 18%)}
 .app.outside .pop{width:52px}
-.vtog{height:36px;padding:0 13px;border-radius:18px;background:rgba(0,0,0,.55);border:1px solid var(--line);font-size:13px;font-weight:700;color:#e6eef0;display:flex;align-items:center;gap:6px}
+.vtog{height:36px;padding:0 13px;border-radius:18px;background:rgba(0,0,0,.6);border:1.5px solid var(--green);box-shadow:2px 2px 0 #000;font-size:13px;font-weight:700;color:#e6eef0;display:flex;align-items:center;gap:6px}
 .vtog svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @media (max-height:640px){.app.outside .agrid{display:none}.aava{width:72px;height:72px}.ahead h1{font-size:26px}}
 @media (max-height:700px){.f1{top:calc(var(--st) + 78px)}.f2{top:calc(var(--st) + 170px)}.coinb{top:calc(var(--st) + 182px)}.sub{bottom:calc(var(--sb) + 118px)}.line{font-size:17px}}
@@ -286,7 +288,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
   <section class="home" id="home">
     <div class="top">
       <button class="miss zero" id="missBtn"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z"/></svg><span id="missTx">부재중 없음</span></button>
-      <button class="vtog" id="toAudio"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.5 4.5 0 010 6"/></svg>음성으로</button>
+      <button class="vtog" id="toAudio"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z" fill="#21c55d" stroke="none"/></svg>음성통화로</button>
       <div class="clock"><b id="clk">--:--</b><span id="dte"></span></div>
     </div>
     <div class="flyers" id="flyers"></div>
@@ -303,7 +305,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
   <!-- CALL -->
   <section class="callv" id="callv">
     <div class="ahead"><div class="aava"></div><h1>레나</h1><p id="aT">통화 중 00:00</p></div>
-    <div class="ctop"><div class="chip"><i></i><span id="callT">통화 중 00:00</span></div><div class="clock"><b id="clk2">--:--</b></div></div>
+    <div class="ctop"><div class="chip"><i></i><span id="callT">통화 중 00:00</span></div><button class="vtog" id="toAudio2"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z" fill="#21c55d" stroke="none"/></svg>음성통화로</button></div>
     <div class="log" id="log"></div>
     <div class="attp" id="attp"><img id="attImg" alt=""><span>사진을 같이 보낼게요</span><button id="attX" aria-label="사진 빼기">×</button></div>
     <div class="agrid" id="agrid">
