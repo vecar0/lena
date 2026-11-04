@@ -6,32 +6,12 @@ const css = `
 .affb{display:inline-flex;align-items:center;gap:6px;margin-top:8px;height:30px;padding:0 12px 0 8px;border-radius:15px;background:rgba(0,0,0,.5);border:1px solid var(--line);font-size:12.5px;font-weight:700;color:#ffd3e8}
 .affb i{font-style:normal;color:var(--pink);font-size:15px}
 .affb u{text-decoration:none;font-family:'Space Mono',monospace;color:var(--mint)}
-.tcard{--f1:#d9d4c7;--f2:#f3efe6;--f3:#bdb6a6;--ink:#1a1a1a;position:relative;aspect-ratio:1.586;border-radius:14px;padding:14px 16px;color:var(--ink);overflow:hidden;
-  background:linear-gradient(125deg,var(--f1),var(--f2) 42%,var(--f3) 58%,var(--f2) 75%,var(--f1));border:2.5px solid #000;box-shadow:5px 5px 0 #000,inset 0 1px 0 rgba(255,255,255,.6)}
-.tcard::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,0) 0 9px,rgba(255,255,255,.07) 9px 10px);pointer-events:none}
-.tcard::after{content:"";position:absolute;inset:-40% -60%;background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.55) 50%,transparent 58%);transform:translateX(-60%);animation:foil 6s ease-in-out infinite;pointer-events:none;mix-blend-mode:soft-light}
-@keyframes foil{0%,70%{transform:translateX(-60%)}100%{transform:translateX(60%)}}
-@media (prefers-reduced-motion:reduce){.tcard::after{animation:none}}
-.tcard>*{position:relative;z-index:1}
-.tc-top{display:flex;justify-content:space-between;align-items:flex-start}
-.tc-brand{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;opacity:.7}
-.tc-mood{font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;border:1.5px solid currentColor;transform:rotate(4deg)}
-.tc-chip{position:absolute;left:16px;top:44px;width:42px;height:32px;border-radius:7px;background:linear-gradient(135deg,#f6e27a,#c9a227 55%,#f3dc7a);border:1.5px solid rgba(0,0,0,.55);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
-.tc-chip::before{content:"";position:absolute;inset:6px 8px;border:1.5px solid rgba(0,0,0,.35);border-radius:3px;background:linear-gradient(rgba(0,0,0,.3),rgba(0,0,0,.3)) center/100% 1.5px no-repeat,linear-gradient(90deg,rgba(0,0,0,.3),rgba(0,0,0,.3)) center/1.5px 100% no-repeat}
-.tc-face{position:absolute;right:14px;top:40px;width:64px;height:64px;border-radius:50%;background:url(assets/lena/face.jpg) 50% 30%/cover;border:2.5px solid #000;box-shadow:0 0 0 3px rgba(255,255,255,.55)}
-.tc-name{position:absolute;left:16px;right:90px;bottom:42px;font-family:'Black Han Sans';font-weight:400;font-size:25px;line-height:1.05;letter-spacing:-.01em;word-break:keep-all}
-.tc-lv{display:block;font-family:'Pretendard',sans-serif;font-size:12px;font-weight:700;opacity:.72;margin-bottom:3px;letter-spacing:0}
-.tc-units{position:absolute;left:16px;right:16px;bottom:14px;display:flex;align-items:center;gap:5px}
-.tc-units i{flex:1;height:12px;border-radius:6px;border:1.5px solid rgba(0,0,0,.55);background:rgba(255,255,255,.35)}
-.tc-units i.on{background:var(--ink);box-shadow:inset 0 2px 3px rgba(0,0,0,.5)}
-.tc-units small{flex:none;font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;margin-left:4px;opacity:.75}
-.tcard.t1{--f1:#9aa3ad;--f2:#eef2f6;--f3:#b9c2cc}
-.tcard.t2{--f1:#e7a3b8;--f2:#ffe3ec;--f3:#f2b9c9;--ink:#4a0f22}
-.tcard.t3{--f1:#c9a227;--f2:#fff1b8;--f3:#e2bf4a;--ink:#3a2800}
-.tcard.t4{--f1:#7fe7ff;--f2:#ffd1f3;--f3:#d6ff9e;--ink:#1d1440}
-.tcard.t5{--f1:#0e0e12;--f2:#2a1220;--f3:#120a10;--ink:#ffd6e8}.tcard.t5 .tc-units i{border-color:rgba(255,214,232,.6);background:rgba(255,255,255,.08)}.tcard.t5 .tc-units i.on{background:var(--pink);box-shadow:0 0 6px var(--pink)}
-.tcard.t6{--f1:#120f1e;--f2:#3b2a6b;--f3:#0d3b44;--ink:#f3efe6}.tcard.t6::before{background:conic-gradient(from 200deg at 70% 30%,rgba(255,61,154,.25),rgba(47,224,200,.25),rgba(242,234,58,.2),rgba(255,61,154,.25))}.tcard.t6 .tc-units i{border-color:rgba(243,239,230,.5);background:rgba(255,255,255,.06)}.tcard.t6 .tc-units i.on{background:var(--mint);box-shadow:0 0 6px var(--mint)}
-.tc-note{font-size:12.5px;color:var(--mute);line-height:1.5;margin-top:12px;word-break:keep-all}
+.affc{display:flex;align-items:center;gap:14px}
+.affc .ava2{width:76px;height:76px;flex:none;border-radius:50%;background:url(assets/lena/face.jpg) 50% 30%/cover;border:3px solid #000;box-shadow:4px 4px 0 var(--pink)}
+.affc b{display:block;font-family:'Black Han Sans';font-weight:400;font-size:22px}
+.affc small{display:block;font-size:12.5px;color:var(--mute);margin-top:2px;line-height:1.45;word-break:keep-all}
+.hbar{height:12px;border-radius:6px;background:#0b0d10;border:2px solid #000;overflow:hidden;margin-top:8px}
+.hbar i{display:block;height:100%;background:linear-gradient(90deg,#ff6fb6,#ff2e6e)}
 .affb .ci{width:18px;height:18px}
 .want{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 10px;border-radius:12px;background:rgba(255,61,154,.12);border:1px dashed rgba(255,61,154,.6);font-size:13px;font-weight:700}
 .want img{width:34px;height:34px;object-fit:contain}
@@ -126,7 +106,7 @@ const SECRET = [
 ];
 const lv = p => Math.floor(Math.sqrt((p || 0) / 5));
 const need = n => 5 * n * n;
-// 호감도 등급 = 레나 텔레카드(공중전화 카드). 단계가 오를수록 카드 재질이 바뀐다
+// 호감도 단계 이름
 const TIER = [['모르는 번호', 0], ['저장된 번호', 1], ['밤의 단골', 2], ['단축번호 1번', 3], ['새벽 세 시의 목소리', 4], ['비밀 회선', 5], ['레나 전용선', 6]];
 const tierOf = n => { const t = TIER[Math.min(n, TIER.length - 1)]; return { name: t[0] + (n >= TIER.length ? ` ${n - TIER.length + 2}` : ''), cls: 't' + t[1] }; };
 const A = () => { if (!S.aff) S.aff = { pt: 0, last: dk(new Date()), dday: dk(new Date()), notes: [] }; S.aff.notes = S.aff.notes || []; return S.aff; };
@@ -155,7 +135,7 @@ function give(g) {
   const bonus = today().want === g.id ? 2 : 1; a.pt += g.h * bonus; a.last = dk(new Date()); a.gifts = a.gifts || {}; a.gifts[g.id] = (a.gifts[g.id] || 0) + 1; save();
   fx(SI(g.i)); tone([880, 1320], .1, .04, 'triangle', .1);
   const after = lv(a.pt); let line = pick(g.say) + (bonus > 1 ? ' …제가 갖고 싶었던 거 어떻게 알았어요?' : '');
-  if (after > before) { line += `\n(텔레카드가 「${tierOf(after).name}」로 바뀌었어요. 레나 수첩에 새 이야기가 생겼어요)`; unlockNote(after); }
+  if (after > before) { line += `\n(호감도 「${tierOf(after).name}」 단계가 됐어요! 레나 수첩에 새 이야기가 생겼어요)`; unlockNote(after); }
   refreshSheet(); renderAff(); setTimeout(() => say(line, 'happy', false), 600);
 }
 async function unlockNote(n) {
@@ -288,13 +268,10 @@ function renderAff() {
 let tab = 'today';
 SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매일 자정에 바뀌어요`, r: B => {
   decay(); const a = A(), n = lv(a.pt), [m, mt] = mood(), s = today();
-  const c = el('div'), tr = tierOf(n), tc = el('div', 'tcard ' + tr.cls), units = 10, filled = Math.floor(Math.min(1, (a.pt - need(n)) / Math.max(1, need(n + 1) - need(n))) * units);
-  const top = el('div', 'tc-top'); top.append(el('span', 'tc-brand', '레나 텔레카드'), el('span', 'tc-mood', m)); tc.appendChild(top);
-  tc.append(el('div', 'tc-chip'), el('div', 'tc-face'));
-  const nm = el('div', 'tc-name'); nm.append(el('span', 'tc-lv', `호감도 ${n}단계`), document.createTextNode(tr.name)); tc.appendChild(nm);
-  const U = el('div', 'tc-units'); for (let i = 0; i < units; i++) U.appendChild(el('i', i < filled ? 'on' : '')); U.appendChild(el('small', null, `${need(n + 1) - a.pt}점 남음`)); tc.appendChild(U);
-  c.appendChild(tc);
-  c.appendChild(el('div', 'tc-note', `${mt} 칸이 다 차면 카드가 바뀌고 수첩에 비밀이 열려요. 선물이 없는 날은 조금씩 줄어요.`));
+  const c = el('div', 'card'), top = el('div', 'affc'), av = el('div', 'ava2'), tx = el('div'); tx.append(el('b', null, `${tierOf(n).name} · ${m}`), el('small', null, `호감도 ${n}단계. ` + mt + ' 하루 지날 때마다 호감도가 조금씩 내려가요.'));
+  top.append(av, tx); c.appendChild(top);
+  const hb = el('div', 'hbar'), hi = el('i'); hi.style.width = Math.min(100, (a.pt - need(n)) / Math.max(1, need(n + 1) - need(n)) * 100) + '%'; hb.appendChild(hi); c.appendChild(hb);
+  c.appendChild(el('div', 'hint', `「${tierOf(n + 1).name}」까지 ${need(n + 1) - a.pt}점 · 단계가 오르면 레나 수첩에 비밀 이야기가 하나씩 열려요`));
   const w = GIFT.find(g => g.id === s.want); const wb = el('div', 'want'), wi = el('img'); wi.src = SI(w.i); wi.alt = ''; wb.append(wi, document.createTextNode(`오늘 레나가 갖고 싶은 것: ${w.n} (호감도 2배)`)); c.appendChild(wb);
   B.appendChild(c);
   const T = el('div', 'tabs'); [['today', '오늘의 자판기'], ['gift', '선물'], ['decor', '부스 꾸미기'], ['note', '레나 수첩']].forEach(([v, l]) => { const b = el('button', tab === v ? 'on' : '', l); b.onclick = () => { tab = v; refreshSheet(); }; T.appendChild(b); }); T.style.marginTop = '14px'; B.appendChild(T);
@@ -318,9 +295,9 @@ SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 �
       t.onclick = () => { if (!own) { toast(`${d.n}: 오늘의 자판기에 나오면 살 수 있어요 (동전 ${d.p}개).`); return; } const o = D().on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 6) o.shift(); o.push(d.id); } save(); renderDecor(); refreshSheet(); }; G.appendChild(t); });
     B.appendChild(G); if (D().on.length) B.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', decorEdit))); B.appendChild(el('div', 'hint', `모은 장식 ${D().own.length}/${DECOR.length} · 6개까지 붙일 수 있어요. 누르면 붙이고 떼요. 붙인 장식은 레나 뒤 유리에 붙어 영상통화 화면에 보여요. 장식은 오늘의 자판기에 날마다 하나씩 나와요.`));
   } else {
-    const L = a.notes; if (!L.length) B.appendChild(empty('아직 비어 있어요. 텔레카드가 「저장된 번호」가 되면 첫 비밀이 열려요.', 'st_heart'));
+    const L = a.notes; if (!L.length) B.appendChild(empty('아직 비어 있어요. 호감도가 「저장된 번호」가 되면 첫 비밀이 열려요.', 'st_heart'));
     L.forEach((t, i) => { const d = el('div', 'note2'); d.append(el('h5', null, `${i + 1}단계 · 레나의 비밀`), document.createTextNode(t)); B.appendChild(d); });
-    const nx = el('div', 'note2 lock'); nx.textContent = `텔레카드가 「${tierOf(L.length + 1).name}」가 되면 다음 이야기가 열려요.`; B.appendChild(nx);
+    const nx = el('div', 'note2 lock'); nx.textContent = `호감도가 「${tierOf(L.length + 1).name}」가 되면 다음 이야기가 열려요.`; B.appendChild(nx);
   }
 } };
 // 홈의 동전 배지 → 자판기
