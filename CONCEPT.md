@@ -25,9 +25,21 @@
   - 일정·할 일 = 부스 유리·벽에 붙은 **전단지·스티커**. 끝내면 찢어져 떨어짐
   - 전화 다이얼 패드 = 빠른 메뉴 (예: 1 오늘 일정, 2 할 일, 3 이번 주, 0 설정)
 
+## 캐릭터 (초안)
+- 이름(임시): **세실** — 고급스럽고 귀엽고 세련된 이름. 다른 후보: 리엘, 아델
+- 외모: 연분홍 금발 단발(흐트러진 앞머리), 분홍 눈, 머리 위에 걸친 둥근 분홍 렌즈 선글라스, 귀 피어싱 여러 개·이어커프, 길고 분홍 네일·반지, 흰 셔츠+느슨한 검정 넥타이, 크롭 재킷, 검정 플리츠 스커트, 체인 장신구
+- 해골: 사람보다 훨씬 큰 검은 해골, 청록·빨강 테두리. 소녀 뒤에서 드리움. 말은 없음
+
+## PixAI 프롬프트 (기준 그림 1장)
+- 세로 3:4, 배경 포함 완성 그림. 이후 표정·자세는 이 그림을 편집해서 만든다
+- 프롬프트:
+  `1girl, solo focus, inside a public phone booth at night, holding a payphone receiver to her ear, looking up at viewer, high angle shot from above, one hand reaching toward the camera with foreshortening, short messy pale pink blonde bob hair, pink eyes, round pink tinted sunglasses on head, multiple ear piercings, ear cuffs, long pink nails, silver rings, white shirt, loose black necktie, cropped black jacket, black pleated skirt, chain accessories, playful teasing smile, a giant black skeleton looming behind her, risograph print style, teal and mint tritone with hot pink and red accents, halftone dots, misregistered print, grainy texture, rain streaks, paint splatter, dense collage, street punk fashion, masterpiece, best quality`
+- 네거티브:
+  `lowres, bad anatomy, bad hands, extra fingers, missing fingers, text, watermark, signature, blurry, 3d, photorealistic`
+
 ## 아직 정할 것
-- 캐릭터 이름, 외모 세부 (레퍼런스 소녀를 바탕으로 PixAI 제작)
-- 화면 시안 확인 후 세부 조정
+- 이름 확정
+- 그림이 나오면 화면 시안 확인 후 세부 조정
 
 ## 버린 아이디어
 - 알약 케이스, 뮤직비디오 컷
