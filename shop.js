@@ -38,10 +38,17 @@ const css = `
 .note2+.note2{margin-top:12px}
 .note2 h5{font-family:'Space Mono',monospace;font-size:11px;color:#c2185b;margin-bottom:4px}
 .note2.lock{background:#2a2e35;color:var(--mute);box-shadow:none;border:1px dashed var(--line)}
-.decor{position:absolute;inset:0;pointer-events:none;z-index:3}
-.decor img{position:absolute;width:58px;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.55));animation:dsw 4s ease-in-out infinite alternate}
-@keyframes dsw{to{transform:translateY(-4px) rotate(var(--r2,3deg))}}
-.app.dim .decor{opacity:0}
+.decor{position:absolute;inset:0;pointer-events:none;-webkit-mask:url(assets/lena/dotmask.png) center top/cover no-repeat;mask:url(assets/lena/dotmask.png) center top/cover no-repeat;transition:opacity .25s}
+.app.outside .decor,.app.dim .decor{opacity:0}
+.stk{position:absolute;width:var(--w,62px);aspect-ratio:1;transform:translate(-50%,-50%) rotate(var(--r,0deg));background:var(--im) center/contain no-repeat;opacity:.9;filter:saturate(.85) brightness(.88) contrast(1.05) drop-shadow(0 0 1px rgba(255,255,255,.35)) drop-shadow(1px 2px 1.5px rgba(0,0,0,.45));touch-action:none}
+.stk::after{content:"";position:absolute;inset:0;background:linear-gradient(118deg,transparent 30%,rgba(255,255,255,.38) 42%,rgba(255,255,255,.06) 52%,transparent 60%),linear-gradient(rgba(150,220,255,.12),rgba(255,61,154,.1));-webkit-mask:var(--im) center/contain no-repeat;mask:var(--im) center/contain no-repeat;mix-blend-mode:screen}
+.app.dedit .decor{-webkit-mask:none;mask:none;pointer-events:auto;z-index:60;background:rgba(0,0,0,.25)}
+.app.dedit .stk{opacity:1;outline:1.5px dashed rgba(255,255,255,.55);outline-offset:4px;border-radius:8px;cursor:grab}
+.app.dedit .stk.sel{outline-color:var(--pink)}
+.app.dedit .home,.app.dedit .callv{opacity:0;pointer-events:none}
+.dbar{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:61;display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:18px;background:rgba(10,12,15,.88);border:1px solid var(--line)}
+.dbar p{font-size:13px;color:var(--mute);line-height:1.45;word-break:keep-all}
+.dbar>.btn{height:46px;flex:none}.dbar .r{display:flex;gap:8px}.dbar .r .btn{flex:1;height:44px;font-size:14px}
 .gpop{position:absolute;z-index:70;width:84px;pointer-events:none;animation:gpop 1.4s var(--ease) forwards}
 @keyframes gpop{0%{opacity:0;transform:translateY(40px) scale(.4)}25%{opacity:1;transform:translateY(0) scale(1.1)}70%{opacity:1;transform:translateY(-20px) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(.8)}}
 .hearts{position:absolute;z-index:70;pointer-events:none;font-size:26px;color:var(--pink);text-shadow:2px 2px 0 #000;animation:hearts 1.2s ease-out forwards}
@@ -129,11 +136,29 @@ async function letter() {
   S.memory.push('📮 레나의 편지: ' + t.slice(0, 300)); save(); say(t, 'happy', false); toast('편지는 5번 음성사서함에 보관했어요.'); return true;
 }
 // 부스 꾸미기
-const SLOTS = [[3, 50, -8], [78, 42, 6], [6, 68, 5], [80, 62, -6]];
+const SLOTS = [[14, 24, -8], [36, 11, 6], [88, 15, -5], [8, 43, 5]];
 function D() { if (!S.decor) S.decor = { own: [], on: [] }; return S.decor; }
+// 부스 유리에 붙은 스티커: 레나 가림판(dotmask)으로 잘라서 레나 뒤 유리에 붙은 것처럼 보인다
+const P = id => { const D0 = D(); D0.pos = D0.pos || {}; if (!D0.pos[id]) { const i = D0.on.indexOf(id), [x, y, r] = SLOTS[Math.max(0, i) % 4]; D0.pos[id] = { x, y, r, w: 62 }; } return D0.pos[id]; };
+let edSel = null;
 function renderDecor() {
-  let L = $('decorL'); if (!L) { L = el('div', 'decor'); L.id = 'decorL'; $('home').insertBefore(L, $('home').firstChild.nextSibling); }
-  L.innerHTML = ''; D().on.slice(0, 4).forEach((id, i) => { const d = DECOR.find(x => x.id === id); if (!d) return; const im = el('img'); im.src = SI(d.i); im.alt = ''; const [x, y, r] = SLOTS[i]; im.style.left = x + '%'; im.style.top = y + '%'; im.style.transform = `rotate(${r}deg)`; im.style.setProperty('--r2', (r + 4) + 'deg'); im.style.animationDelay = (i * .7) + 's'; L.appendChild(im); });
+  let L = $('decorL'); if (!L) { L = el('div', 'decor'); L.id = 'decorL'; document.querySelector('.dots').after(L); }
+  L.innerHTML = ''; D().on.slice(0, 4).forEach(id => { const d = DECOR.find(x => x.id === id); if (!d) return; const p = P(id), s = el('div', 'stk' + (edSel === id ? ' sel' : '')); s.style.setProperty('--im', `url(${SI(d.i)})`); s.style.left = p.x + '%'; s.style.top = p.y + '%'; s.style.setProperty('--r', p.r + 'deg'); s.style.setProperty('--w', p.w + 'px'); s.dataset.id = id; L.appendChild(s); });
+}
+function decorEdit() {
+  closeSheet(); renderDecor(); const app = $('app'); app.classList.add('dedit'); const L = $('decorL');
+  if (!D().on.length) { toast('먼저 부스 꾸미기에서 장식을 골라 주세요.'); app.classList.remove('dedit'); return; }
+  edSel = D().on[0]; renderDecor();
+  const bar = el('div', 'dbar'); bar.appendChild(el('p', null, '끌어서 유리에 붙여요. 레나 뒤로 가면 레나에 가려져요. 고른 스티커는 아래 버튼으로 크기·기울기를 바꿔요.'));
+  const mod = f => () => { if (!edSel) return; f(P(edSel)); save(); renderDecor(); };
+  bar.append(row(btn('작게', 'ghost', mod(p => p.w = Math.max(36, p.w - 8))), btn('크게', 'ghost', mod(p => p.w = Math.min(130, p.w + 8))), btn('↺', 'ghost', mod(p => p.r -= 8)), btn('↻', 'ghost', mod(p => p.r += 8))));
+  bar.lastChild.className = 'r';
+  const done = btn('다 붙였어요', 'wide', () => { app.classList.remove('dedit'); edSel = null; bar.remove(); L.onpointerdown = null; save(); renderDecor(); toast('부스 유리에 붙였어요.'); });
+  bar.appendChild(done); app.appendChild(bar);
+  let drag = null;
+  L.onpointerdown = e => { const t = e.target.closest('.stk'); if (!t) return; e.preventDefault(); edSel = t.dataset.id; L.querySelectorAll('.stk').forEach(x => x.classList.toggle('sel', x === t)); const r = L.getBoundingClientRect(), p = P(edSel); drag = { t, p, r, dx: e.clientX - (r.left + p.x / 100 * r.width), dy: e.clientY - (r.top + p.y / 100 * r.height) }; t.setPointerCapture(e.pointerId); t.style.cursor = 'grabbing';
+    t.onpointermove = ev => { if (!drag) return; drag.p.x = Math.max(3, Math.min(97, (ev.clientX - drag.dx - r.left) / r.width * 100)); drag.p.y = Math.max(8, Math.min(92, (ev.clientY - drag.dy - r.top) / r.height * 100)); t.style.left = drag.p.x + '%'; t.style.top = drag.p.y + '%'; };
+    t.onpointerup = t.onpointercancel = () => { drag = null; t.style.cursor = ''; tone([900], .03, .03); save(); }; };
 }
 // 음성통화 화면 이름 아래 호감도 배지
 function renderAff() {
@@ -170,7 +195,7 @@ SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 �
   } else if (tab === 'decor') {
     const G = el('div', 'dl'); DECOR.forEach(d => { const own = D().own.includes(d.id), on = D().on.includes(d.id); const t = el('button', 'dt' + (on ? ' on' : '') + (own ? '' : ' lock')); const im = el('img'); im.src = SI(d.i); im.alt = d.n; t.appendChild(im);
       t.onclick = () => { if (!own) { toast(`${d.n}: 오늘의 자판기에 나오면 살 수 있어요 (동전 ${d.p}개).`); return; } const o = D().on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 4) o.shift(); o.push(d.id); } save(); renderDecor(); refreshSheet(); }; G.appendChild(t); });
-    B.appendChild(G); B.appendChild(el('div', 'hint', `모은 장식 ${D().own.length}/${DECOR.length} · 4개까지 붙일 수 있어요. 누르면 붙이고 떼요. 장식은 오늘의 자판기에 날마다 하나씩 나와요.`));
+    B.appendChild(G); if (D().on.length) B.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', decorEdit))); B.appendChild(el('div', 'hint', `모은 장식 ${D().own.length}/${DECOR.length} · 4개까지 붙일 수 있어요. 누르면 붙이고 떼요. 붙인 장식은 레나 뒤 유리에 붙어 영상통화 화면에 보여요. 장식은 오늘의 자판기에 날마다 하나씩 나와요.`));
   } else {
     const L = a.notes; if (!L.length) B.appendChild(empty('아직 비어 있어요. 호감도 1단계가 되면 첫 비밀이 열려요.', 'st_heart'));
     L.forEach((t, i) => { const d = el('div', 'note2'); d.append(el('h5', null, `${i + 1}단계 · 레나의 비밀`), document.createTextNode(t)); B.appendChild(d); });
