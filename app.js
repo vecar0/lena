@@ -166,7 +166,7 @@ let curSheet = 0;
 const SH = {};
 function openSheet(n) {
   closePad(); const s = SH[n]; if (!s) return; if (s.direct) { s.direct(); return; } curSheet = n;
-  $('shNum').textContent = n; $('shT').textContent = s.t; $('shS').textContent = typeof s.s === 'function' ? s.s() : (s.s || '');
+  $('shNum').textContent = /^[0-9*]$/.test(String(n)) ? n : ({ shop: '♥', cl: '#', box: '⚡' })[n] || '•'; $('shT').textContent = s.t; $('shS').textContent = typeof s.s === 'function' ? s.s() : (s.s || '');
   const B = $('shB'); B.innerHTML = ''; s.r(B); B.scrollTop = 0;
   $('sheet').classList.add('open'); app.classList.add('dim');
   if (s.open) s.open();
