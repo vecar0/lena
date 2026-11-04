@@ -52,9 +52,10 @@ const lv = id => st().b[id] || 0;
 const hasU = id => st().up.includes(id);
 function fmt(n) { n = Math.floor(n); if (n < 1e4) return n.toLocaleString(); if (n < 1e8) return (n / 1e4).toFixed(n < 1e5 ? 1 : 0) + '만'; if (n < 1e12) return (n / 1e8).toFixed(n < 1e9 ? 1 : 0) + '억'; return (n / 1e12).toFixed(1) + '조'; }
 function incOf(b) { const l = lv(b.id); return b.inc * l * Math.pow(2, Math.floor(l / 25)); }
-function rate() { let r = BO.reduce((a, b) => a + incOf(b), 0); if (hasU('sign')) r *= 1.5; if (hasU('ad')) r *= 2; if (st().boost > Date.now()) r *= 2; return r; }
+function rate() { let r = BO.reduce((a, b) => a + incOf(b), 0); if (hasU('sign')) r *= 1.5; if (hasU('ad')) r *= 2; if (st().boost > Date.now()) r *= 2; return r * (1 + .1 * (st().pr || 0)); }
+const stars = () => { const s = st(); return Math.floor(Math.sqrt((s.run ?? s.tot) / 1e6)); };
 function costOf(b, n) { let t = 0, l = lv(b.id); for (let i = 0; i < n; i++) t += b.cost * Math.pow(1.15, l + i); return Math.ceil(t); }
-function earn(x) { const s = st(); s.c += x; s.tot += x; while (s.mile < MILE.length && s.tot >= MILE[s.mile]) { s.mile++; gcAdd(3); toast(`전화국 누적 ${fmt(MILE[s.mile - 1])} 돌파! 게임 동전 +3`); } }
+function earn(x) { const s = st(); s.c += x; s.tot += x; s.run = (s.run ?? s.tot - x) + x; while (s.mile < MILE.length && s.tot >= MILE[s.mile]) { s.mile++; gcAdd(3); toast(`전화국 누적 ${fmt(MILE[s.mile - 1])} 돌파! 게임 동전 +3`); } }
 function offline() { const s = st(), now = Date.now(), cap = (hasU('pile') ? 16 : 8) * 3600e3, dt = Math.min(cap, Math.max(0, now - (s.last || now))); s.last = now; if (dt < 60e3) return 0; const r = rate(); const g = r * dt / 1000; earn(g); return g; }
 setInterval(() => { if (S.idl && !document.hidden) { const s = st(), now = Date.now(); const dt = Math.min(5000, now - (s.last || now)); s.last = now; earn(rate() * dt / 1000); if (I && I.upd) I.upd(); } }, 250);
 setInterval(() => { if (S.idl) save(); }, 5000);
@@ -87,8 +88,13 @@ function render(got) {
       bb.onclick = () => { if (hasU(u.id) || s.c < u.cost) return; s.c -= u.cost; s.up.push(u.id); coinSound(); render(); };
       ups.push({ u, r, bb }); });
     B.appendChild(U);
+    B.appendChild(lbl('해골 은퇴 (다시 시작하고 영구 강화)'));
+    const PR = el('div', 'boost'); const pt = el('span'); PR.appendChild(pt);
+    const pb = btn('은퇴하기', 'pink', () => { const n = stars(); if (n < 1) { toast('이번 판 수익이 100만을 넘으면 은퇴할 수 있어요.'); return; } if (!confirm(`부스·업그레이드·동전을 모두 처음으로 돌리고 은퇴 별 ${n}개를 받아요. (별 하나당 모든 수익 +10%, 영원히)`)) return; s.pr = (s.pr || 0) + n; s.c = 0; s.b = { red: 1 }; s.up = []; s.run = 0; gcAdd(n); coinSound(); toast(`은퇴 별 +${n} · 게임 동전 +${n}`); render(); });
+    PR.appendChild(pb); B.appendChild(PR);
     B.appendChild(el('div', 'rules', '부스를 사면 초당 동전이 늘어요. 같은 부스 25단계마다 수익 2배. 앱을 꺼 둬도 최대 8시간까지 쌓여요. 전화국 누적 수익이 1천, 1만, 10만… 을 넘을 때마다 게임 동전 3개를 받아요.'));
     const upd = () => {
+      pt.innerHTML = `별 <b>${s.pr || 0}</b>개 (수익 +${(s.pr || 0) * 10}%) · 지금 은퇴하면 <b>+${stars()}</b>`; pb.disabled = stars() < 1;
       if (!$('gcb')) return; cb.textContent = fmt(s.c); rs.textContent = `초당 ${rate() < 10 ? rate().toFixed(1) : fmt(rate())}${s.boost > Date.now() ? ' · ×2 부스트' : ''}`;
       const left = s.boost - Date.now(); bt.innerHTML = left > 0 ? `부스트 <b>${Math.floor(left / 60000)}분</b> 남음 · 더 넣으면 연장` : '할 일 동전 1개로 <b>1시간 수익 ×2</b>';
       rows.forEach(x => { const l = lv(x.b.id), c = costOf(x.b, mul), prev = BO[BO.indexOf(x.b) - 1], locked = prev && !lv(prev.id); x.r.classList.toggle('lock', !!locked); x.nm2.textContent = locked ? '???' : `${x.b.n} · Lv ${l}`; x.sm.textContent = locked ? '앞 부스를 먼저 열어요' : `초당 ${fmt(incOf(x.b))} · 다음 +${x.b.inc}`; x.bb.innerHTML = `${l ? '확장' : '개업'} ×${mul}<small>${fmt(c)}</small>`; x.bb.disabled = !!locked || s.c < c; });

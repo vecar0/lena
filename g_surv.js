@@ -39,13 +39,28 @@ const WP = {
 const MAXL = 5;
 let G = null;
 
+const MV = () => { if (!S.sv) S.sv = { bones: 0, up: {}, asc: 0, ascMax: 0 }; S.sv.up = S.sv.up || {}; return S.sv; };
+const UPS = [['hp', '튼튼한 몸', '최대 체력 +10%'], ['dmg', '날카로운 발톱', '모든 공격 +10%'], ['spd', '가벼운 발', '이동 속도 +5%'], ['mag', '동전 자석', '보석 끌어오는 거리 +15%'], ['luck', '행운의 방울', '하트(회복) 나올 확률 ↑'], ['greed', '해골 장부', '뼛조각 +15%'], ['cd', '빠른 손', '무기 재사용 −4%'], ['rev', '레나의 손', '부활 +1번 (최대 2)']];
+const upLv = k => MV().up[k] || 0, upMax = k => k === 'rev' ? 2 : 5, upCost = k => Math.round((k === 'rev' ? 60 : 12) * Math.pow(1.7, upLv(k)));
+const NIGHT = n => n ? `밤 ${n + 1} · 적 체력 +${n * 25}% · 수 +${n * 12}% · 공격 +${n * 10}% · 뼛조각 +${n * 25}%` : '밤 1 · 기본';
 function intro() {
+  const M = MV();
   frame('빗속의 고양이', B => {
-    talk(B, 'l', '비 오는 골목에 해골들이 몰려와요. 5분만 버티면 새벽이에요. …제 고양이 잘 지켜 줘요?');
-    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 화면 아무 데나 대고 <b>끌면</b> 고양이가 움직여요. 공격은 알아서 해요.<br>· 해골이 떨어뜨린 <b>초록 보석</b>을 모으면 레벨이 올라요. 그때 무기나 능력을 <b>하나 골라요</b>.<br>· 2분 30초, 4분 30초에 큰 해골이 나와요.<br>· 5분 버티면 승리, 그 뒤로 <b>계속 버티기</b>도 돼요. 쓰러지기 직전 한 번은 레나가 일으켜 줘요. 쓰러뜨린 수와 버틴 시간만큼 게임 동전을 받아요.';
+    talk(B, 'l', '비 오는 골목에 해골들이 몰려와요. 5분 버티면 새벽이에요. …뼛조각 모아서 고양이 키워 줘요.');
+    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 화면을 <b>끌면</b> 고양이가 움직이고, 공격은 알아서 해요.<br>· 초록 보석으로 레벨업 → 무기·능력 <b>하나 고르기</b>. 1분마다 해골 떼, 2:30·4:30에 보스.<br>· 판이 끝나면 <b>뼛조각</b>을 받아요. 아래에서 <b>영구 강화</b>에 써요.<br>· 5분 버티면 다음 <b>밤 단계</b>가 열려요. 단계가 높을수록 어렵고 보상이 커요.';
+    B.appendChild(lbl('밤 단계'));
+    const P = el('div', 'pills'); for (let n = 0; n <= Math.min(9, M.ascMax); n++) { const b = el('button', M.asc === n ? 'on' : '', `밤 ${n + 1}`); b.onclick = () => { M.asc = n; save(); intro(); }; P.appendChild(b); } B.appendChild(P);
+    B.appendChild(el('div', 'hint', NIGHT(M.asc)));
+    B.appendChild(row(btn(`밤 ${M.asc + 1} 골목으로 들어가기`, 'wide', play)));
+    B.appendChild(lbl(`영구 강화 · 뼛조각 ${M.bones}개`));
+    const G2 = el('div', 'shop');
+    UPS.forEach(([k, n, d]) => { const o = el('div', 'offer'), im = el('img'); im.src = gimg(k === 'hp' ? 's_heart' : k === 'mag' ? 's_gem' : k === 'rev' ? 's_cathurt' : k === 'dmg' ? 'c_whip' : k === 'greed' ? 's_boss' : k === 'cd' ? 'c_bolt' : k === 'luck' ? 'c_kiss' : 's_cat'); im.alt = '';
+      const t = el('div'); t.append(el('b', null, `${n} ${'●'.repeat(upLv(k))}${'○'.repeat(upMax(k) - upLv(k))}`), el('small', null, d));
+      const full = upLv(k) >= upMax(k), b = btn(full ? '최대' : `🦴 ${upCost(k)}`, '', () => { if (full || M.bones < upCost(k)) { toast('뼛조각이 모자라요.'); return; } M.bones -= upCost(k); M.up[k] = upLv(k) + 1; save(); coinSound(); intro(); });
+      b.disabled = full || M.bones < upCost(k); o.append(im, t, b); G2.appendChild(o); });
+    B.appendChild(G2);
     B.appendChild(r);
-    B.appendChild(el('div', 'rules', `최고 기록: ${S.svBest ? `${Math.floor(S.svBest / 60)}분 ${S.svBest % 60}초` : '없음'} · 최다 처치 ${S.svKill || 0}`));
-    B.appendChild(row(btn('골목으로 들어가기', 'wide', play)));
+    B.appendChild(el('div', 'rules', `최고 기록: ${S.svBest ? `${Math.floor(S.svBest / 60)}분 ${S.svBest % 60}초` : '없음'} · 최다 처치 ${S.svKill || 0} · 깬 밤 ${M.ascMax}`));
   }, true);
 }
 
@@ -57,9 +72,9 @@ function play() {
   W.appendChild(hud);
   const pb = el('button', 'svp', 'Ⅱ'); W.appendChild(pb);
   let vw = 0, vh = 0, dpr = Math.min(2, devicePixelRatio || 1);
-  const fit = () => { const r = W.getBoundingClientRect(); vw = r.width; vh = r.height; cv.width = vw * dpr; cv.height = vh * dpr; };
+  const fit = () => { vw = cv.clientWidth || W.clientWidth; vh = cv.clientHeight || W.clientHeight; cv.width = vw * dpr; cv.height = vh * dpr; };
   fit(); const ro = new ResizeObserver(fit); ro.observe(W);
-  G = { t: 0, p: { x: 0, y: 0, hp: 130, mhp: 130, spd: 150, mag: 70, inv: 0, face: 1, fx: 1, fy: 0, cd: 1 }, en: [], gems: [], pr: [], fx: [], nums: [], lv: 1, xp: 0, need: 6, kills: 0, w: { whip: 1 }, wt: {}, paused: false, over: false, spawn: 0, boss: [150, 270], shake: 0, rain: [...Array(70)].map(() => ({ x: Math.random(), y: Math.random(), s: .6 + Math.random() * .8 })) };
+  const M = MV(), A = M.asc; G = { t: 0, asc: A, dm: 1 + .1 * upLv('dmg'), revs: upLv('rev'), elite: 60, p: { x: 0, y: 0, hp: 130 * (1 + .1 * upLv('hp')), mhp: 130 * (1 + .1 * upLv('hp')), spd: 150 * (1 + .05 * upLv('spd')), mag: 70 * (1 + .15 * upLv('mag')), inv: 0, face: 1, fx: 1, fy: 0, cd: 1 }, en: [], gems: [], pr: [], fx: [], nums: [], lv: 1, xp: 0, need: 6, kills: 0, w: { whip: 1 }, wt: {}, paused: false, over: false, spawn: 0, boss: [150, 270], shake: 0, rain: [...Array(70)].map(() => ({ x: Math.random(), y: Math.random(), s: .6 + Math.random() * .8 })) };
   // 입력: 아무 데나 끌면 조이스틱
   const J = { on: false, ox: 0, oy: 0, x: 0, y: 0 }, keys = {};
   const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
@@ -77,12 +92,12 @@ function play() {
   const dist2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
   function nearest(maxD) { let best = null, bd = maxD * maxD; for (const e of G.en) { const d = dist2(e, G.p); if (d < bd) { bd = d; best = e; } } return best; }
   function hit(e, dmg, kx, ky) {
-    if (e.dead) return; e.hp -= dmg; e.flash = .1; if (kx || ky) { e.x += kx; e.y += ky; }
+    if (e.dead) return; dmg *= G.dm; e.hp -= dmg; e.flash = .1; if (kx || ky) { e.x += kx; e.y += ky; }
     if (G.nums.length < 40) G.nums.push({ x: e.x, y: e.y - e.r, v: Math.round(dmg), t: .6 });
-    if (e.hp <= 0) { e.dead = true; G.kills++; G.gems.push({ x: e.x, y: e.y, v: e.xp, h: Math.random() < .02 }); if (e.type === 'boss') { for (let i = 0; i < 14; i++) G.gems.push({ x: e.x + (Math.random() - .5) * 120, y: e.y + (Math.random() - .5) * 120, v: 3 }); G.shake = .5; tone([90], .3, .12, 'square'); } }
+    if (e.hp <= 0) { e.dead = true; G.kills++; G.gems.push({ x: e.x, y: e.y, v: e.xp, h: Math.random() < .02 + upLv('luck') * .006 + (e.elite ? 1 : 0) }); if (e.elite) { for (let i = 0; i < 8; i++) G.gems.push({ x: e.x + (Math.random() - .5) * 80, y: e.y + (Math.random() - .5) * 80, v: 2 }); } if (e.type === 'boss') { for (let i = 0; i < 14; i++) G.gems.push({ x: e.x + (Math.random() - .5) * 120, y: e.y + (Math.random() - .5) * 120, v: 3 }); G.shake = .5; tone([90], .3, .12, 'square'); } }
   }
   const T = { ghost: { hp: 6, spd: 72, dmg: 8, r: 15, s: 46, xp: 1, im: 's_ghost' }, bat: { hp: 4, spd: 125, dmg: 6, r: 13, s: 46, xp: 1, im: 's_bat' }, hand: { hp: 20, spd: 46, dmg: 12, r: 19, s: 54, xp: 2, im: 's_hand' }, boss: { hp: 700, spd: 58, dmg: 25, r: 44, s: 132, xp: 10, im: 's_boss' } };
-  function spawn(type) { const t = T[type], a = Math.random() * Math.PI * 2, R = Math.hypot(vw, vh) / 2 + 60, k = 1 + G.t / 220; G.en.push({ type, x: G.p.x + Math.cos(a) * R, y: G.p.y + Math.sin(a) * R, hp: t.hp * (type === 'boss' ? 1 : k), mhp: t.hp * k, spd: t.spd, dmg: t.dmg, r: t.r, s: t.s, xp: t.xp, im: t.im, ph: Math.random() * 6, flash: 0 }); }
+  function spawn(type) { const t = T[type], a = Math.random() * Math.PI * 2, R = Math.hypot(vw, vh) / 2 + 60, k = (1 + G.t / 220) * (1 + .25 * G.asc); G.en.push({ type, x: G.p.x + Math.cos(a) * R, y: G.p.y + Math.sin(a) * R, hp: t.hp * (type === 'boss' ? 1 + .35 * G.asc : k), mhp: t.hp * k, spd: t.spd * (1 + .03 * G.asc), dmg: t.dmg * (1 + .1 * G.asc), r: t.r, s: t.s, xp: t.xp, im: t.im, ph: Math.random() * 6, flash: 0 }); }
   const lvOf = k => G.w[k] || 0;
   function weapons(dt) {
     const p = G.p, cdm = Math.pow(.92, lvOf('cof'));
@@ -125,11 +140,11 @@ function play() {
   }
   function end(win) {
     G.over = true; const t = Math.floor(G.t), reward = Math.max(0, Math.floor(G.kills / 30) + Math.floor(t / 60) * 2 + (win && !G.paid ? 10 : 0) - (G.paidR || 0)); G.paid = G.paid || win; G.paidR = (G.paidR || 0) + reward;
-    S.svBest = Math.max(S.svBest || 0, t); S.svKill = Math.max(S.svKill || 0, G.kills); save(); if (reward) gcAdd(reward);
+    const M2 = MV(), bones = Math.round((G.kills / 8 + t / 20) * (1 + .25 * G.asc) * (1 + .15 * upLv('greed'))) - (G.paidB || 0); G.paidB = (G.paidB || 0) + bones; M2.bones += bones; if (win && G.asc >= M2.ascMax) M2.ascMax = Math.min(9, G.asc + 1); S.svBest = Math.max(S.svBest || 0, t); S.svKill = Math.max(S.svKill || 0, G.kills); save(); if (reward) gcAdd(reward);
     const M = el('div', 'lvl'); M.appendChild(el('h3', null, win ? '새벽이 왔어요!' : '쓰러졌어요…'));
-    const s = el('div', 'rules'); s.innerHTML = `버틴 시간 <b>${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}</b> · 처치 <b>${G.kills}</b> · 레벨 <b>${G.lv}</b><br>게임 동전 <b>+${reward}</b>`; M.appendChild(s);
+    const s = el('div', 'rules'); s.innerHTML = `버틴 시간 <b>${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}</b> · 처치 <b>${G.kills}</b> · 레벨 <b>${G.lv}</b><br>게임 동전 <b>+${reward}</b> · 뼛조각 <b>+${bones}</b>${win && G.asc + 1 === MV().ascMax ? `<br>🔓 밤 ${G.asc + 2} 열림!` : ''}`; M.appendChild(s);
     const tk = el('div', 'talkr'), ti = el('i', $('app').classList.contains('outside') ? '' : 'face'); tk.append(ti, el('span', null, win ? '진짜 버텼어요? …멋있다. 오늘은 제가 반했어요.' : pick(['괜찮아요, 고양이는 무사해요. 다시 해요.', '해골들이 너무 많았죠. 다음엔 레이저부터 챙겨요.'])));
-    M.appendChild(tk); if (win && !G.endless) M.appendChild(row(btn('계속 버티기 (끝없는 밤)', 'teal wide', () => { M.remove(); G.over = false; G.endless = true; G.nb = G.t + 60; last = performance.now(); }))); M.appendChild(row(btn('다시 하기', 'wide', play), btn('오락실로', 'ghost wide', () => ARC.hub())));
+    M.appendChild(tk); if (win && !G.endless) M.appendChild(row(btn('계속 버티기 (끝없는 밤)', 'teal wide', () => { M.remove(); G.over = false; G.endless = true; G.nb = G.t + 60; last = performance.now(); }))); M.appendChild(row(btn('강화하러 가기', 'wide', intro), btn('바로 다시', 'ghost wide', play)));
     W.appendChild(M); win ? (coinSound(), setTimeout(coinSound, 200)) : tone([220, 160], .5, .08, 'triangle');
   }
   function step(dt) {
@@ -141,13 +156,14 @@ function play() {
     p.x += mx * p.spd * dt; p.y += my * p.spd * dt; if (Math.abs(mx) > .1) p.face = mx > 0 ? 1 : -1;
     p.inv = Math.max(0, p.inv - dt); p.hp = Math.min(p.mhp, p.hp + dt * (.5 + .5 * lvOf('milk')));
     // 등장
-    G.spawn += dt * (0.7 + G.t / 42);
+    G.spawn += dt * (0.7 + G.t / 42) * (1 + .12 * G.asc);
+    if (G.t >= G.elite) { G.elite += 60; for (let i = 0; i < 14; i++) spawn('ghost'); spawn('hand'); const el2 = G.en[G.en.length - 1]; el2.hp *= 6; el2.mhp = el2.hp; el2.s *= 1.5; el2.r *= 1.4; el2.elite = 1; G.shake = .25; tone([110], .3, .08, 'sawtooth'); }
     while (G.spawn > 1 && G.en.length < 230) { G.spawn--; const r = Math.random(); spawn(G.t > 90 && r < .28 ? 'hand' : G.t > 45 && r < .55 ? 'bat' : 'ghost'); }
     if (G.boss.length && G.t >= G.boss[0]) { G.boss.shift(); spawn('boss'); G.shake = .4; tone([70, 90], .6, .1, 'sawtooth'); }
     // 적
     for (const e of G.en) { const a = Math.atan2(p.y - e.y, p.x - e.x); let sp = e.spd; if (e.type === 'bat') { e.ph += dt * 6; e.x += Math.cos(a + Math.sin(e.ph) * .9) * sp * dt; e.y += Math.sin(a + Math.sin(e.ph) * .9) * sp * dt; } else { e.x += Math.cos(a) * sp * dt; e.y += Math.sin(a) * sp * dt; }
       e.flash = Math.max(0, e.flash - dt);
-      if (!p.inv && dist2(e, p) < (e.r + 16) ** 2) { p.hp -= e.dmg; p.inv = .55; G.shake = .2; tone([160], .08, .08, 'square'); if (p.hp <= 0) { p.hp = 0; return G.rev ? end(false) : revive(); } } }
+      if (!p.inv && dist2(e, p) < (e.r + 16) ** 2) { p.hp -= e.dmg; p.inv = .55; G.shake = .2; tone([160], .08, .08, 'square'); if (p.hp <= 0) { p.hp = 0; return G.rev ? (G.revs > 0 ? (G.revs--, G.p.hp = G.p.mhp * .5, G.p.inv = 2, G.en = G.en.filter(e => dist2(e, G.p) > 260 * 260), coinSound(), undefined) : end(false)) : revive(); } } }
     // 서로 밀어내기(가볍게)
     for (let i = 0; i < G.en.length; i += 2) { const a = G.en[i], b = G.en[i + 1]; if (!b) break; const d = Math.sqrt(dist2(a, b)) || 1, o = a.r + b.r - d; if (o > 0) { const ux = (a.x - b.x) / d, uy = (a.y - b.y) / d; a.x += ux * o / 2; a.y += uy * o / 2; b.x -= ux * o / 2; b.y -= uy * o / 2; } }
     weapons(dt);
@@ -165,7 +181,7 @@ function play() {
     if (G.endless && G.t >= G.nb) { G.nb += 120; spawn('boss'); G.shake = .4; }
   }
   function draw() {
-    const p = G.p; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const p = G.p; if (Math.abs(cv.clientWidth - vw) > 1 || Math.abs(cv.clientHeight - vh) > 1) fit(); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const sx = G.shake ? (Math.random() - .5) * 10 * G.shake / .2 : 0, sy = G.shake ? (Math.random() - .5) * 10 * G.shake / .2 : 0;
     const cx = p.x - vw / 2 + sx, cy = p.y - vh / 2 + sy, tile = IM.tile;
     if (tile.complete && tile.naturalWidth) { const ts = 256, ox = -((cx % ts) + ts) % ts, oy = -((cy % ts) + ts) % ts; for (let x = ox; x < vw; x += ts) for (let y = oy; y < vh; y += ts) ctx.drawImage(tile, x, y, ts, ts); } else { ctx.fillStyle = '#141a1f'; ctx.fillRect(0, 0, vw, vh); }
@@ -207,5 +223,5 @@ function play() {
   raf = requestAnimationFrame(loop);
 }
 
-ARC.reg({ id: 'surv', order: 1, name: '빗속의 고양이', ban: 'surv', icon: gimg('s_cat'), color: '#ff3d9a', sub: () => `5분 버티기 · 최고 ${S.svBest ? Math.floor(S.svBest / 60) + '분 ' + S.svBest % 60 + '초' : '-'}`, start: intro });
+ARC.reg({ id: 'surv', order: 1, name: '빗속의 고양이', ban: 'surv', icon: gimg('s_cat'), color: '#ff3d9a', sub: () => `밤 ${(MV().ascMax || 0) + 1}단계까지 열림 · 최고 ${S.svBest ? Math.floor(S.svBest / 60) + '분 ' + S.svBest % 60 + '초' : '-'}`, start: intro });
 })();

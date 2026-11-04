@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v26). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v27). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -42,6 +42,9 @@
 - 파일: `arcade.js`(허브·게임 동전·해골 빚 슬롯, 전역 `ARC`), 게임마다 `g_surv.js` `g_rhythm.js` `g_idle.js` `g_cards.js` — `ARC.reg({id,order,name,ban,sub,start})`로 등록. 화면은 `ARC.frame(제목, 내용함수, 뒤로버튼, flat)`, 루프·소리는 `ARC.cleanup`에 정리 함수를 넣는다.
 - 게임 동전 `S.gc`: 매일 +10(최대 99), 0개면 하루 한 번 3개 빌림. 할 일 동전 `S.coins`와 따로. 할 일 동전은 레나 자판기(`shop.js`)에서 쓴다.
 - 허브 카드는 표지 그림 대신 차분한 카드 + 스프라이트 아이콘(`icon`,`color`). 게임은 오래 이어지게: 서바이버는 한 번 부활 + 5분 뒤 '끝없는 밤', 리듬은 곡 길이 2배 + '끝없는 밤' 메들리(하트 10개), 카드는 사장 뒤로 끝없는 지하(10층마다 강해짐), 슬롯은 빚 완만 + 레나 외상 한 번.
+- 스팀 게임식 성장(v27): 서바이버 = 뼛조각 `S.sv`(bones, up 8종 영구 강화, asc 밤 단계 1~10, 1분마다 엘리트 웨이브) · 카드 = 유물 9종(강한 해골·사장 뒤 3개 중 1개, `R.relics`), 쉼터 카드 강화(`카드+`: 피해·방어·중독 ×1.5, 숫자 없는 카드는 비용 −1), 위험도 `S.cardAsc/cardAscMax`(사장 격파 시 다음 단계) · 리듬 = 난이도 쉬움/보통/어려움/악몽 `S.rhDif`(어려움은 A 등급, 악몽은 어려움 S로 열림, 기록 키 `곡id:난이도`) · 전화국 = 해골 은퇴(이번 판 수익 `run` 100만부터, 별 `pr` 하나당 수익 +10%).
+- 오락실 그림은 `.arc img{object-fit:contain}`로 찌그러짐 방지. 서바이버 캔버스는 실제 화면 크기로 맞춤.
+- 영상통화 대화창: 아래쪽 반투명 유리 패널(높이 28vh), 위쪽 "대화 접기/펼치기"(`#logTog`, `.app.lmin`)로 레나 얼굴을 가리지 않게.
 - 게임: ① 빗속의 고양이(서바이버 형식, 캔버스, 5분 버티기) ② 리듬 다이얼(키패드 리듬, 음악은 WebAudio로 직접 합성, 3곡) ③ 해골 전화국(방치형, 꺼 둬도 8시간까지 쌓임, `S.idl`) ④ 해골과 카드 대결(덱 빌딩, 지하 10층, `S.cardRun`) ⑤ 해골 빚 슬롯(클로버핏 같은 빚 갚기 슬롯, 부적, `S.slotRun`).
 - 그림: `assets/lena/g/`(Higgsfield GPT Image 2.5로 만든 스프라이트 시트를 잘라 씀; 원본 `art/new/games/`). 표지 `ban_*.jpg`, 서바이버 `s_*`, 부스 `b_*`, 카드 그림 `c_*`, 적 `e_*`, 골목 바닥 `tile.jpg`.
 
