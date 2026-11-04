@@ -1,7 +1,7 @@
 // 오락실 — 리듬 다이얼: 공중전화 키패드에 맞춰 박자 누르기 (음악은 코드로 직접 만든다)
 'use strict';
 (() => {
-const { frame, talk, gcAdd } = ARC;
+const { frame, talk, gcAdd, gimg } = ARC;
 const css = `
 .rh{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:10px 14px calc(var(--sb) + 14px);overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 .rh::before{content:"";position:absolute;inset:-20px;background:url(assets/lena/poster.jpg) center 30%/cover;filter:blur(14px) brightness(.32) saturate(1.3);transform:scale(var(--pulse,1));transition:transform .08s}
@@ -33,9 +33,10 @@ document.head.appendChild(Object.assign(document.createElement('style'), { textC
 
 // 노래: bpm, 마디 수, 음계, 멜로디 패턴(16분 음표 칸에 음 번호, -1 쉼)
 const SONGS = [
-  { id: 'call', n: '자정의 통화', sub: '느긋하게 · 쉬움', bpm: 96, bars: 16, root: 220, lvl: 1, mel: [0, -1, -1, -1, 2, -1, -1, -1, 4, -1, -1, -1, 2, -1, -1, -1, 5, -1, -1, -1, 4, -1, -1, -1, 2, -1, -1, -1, 0, -1, -1, -1] },
-  { id: 'rain', n: '네온 레인', sub: '통통 튀게 · 보통', bpm: 118, bars: 20, root: 196, lvl: 2, mel: [0, -1, 2, -1, 4, -1, -1, 3, -1, 2, -1, -1, 4, -1, 5, -1, 7, -1, 5, -1, 4, -1, -1, 2, -1, 4, -1, -1, 0, -1, -1, -1] },
-  { id: 'rave', n: '해골 레이브', sub: '정신없이 · 어려움', bpm: 138, bars: 24, root: 174.6, lvl: 3, mel: [0, -1, 0, 2, -1, 4, -1, 2, 5, -1, 4, -1, 2, 4, -1, 7, -1, 5, 4, -1, 2, -1, 4, 5, 7, -1, 5, -1, 4, 2, 0, -1] }
+  { id: 'call', n: '자정의 통화', sub: '느긋하게 · 쉬움', bpm: 96, bars: 32, root: 220, lvl: 1, mel: [0, -1, -1, -1, 2, -1, -1, -1, 4, -1, -1, -1, 2, -1, -1, -1, 5, -1, -1, -1, 4, -1, -1, -1, 2, -1, -1, -1, 0, -1, -1, -1] },
+  { id: 'rain', n: '네온 레인', sub: '통통 튀게 · 보통', bpm: 118, bars: 40, root: 196, lvl: 2, mel: [0, -1, 2, -1, 4, -1, -1, 3, -1, 2, -1, -1, 4, -1, 5, -1, 7, -1, 5, -1, 4, -1, -1, 2, -1, 4, -1, -1, 0, -1, -1, -1] },
+  { id: 'night', n: '끝없는 밤 (메들리)', sub: '틀릴 때까지 계속 · 하트 10개', bpm: 112, bars: 600, root: 207.65, lvl: 2, endless: 1, mel: [0, -1, 2, 4, -1, 5, -1, 4, 2, -1, 0, -1, 4, -1, 7, -1, 5, -1, 4, 2, -1, 4, 5, -1, 7, -1, 9, -1, 7, 5, 4, -1] },
+  { id: 'rave', n: '해골 레이브', sub: '정신없이 · 어려움', bpm: 138, bars: 48, root: 174.6, lvl: 3, mel: [0, -1, 0, 2, -1, 4, -1, 2, 5, -1, 4, -1, 2, 4, -1, 7, -1, 5, 4, -1, 2, -1, 4, 5, 7, -1, 5, -1, 4, 2, 0, -1] }
 ];
 const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
 const freq = (root, k) => root * Math.pow(2, PENTA[k % PENTA.length] / 12);
@@ -110,7 +111,7 @@ function play(song) {
   const { notes, len } = chart(song); const AP = 0.9; // 테두리가 줄어드는 시간
   const a = audio(); if (!a) { toast('소리를 켤 수 없어요.'); return; }
   const t0 = a.currentTime + 1.2; let raf = 0;
-  st = { stop: false, score: 0, combo: 0, max: 0, p: 0, g: 0, m: 0, idx: 0, live: [] };
+  st = { stop: false, score: 0, combo: 0, max: 0, p: 0, g: 0, m: 0, idx: 0, live: [], life: 10 };
   const out = sound(t0, song);
   ARC.cleanup = () => { if (st) st.stop = true; clearTimeout(sched); cancelAnimationFrame(raf); try { out && out.disconnect(); } catch (e) {} st = null; };
   const J = (txt, c) => { const j = $('rJd'); j.textContent = txt; j.className = 'rjudge ' + c; };
@@ -121,10 +122,11 @@ function play(song) {
     const key = keys[k]; key.classList.add('dn'); setTimeout(() => key.classList.remove('dn'), 90);
     if (!best || bd > .2) return;
     best.done = true; best.el && best.el.remove();
+    if (song.endless && st.life < 10) st.life = Math.min(10, st.life + (bd <= .07 ? .25 : .1));
     if (bd <= .07) { st.p++; st.combo++; st.score += 100 + st.combo * 4; J('PERFECT', 'p'); } else if (bd <= .14) { st.g++; st.combo++; st.score += 50 + st.combo * 2; J('GOOD', 'g'); } else { miss(); return; }
     st.max = Math.max(st.max, st.combo); const gl = key.querySelector('.glow'); gl.classList.remove('on'); void gl.offsetWidth; gl.classList.add('on');
   }
-  function miss() { st.m++; st.combo = 0; J('MISS', 'm'); }
+  function miss() { st.m++; st.combo = 0; J('MISS', 'm'); if (song.endless) { st.life--; if (st.life <= 0) setTimeout(finish, 50); } }
   Object.values(keys).forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); judge(+b.dataset.k); }));
   const kd = e => { const k = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, q: 1, w: 2, e: 3, a: 4, s: 5, d: 6, z: 7, x: 8, c: 9 }[e.key]; if (k) judge(k); };
   addEventListener('keydown', kd); const oc = ARC.cleanup; ARC.cleanup = () => { removeEventListener('keydown', kd); oc(); };
@@ -134,7 +136,7 @@ function play(song) {
     while (st.idx < notes.length && notes[st.idx].t - AP <= now) { const n = notes[st.idx++]; const r = el('div', 'ring' + (n.k % 2 ? '' : ' t')); keys[n.k].appendChild(r); n.el = r; st.live.push(n); }
     for (const n of st.live) { if (n.done) continue; const u = (n.t - now) / AP; if (n.el) { const s = 1 + Math.max(0, u) * 1.2; n.el.style.transform = `scale(${s})`; n.el.style.opacity = Math.min(1, 1.6 - u); } if (now - n.t > .2) { n.done = true; n.el && n.el.remove(); miss(); } }
     st.live = st.live.filter(n => !n.done);
-    $('rSc').textContent = st.score.toLocaleString(); $('rCb').textContent = st.combo > 2 ? st.combo + ' COMBO' : '';
+    $('rSc').textContent = st.score.toLocaleString() + (song.endless ? '  ' + '♥'.repeat(Math.max(0, Math.ceil(st.life))) : ''); $('rCb').textContent = st.combo > 2 ? st.combo + ' COMBO' : '';
     $('rPg').style.width = Math.max(0, Math.min(100, now / len * 100)) + '%';
     const ph = ((now % beat) + beat) % beat / beat; R.style.setProperty('--pulse', 1 + Math.max(0, .04 - ph * .08));
     if (now < 0 && $('rJd').textContent === '준비…' && now > -.6) J('시작!', 'g');
@@ -143,7 +145,7 @@ function play(song) {
   }
   raf = requestAnimationFrame(loop);
   function finish() {
-    const tot = notes.length || 1, acc = (st.p + st.g * .6) / tot, g = acc >= .92 ? 'S' : acc >= .8 ? 'A' : acc >= .6 ? 'B' : 'C', reward = { S: 8, A: 5, B: 3, C: 1 }[g];
+    if (!st || st.stop) return; const done = song.endless ? (st.p + st.g + st.m) : notes.length; const tot = done || 1, acc = (st.p + st.g * .6) / tot, g = acc >= .92 ? 'S' : acc >= .8 ? 'A' : acc >= .6 ? 'B' : 'C', reward = song.endless ? Math.min(20, 1 + Math.floor((st.p + st.g) / 50)) : { S: 8, A: 5, B: 3, C: 1 }[g];
     S.rh = S.rh || {}; const prev = S.rh[song.id]; if (!prev || st.score > prev.s) S.rh[song.id] = { s: st.score, g }; save(); gcAdd(reward);
     const res = { ...st }; ARC.cleanup = null; st.stop = true; clearTimeout(sched); setTimeout(() => { try { out.disconnect(); } catch (e) {} }, 400); st = null;
     frame(song.n, B2 => {
@@ -156,5 +158,5 @@ function play(song) {
   }
 }
 
-ARC.reg({ id: 'rhythm', order: 2, name: '리듬 다이얼', ban: 'rhythm', sub: () => { const r = S.rh || {}; const best = Object.values(r).map(x => x.g).sort((a, b) => 'SABC'.indexOf(a) - 'SABC'.indexOf(b))[0]; return `키패드로 박자 맞추기 · ${best ? '최고 ' + best : '노래 3곡'}`; }, start: menu });
+ARC.reg({ id: 'rhythm', order: 2, name: '리듬 다이얼', ban: 'rhythm', icon: gimg('s_phone'), color: '#2fe0c8', sub: () => { const r = S.rh || {}; const best = Object.values(r).map(x => x.g).sort((a, b) => 'SABC'.indexOf(a) - 'SABC'.indexOf(b))[0]; return `키패드로 박자 맞추기 · ${best ? '최고 ' + best : '노래 4곡'}`; }, start: menu });
 })();

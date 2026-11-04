@@ -197,7 +197,7 @@ function paper(t, i) {
   p.append(tp, el('small', null, t.due ? when(t.due) : '언제든'), el('b', null, t.text));
   const a = el('div', 'acts'), ck = el('button', 'ck'); ck.setAttribute('aria-label', '끝냄'); ck.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   ck.onclick = () => { dtmf(5); if (!t.done) { tearSound(); p.classList.add('tear'); setTimeout(() => { setDone(t, true, ck); refreshSheet(); }, 450); } else { setDone(t, false); refreshSheet(); } };
-  a.append(ck, xbtn(() => { const snap = JSON.stringify(S.items); S.items = S.items.filter(x => x !== t); save(); refreshSheet(); toast(`'${t.text}' 떼어 버렸어요`, () => { S.items = JSON.parse(snap); save(); refreshSheet(); }); }));
+  a.append(ck, xbtn(() => { const snap = JSON.stringify(S.items); if (t.rkey && S.repSkip) S.repSkip[t.rkey] = 1; S.items = S.items.filter(x => x !== t); save(); refreshSheet(); toast(`'${t.text}' 떼어 버렸어요`, () => { S.items = JSON.parse(snap); save(); refreshSheet(); }); }));
   p.appendChild(a); return p;
 }
 function boardAdd(B) {
@@ -286,21 +286,6 @@ SH[7] = { t: '모닝콜', s: () => S.morning ? `매일 ${S.morning}에 전화해
     a.appendChild(h); B.appendChild(a);
   }
   if (!S.pushOn) B.appendChild(el('div', 'hint', '폰 알림이 꺼져 있으면 앱을 열 때만 울려요. 0번 설정에서 켜 주세요.'));
-} };
-
-// 8 동전함
-SH[8] = { t: '동전함', s: '전단지를 떼면 한 개씩', r: B => {
-  const c = el('div', 'card coins'), im = el('img'); im.src = 'assets/lena/st_coin.webp'; im.alt = '';
-  const tx = el('div'); tx.append(el('b', null, S.coins), el('div', 'hint', '모은 동전'));
-  c.append(im, tx); B.appendChild(c);
-  B.appendChild(lbl('최근 7일'));
-  const bars = el('div', 'bars card'); const now = new Date(); let mx = 1; const ds = [];
-  for (let i = 6; i >= 0; i--) { const d = new Date(now); d.setDate(d.getDate() - i); const v = S.coinDays[dk(d)] || 0; mx = Math.max(mx, v); ds.push([d, v, i === 0]); }
-  ds.forEach(([d, v, t]) => { const b = el('div', t ? 't' : ''), i = el('i'); i.style.height = (v / mx * 70 + 4) + 'px'; b.append(el('span', null, v || ''), i, el('span', null, WD[d.getDay()])); bars.appendChild(b); });
-  B.appendChild(bars);
-  B.appendChild(lbl('동전 넣기'));
-  const sp = el('div', 'card'); sp.append(row(btn('동전 3개로 특별 통화', 'wide', () => { if (S.coins < 3) { say(`동전이 ${3 - S.coins}개 모자라요. 전단지부터 떼고 와요.`, 'pout', false); return; } S.coins -= 3; save(); closeSheet(); coinPop($('pickBtn')); openCall(); setTimeout(() => sendText('(동전 3개를 넣었어. 특별 통화로 칭찬이랑 응원 듬뿍 해줘)', true), 500); })));
-  sp.appendChild(el('div', 'hint', '레나가 평소보다 다정하게, 길게 칭찬해 줘요.')); B.appendChild(sp);
 } };
 
 // 9 부재중

@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v14). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v15). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -41,5 +41,13 @@
 ## 오락실 (다이얼 8번, 홈의 동전 배지)
 - 파일: `arcade.js`(허브·게임 동전·해골 빚 슬롯, 전역 `ARC`), 게임마다 `g_surv.js` `g_rhythm.js` `g_idle.js` `g_cards.js` — `ARC.reg({id,order,name,ban,sub,start})`로 등록. 화면은 `ARC.frame(제목, 내용함수, 뒤로버튼, flat)`, 루프·소리는 `ARC.cleanup`에 정리 함수를 넣는다.
 - 게임 동전 `S.gc`: 매일 +10(최대 99), 0개면 하루 한 번 3개 빌림. 할 일 동전 `S.coins`와 따로. 할 일 동전은 특별 통화(3개)·전화국 부스트(1개)에 쓴다.
+- 허브 카드는 표지 그림 대신 차분한 카드 + 스프라이트 아이콘(`icon`,`color`). 게임은 오래 이어지게: 서바이버는 한 번 부활 + 5분 뒤 '끝없는 밤', 리듬은 곡 길이 2배 + '끝없는 밤' 메들리(하트 10개), 카드는 사장 뒤로 끝없는 지하(10층마다 강해짐), 슬롯은 빚 완만 + 레나 외상 한 번.
 - 게임: ① 빗속의 고양이(서바이버 형식, 캔버스, 5분 버티기) ② 리듬 다이얼(키패드 리듬, 음악은 WebAudio로 직접 합성, 3곡) ③ 해골 전화국(방치형, 꺼 둬도 8시간까지 쌓임, `S.idl`) ④ 해골과 카드 대결(덱 빌딩, 지하 10층, `S.cardRun`) ⑤ 해골 빚 슬롯(클로버핏 같은 빚 갚기 슬롯, 부적, `S.slotRun`).
 - 그림: `assets/lena/g/`(Higgsfield GPT Image 2.5로 만든 스프라이트 시트를 잘라 씀; 원본 `art/new/games/`). 표지 `ban_*.jpg`, 서바이버 `s_*`, 부스 `b_*`, 카드 그림 `c_*`, 적 `e_*`, 골목 바닥 `tile.jpg`.
+
+## 레나가 먼저 움직이기 (`proactive.js`, app.js 함수를 감싸서 덧붙임)
+- A1 점심(12:30)·밤(22:00) 알림, A2 일정 1시간 전·끝나고 1시간 뒤 "어땠어요?", A3 밀린 일 재촉(15·21시). 설정 `S.pro` (0번 설정 > 레나가 먼저 연락). 모두 `plan()`의 reminders로 서버에 올라감.
+- D1 시간 없는 할 일에 시간 제안 카드, D2 지난 일정 "했어요?"(응/내일로/안 할래), D3 반복 일정 `S.reps`(2주 치 전단지 자동 생성, `rkey`, 지운 건 `S.repSkip`), D4 밀린 전단지 한 번에 정리 시트 `SH.cl`(해골 손 "똑똑"을 누르면 열림). Gemini 답에 `repeat`, add 항목에 `alarm:true`.
+## 단축어 연결 (`box.js` + 서버 `box-worker.js`)
+- 새 Cloudflare Worker `lena-box`(KV 바인딩 `BOX`)를 사용자가 직접 배포해야 함. 앱 0번 설정 > 단축어에서 주소 입력. 열쇠 `S.boxTok`.
+- B2: 앱이 `/alarms`에 모닝콜·⏰ 표시 전단지 시간을 올리고, 밤 10시 단축어 자동화가 받아 시계 알람 생성. C3 공유 시트 단축어·C4 잠금화면/제어센터 단축어가 `/in`으로 보내면 앱이 `/inbox`를 가져와 통화로 정리.
