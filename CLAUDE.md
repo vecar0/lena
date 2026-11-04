@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v33). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v34). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512, 3.x는 thinkingLevel low. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -43,7 +43,7 @@
 - 게임 동전 `S.gc`: 매일 +10(최대 99), 0개면 하루 한 번 3개 빌림. 할 일 동전 `S.coins`와 따로. 할 일 동전은 레나 자판기(`shop.js`)에서 쓴다.
 - 허브 카드는 표지 그림 대신 차분한 카드 + 스프라이트 아이콘(`icon`,`color`). 게임은 오래 이어지게: 서바이버는 한 번 부활 + 5분 뒤 '끝없는 밤', 리듬은 곡 길이 2배 + '끝없는 밤' 메들리(하트 10개), 카드는 사장 뒤로 끝없는 지하(10층마다 강해짐), 슬롯은 빚 완만 + 레나 외상 한 번.
 - **영구 강화 없음(v30)**: 모든 게임은 한 판 한 판 처음부터. 서바이버 = 밤 단계 `S.sv.asc/ascMax`(난이도만 열림, 높을수록 동전 보상 +25%씩), 1분마다 엘리트 웨이브 · 카드 = 유물 9종(강한 해골·사장 뒤 3개 중 1개, `R.relics`), 쉼터 카드 강화(`카드+`: 피해·방어·중독 ×1.5, 숫자 없는 카드는 비용 −1), 위험도 `S.cardAsc/cardAscMax`(사장 격파 시 다음 단계) · 리듬 = 난이도 쉬움/보통/어려움/악몽 `S.rhDif`(어려움은 A 등급, 악몽은 어려움 S로 열림, 기록 키 `곡id:난이도`) · 전화국 = 3분 영업 한 판(입장 게임 동전 2, 빨간 부스 하나로 시작, 황금 전화 따르릉 → 15초 ×3, 번 돈으로 C/B/A/S 등급 → 동전 2/4/7/12, 최고 기록 `S.idr`). 예전 방치형 저장 `S.idl`은 지움.
-- 재화 그림 `assets/lena/cur/`(gc 게임 동전, todo 할 일 동전, chip 슬롯 칩, debt 빚, phone 전화국 동전, energy 카드 에너지, heart 호감도, medal 등급, danger 위험도; 원본 `art/new/icons/cur.png`). app.js의 `CUR(n)` 주소, `ci(n)` 글 속 아이콘 HTML(`.ci`).
+- 재화 그림 `assets/lena/cur/`(gc 게임 동전, todo 할 일 동전, chip 슬롯 칩, debt 빚, phone 전화국 동전, energy 카드 에너지, heart 호감도, medal 등급, danger 위험도; 원본 `art/new/icons/cur2.png`(원래 스티커를 참고 그림으로 넣어 같은 인쇄 망점 질감으로 다시 만듦; 첫 버전 cur.png는 안 씀)). app.js의 `CUR(n)` 주소, `ci(n)` 글 속 아이콘 HTML(`.ci`).
 - 모든 `img`는 기본 `object-fit:contain`(index.html). 찌그러짐 점검은 Playwright로 화면마다 img 비율 비교.
 - 오락실 그림은 `.arc img{object-fit:contain}`로 찌그러짐 방지. 서바이버 캔버스는 실제 화면 크기로 맞춤.
 - 영상통화 대화창: 아래쪽 반투명 유리 패널(높이 28vh), 위쪽 "대화 접기/펼치기"(`#logTog`, `.app.lmin`)로 레나 얼굴을 가리지 않게.
@@ -65,5 +65,5 @@
 - 호감도 `S.aff`(pt, last, dday, gifts, notes): 단계 = floor(sqrt(pt/5)). 단계 이름 `TIER`/`tierOf`(화면 형식은 원래대로: 프사 + 막대): 모르는 번호 → 저장된 번호 → 밤의 단골 → 단축번호 1번 → 새벽 세 시의 목소리 → 비밀 회선 → 레나 전용선(이후 숫자). 하루 지날 때마다 −6점. 기분(설렘/두근두근/보통/서운/삐침)은 마지막 선물부터 지난 날로. 대화 프롬프트에 단계·기분을 넘김.
 - 선물 9종(`assets/lena/s/g_*`), 날마다 "레나가 갖고 싶은 것"(호감도 2배)과 가끔 반값. 단계가 오르면 레나 수첩에 비밀 이야기(12개 준비, 그 뒤는 Gemini가 새로 씀).
 - 오늘의 자판기 `S.shop`: 날짜로 정해지는 4칸(선물 2, 부스 장식 1, 쓸모 1: 운세·게임 동전 5·전화국 2시간 부스트·레나 손편지). 자정에 바뀜.
-- 리액션 스티커 9종(`d_bheart d_bdots d_bshout d_anger d_blush d_notes d_crown d_halo d_arrow`, DECOR의 `rx:1`, 원본 `art/new/icons/react.png`): 레나 머리 둘레 기본 자리 `RXS`. 자판기 쓸모 칸 '리액션 스티커 뽑기'(할 일 동전 2, 예전 전화국 부스트 자리). 장식은 6개까지 붙임.
+- 리액션 스티커 9종(`d_bheart d_bdots d_bshout d_anger d_blush d_notes d_crown d_halo d_arrow`, DECOR의 `rx:1`, 원본 `art/new/icons/react2.png`): 레나 머리 둘레 기본 자리 `RXS`. 자판기 쓸모 칸 '리액션 스티커 뽑기'(할 일 동전 2, 예전 전화국 부스트 자리). 장식은 6개까지 붙임.
 - 부스 장식(`S.decor` own/on/gl, 6개까지). `#decorL`은 `.dots` 바로 앞 층, dotmask로 레나·수화기·벽 전화기 뒤에 가려짐. 유리판 `PLANES` 셋(0 뒤쪽, 1 왼쪽 옆판, 2 오른쪽 창 — 폰에선 옆판·창이 좁게 보여 스티커가 화면 밖으로 걸침), 각 원근 사각형 `q`와 붙일 수 있는 다각형 `poly`(그림 1050×1872 비율 좌표). 위치 `gl[id]={g,a,b,r 기울기,s 크기(그림 px),f 뒤집기}`. 편집(`decorEdit`): 끌기(손가락이 옆 유리로 넘어가면 그 유리판으로), 작게/크게/⇋ 뒤집기, 기울기 슬라이더(−60~60°). 스티커 고르기는 브라우저 판정 대신 화면 속 네 모서리로(`corners`). 유리 밖 위치는 `freeSpot`으로 빈자리. 물방울 `.gdrop`.
