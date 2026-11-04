@@ -599,7 +599,10 @@ document.addEventListener('visibilitychange', () => { const v = $('bg'); if (doc
 window.addEventListener('pagehide', () => pushSend(false, true));
 
 // 키보드가 올라오면 화면을 보이는 부분에 맞춘다(iOS)
-if (window.visualViewport) { const vv = window.visualViewport; const fit = () => { app.style.height = vv.height + 'px'; app.style.top = vv.offsetTop + 'px'; app.style.bottom = 'auto'; const L = $('log'); if (L) L.scrollTop = L.scrollHeight; }; vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
+// 키보드가 올라와 있을 때만 보이는 부분에 맞춘다(아이폰 홈 화면 앱에서 평소 높이를 잘못 알려 주는 문제 피하기)
+if (window.visualViewport) { const vv = window.visualViewport; const typing = () => { const a = document.activeElement; return a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && !/^(time|date|datetime-local|file)$/.test(a.type); };
+  const fit = () => { if (typing() && innerHeight - vv.height > 120) { app.style.height = vv.height + 'px'; app.style.top = vv.offsetTop + 'px'; app.style.bottom = 'auto'; const L = $('log'); if (L) L.scrollTop = L.scrollHeight; } else { app.style.height = ''; app.style.top = ''; app.style.bottom = ''; } };
+  vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); document.addEventListener('focusout', () => setTimeout(fit, 120)); document.addEventListener('focusin', () => setTimeout(fit, 350)); }
 
 // ---------------- init ----------------
 load();
