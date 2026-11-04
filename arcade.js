@@ -146,14 +146,14 @@ function slotEnter() {
   frame('해골 빚 슬롯', B => {
     talk(B, 'sk', '(해골이 두꺼운 장부를 펼쳐 보인다. 첫 장에 당신 이름이 적혀 있다)');
     talk(B, 'l', '빚 갚는 게임이에요. 밤마다 정해진 만큼 벌어서 해골한테 갚으면 돼요. …못 갚으면? 끝이죠, 뭐.');
-    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 밤마다 레버를 <b>8번</b> 당길 수 있어요. 5×3칸에 그림이 나와요.<br>· 같은 그림이 <b>가로로 3칸 이상</b>, <b>세로 3칸</b>, <b>대각선 3칸</b> 이어지면 칩을 벌어요. 해골은 아무 그림 대신이 돼요.<br>· 그림 값: 동전 1 · 하트 2 · 입술 3 · 번개 3 · 별 5. 가로 3칸 ×2, 4칸 ×5, 5칸 ×12, 세로 ×3, 대각선 ×2.<br>· 밤이 끝나면 벌어 둔 칩으로 <b>빚</b>을 갚아요. 남은 칩으로 <b>부적</b>을 사서 기계를 유리하게 바꿔요.<br>· 빚은 밤마다 커져요. 못 갚으면 끝. 버틴 밤 × 3개만큼 게임 동전을 받아요.';
+    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 밤마다 레버를 <b>8번</b> 당길 수 있어요. 5×3칸에 그림이 나와요.<br>· 같은 그림이 <b>가로로 3칸 이상</b>, <b>세로 3칸</b>, <b>대각선 3칸</b> 이어지면 칩을 벌어요. 해골은 아무 그림 대신이 돼요.<br>· 그림 값: 동전 1 · 하트 2 · 입술 3 · 번개 3 · 별 5. 가로 3칸 ×2, 4칸 ×5, 5칸 ×12, 세로 ×3, 대각선 ×2.<br>· 빚을 갚으면 <b>기계에 그림 하나를 넣어요</b>. 넣은 그림은 더 자주, 더 비싸게 나와요. 나만의 기계를 키우는 게 핵심!<br>· 밤이 끝나면 벌어 둔 칩으로 <b>빚</b>을 갚아요. 남은 칩으로 <b>부적</b>을 사서 기계를 유리하게 바꿔요.<br>· 빚은 밤마다 커져요. 못 갚으면 끝. 버틴 밤 × 3개만큼 게임 동전을 받아요.';
     B.appendChild(r);
     B.appendChild(row(btn(gc() >= 3 ? '동전 3개 넣고 시작' : '동전이 모자라요 (3개 필요)', 'wide', () => { if (gc() < 3) { toast('게임 동전이 모자라요.'); return; } gcAdd(-3); coinSound(); R = { night: 1, spins: 7, chips: 0, ch: [], rr: true, grid: null, offers: null }; R.spins = spinsPer(); S.slotRun = R; save(); slotDraw(); })));
   }, true);
 }
-function roll() { const w = Object.entries(SYM).map(([k, s]) => [k, s.w * (k === 'heart' && has('hrt') ? 2 : 1) * (k === 'skull' && has('sk') ? 2 : 1)]); const t = w.reduce((a, x) => a + x[1], 0); let r = Math.random() * t; for (const [k, x] of w) if ((r -= x) < 0) return k; return 'coin'; }
+function roll() { const w = Object.entries(SYM).map(([k, s]) => [k, s.w * (k === 'heart' && has('hrt') ? 2 : 1) * (k === 'skull' && has('sk') ? 2 : 1) + ((R.add || {})[k] || 0) * 9]); const t = w.reduce((a, x) => a + x[1], 0); let r = Math.random() * t; for (const [k, x] of w) if ((r -= x) < 0) return k; return 'coin'; }
 function sv(k) { return SYM[k].v + (k === 'lips' && has('lip') ? 3 : 0) + (k === 'star' && has('st') ? 4 : 0) * 1 + 0 || 0; }
-function symVal(k) { let v = SYM[k].v; if (k === 'lips' && has('lip')) v += 3; if (k === 'star' && has('st')) v += 4; if (k === 'coin' && has('cn')) v *= 3; return v; }
+function symVal(k) { let v = SYM[k].v + ((R && R.add || {})[k] || 0); if (k === 'lips' && has('lip')) v += 3; if (k === 'star' && has('st')) v += 4; if (k === 'coin' && has('cn')) v *= 3; return v; }
 function score(g) {
   let tot = 0; const hits = new Set(), lines = [];
   const add = (cells, base, mul, kind) => { let m = mul; if (base === 'bolt' && has('bt')) m *= 2; const v = symVal(base) * m; if (v <= 0) return; tot += v; cells.forEach(([r, c]) => hits.add(r * 5 + c)); lines.push(kind); };
@@ -206,6 +206,7 @@ function settle() {
   if (R.chips < q) { if (!R.loan) return loanAsk(q); return over(false); }
   R.chips -= q; R.night++; R.spins = spinsPer(); R.rr = true; R.grid = null;
   const pool = CH.filter(c => !R.ch.includes(c.id)); R.offers = []; while (R.offers.length < 3 && pool.length) R.offers.push(pool.splice(Math.random() * pool.length | 0, 1)[0].id);
+  R.symOpts = Object.keys(SYM).filter(k => k !== 'skull').sort(() => Math.random() - .5).slice(0, 3);
   R.say = ''; S.slotBest = Math.max(S.slotBest || 0, R.night - 1); S.slotRun = R; save(); coinSound();
   slotDraw();
 }
@@ -218,7 +219,12 @@ function loanAsk(q) {
   }, true);
 }
 function shop(B) {
-  talk(B, 'l', `빚 갚았어요! ${R.night - 1}번째 밤 통과. 남은 칩 ${R.chips}개로 부적 하나 골라 봐요.`);
+  if (R.symOpts) { // 밤마다 기계에 그림 하나를 더 넣어 나만의 슬롯을 만든다
+    talk(B, 'l', `빚 갚았어요! ${R.night - 1}번째 밤 통과. 먼저 기계에 그림 하나 넣어요. 넣은 그림은 더 자주 나오고 값도 +1이에요.`);
+    const P = el('div', 'shop'); R.symOpts.forEach(k => { const o = el('div', 'offer'), i = el('img'); i.src = img(SIMG[k]); i.alt = ''; const t = el('div'), n = (R.add || {})[k] || 0; t.append(el('b', null, `${SYM[k].n} 넣기${n ? ` (지금 ${n}개)` : ''}`), el('small', null, `값 ${symVal(k)} → ${symVal(k) + 1} · 더 자주 나와요`)); o.append(i, t, btn('넣기', '', () => { R.add = R.add || {}; R.add[k] = (R.add[k] || 0) + 1; R.symOpts = null; S.slotRun = R; save(); coinSound(); slotDraw(); })); P.appendChild(o); });
+    B.appendChild(P); B.appendChild(row(btn('안 넣기', 'ghost wide', () => { R.symOpts = null; S.slotRun = R; save(); slotDraw(); }))); return;
+  }
+  talk(B, 'l', `남은 칩 ${R.chips}개로 부적 하나 골라 봐요.`);
   const S2 = el('div', 'shop');
   R.offers.forEach(id => { const x = CH.find(c => c.id === id), price = Math.round(x.p * (1 + (R.night - 2) * .15)); const o = el('div', 'offer'), i = el('img'); i.src = img(x.i); i.alt = ''; const t = el('div'); t.append(el('b', null, x.n), el('small', null, `${x.d} · ${price}칩`));
     const b = btn('사기', '', () => { if (R.chips < price) { toast('칩이 모자라요.'); return; } if (R.ch.length >= 5) { toast('부적은 5개까지예요.'); return; } R.chips -= price; R.ch.push(id); R.offers = R.offers.filter(y => y !== id); if (id === 'ph') R.spins = spinsPer(); S.slotRun = R; save(); coinSound(); slotDraw(); });

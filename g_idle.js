@@ -55,12 +55,16 @@ const UP = [
   { id: 'ad', n: '레나 광고판', d: '모든 부스 수익 ×2', im: 'b_vip', cost: 120000, need: ['skull', 3] },
   { id: 'gold', n: '황금 수화기', d: '누를 때 벌이 ×5', im: 'b_gold', cost: 600000, need: ['vip', 3] }
 ];
-const TIME = 180, GOAL = [[50000, 'C', 2], [200000, 'B', 4], [600000, 'A', 7], [1500000, 'S', 12]];
+const TIME = 180, GOAL = [[80000, 'C', 2], [300000, 'B', 4], [900000, 'A', 7], [2500000, 'S', 12]];
 let I = null, mul = 1, s = null;
 if (S.idl) { delete S.idl; save(); } // 예전 방치형 저장 지우기
 const lv = id => s.b[id] || 0, hasU = id => s.up.includes(id);
 function fmt(n) { n = Math.floor(n); if (n < 1e4) return n.toLocaleString(); if (n < 1e8) return (n / 1e4).toFixed(n < 1e5 ? 1 : 0) + '만'; return (n / 1e8).toFixed(1) + '억'; }
-function incOf(b) { const l = lv(b.id); return b.inc * l * Math.pow(2, Math.floor(l / 25)); }
+const MS = [10, 25, 50, 100]; // 이 개수를 넘을 때마다 그 부스 수익 ×2
+const msMul = l => Math.pow(2, MS.filter(m => l >= m).length), nextMs = l => MS.find(m => l < m);
+function incOf(b) { const l = lv(b.id); return b.inc * l * msMul(l); }
+const maxN = b => { let n = 0, t = 0; while (n < 500) { const c = b.cost * Math.pow(1.15, lv(b.id) + n); if (t + c > s.c) break; t += c; n++; } return Math.max(1, n); };
+const nOf = b => mul === 'max' ? maxN(b) : mul;
 function rate() { let r = BO.reduce((a, b) => a + incOf(b), 0); if (hasU('sign')) r *= 1.5; if (hasU('ad')) r *= 2; if (s.fever > s.t) r *= 3; return r; }
 function costOf(b, n) { let t = 0, l = lv(b.id); for (let i = 0; i < n; i++) t += b.cost * Math.pow(1.15, l + i); return Math.ceil(t); }
 function earn(x) { s.c += x; s.tot += x; }
@@ -69,7 +73,7 @@ const grade = () => { let g = null; GOAL.forEach(x => { if (s.tot >= x[0]) g = x
 function intro() {
   frame('해골 전화국', B => {
     talk(B, 'l', '오늘 밤 딱 3분 영업이에요. 부스 하나로 시작해서 얼마나 벌어 오나 볼게요. …손 빠른 사람 좋아해요.');
-    const r = el('div', 'rules'); r.innerHTML = `<b>하는 법</b><br>· 큰 부스를 <b>누르면</b> ${ci('phone')}동전, 부스를 사면 초당 동전이 늘어요.<br>· 가끔 <b>따르릉!</b> 황금 전화가 와요. 3초 안에 받으면 15초 동안 수익 ×3.<br>· 3분 동안 번 돈으로 등급이 정해져요: C ${fmt(GOAL[0][0])} · B ${fmt(GOAL[1][0])} · A ${fmt(GOAL[2][0])} · S ${fmt(GOAL[3][0])}<br>· 매 판 처음부터, 영구 강화는 없어요.`;
+    const r = el('div', 'rules'); r.innerHTML = `<b>하는 법</b><br>· 큰 부스를 <b>누르면</b> ${ci('phone')}동전, 부스를 사면 초당 동전이 늘어요.<br>· 같은 부스를 <b>10·25·50·100개</b> 모으면 그 부스 수익이 두 배씩.<br>· 가끔 <b>따르릉!</b> 황금 전화가 와요. 3초 안에 받으면 15초 동안 수익 ×3.<br>· 3분 동안 번 돈으로 등급이 정해져요: C ${fmt(GOAL[0][0])} · B ${fmt(GOAL[1][0])} · A ${fmt(GOAL[2][0])} · S ${fmt(GOAL[3][0])}<br>· 매 판 처음부터, 영구 강화는 없어요.`;
     B.appendChild(r);
     const best = S.idr || {}; B.appendChild(el('div', 'rules', `최고 기록: ${best.tot ? `${fmt(best.tot)} (${best.g || '-'})` : '없음'}`));
     const go = btn('', 'wide', () => { if (ARC.gc() < 2) { toast('게임 동전이 모자라요.'); return; } gcAdd(-2); coinSound(); play(); }); go.innerHTML = `${ci('gc')}2개 넣고 영업 시작`; B.appendChild(row(go));
@@ -101,10 +105,10 @@ function render() {
     const gc = el('button', 'gcall', '따르릉! 받기'); gc.style.display = 'none'; gc.onclick = e => { e.stopPropagation(); if (!s.callEnd) return; s.fever = s.t + 15; s.callEnd = 0; s.call = s.t + 22 + Math.random() * 18; gc.style.display = 'none'; coinSound(); toast('황금 전화! 15초 동안 ×3'); }; tap.appendChild(gc);
     tap.onclick = e => { if (s.done) return; const v = (1 + rate() * (hasU('worker') ? .15 : 0)) * (hasU('gold') ? 5 : 1); earn(v); tone([1600 + Math.random() * 400], .04, .03, 'triangle'); const f = el('div', 'icn', '+' + fmt(v)); const r = tap.getBoundingClientRect(); f.style.left = (e.clientX - r.left - 10) + 'px'; f.style.top = (e.clientY - r.top - 20) + 'px'; tap.appendChild(f); setTimeout(() => f.remove(), 900); I.upd(); };
     B.appendChild(tap);
-    const M = el('div', 'mul'); [1, 10].forEach(m => { const b = el('button', mul === m ? 'on' : '', '×' + m); b.onclick = () => { mul = m; M.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); I.upd(); }; M.appendChild(b); }); B.append(lbl('부스'), M);
+    const M = el('div', 'mul'); [1, 10, 'max'].forEach(m => { const b = el('button', mul === m ? 'on' : '', m === 'max' ? 'MAX' : '×' + m); b.onclick = () => { mul = m; M.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); I.upd(); }; M.appendChild(b); }); B.append(lbl('부스'), M);
     const L = el('div', 'bl'), rows = [];
     BO.forEach((b, i) => { const r = el('div', 'bo'); const im = el('img'); im.src = gimg(b.im); im.alt = ''; const t = el('div', 't'); const nm2 = el('b'), sm = el('small'); t.append(nm2, sm); const bb = el('button', 'btn'); r.append(im, t, bb); L.appendChild(r);
-      bb.onclick = () => { const c = costOf(b, mul); if (s.c < c || s.done) return; s.c -= c; s.b[b.id] = lv(b.id) + mul; tone([700, 900], .06, .04); I.upd(); };
+      bb.onclick = () => { const n = nOf(b), c = costOf(b, n); if (s.c < c || s.done) return; const before = msMul(lv(b.id)); s.c -= c; s.b[b.id] = lv(b.id) + n; if (msMul(lv(b.id)) > before) toast(`${b.n} ${lv(b.id)}개 달성! 수익 ×2`); tone([700, 900], .06, .04); I.upd(); };
       rows.push({ b, nm2, sm, bb, r, i }); });
     B.appendChild(L);
     B.appendChild(lbl('업그레이드'));
@@ -121,7 +125,7 @@ function render() {
       cb.innerHTML = `${ci('phone')}${fmt(s.c)}`; rs.textContent = `초당 ${rate() < 10 ? rate().toFixed(1) : fmt(rate())}${s.fever > s.t ? ` · ×3 황금 전화 ${Math.ceil(s.fever - s.t)}초` : ''}`;
       tap.classList.toggle('fever', s.fever > s.t);
       const top = [...BO].reverse().find(b => lv(b.id)) || BO[0]; const src = gimg(top.im); if (bm.dataset.s !== src) { bm.src = src; bm.dataset.s = src; } wk.style.display = hasU('worker') ? '' : 'none';
-      rows.forEach(x => { const l = lv(x.b.id), c = costOf(x.b, mul), prev = BO[x.i - 1], locked = prev && !lv(prev.id); x.r.classList.toggle('lock', !!locked); x.nm2.textContent = locked ? '???' : `${x.b.n} · Lv ${l}`; x.sm.textContent = locked ? '앞 부스를 먼저 열어요' : `초당 ${fmt(incOf(x.b))} · 다음 +${fmt(x.b.inc)}`; x.bb.innerHTML = `${l ? '확장' : '개업'} ×${mul}<small>${fmt(c)}</small>`; x.bb.disabled = !!locked || s.c < c; });
+      rows.forEach(x => { const l = lv(x.b.id), n = nOf(x.b), c = costOf(x.b, n), prev = BO[x.i - 1], locked = prev && !lv(prev.id); x.r.classList.toggle('lock', !!locked); x.nm2.textContent = locked ? '???' : `${x.b.n} · Lv ${l}`; x.sm.textContent = locked ? '앞 부스를 먼저 열어요' : `초당 ${fmt(incOf(x.b))}${nextMs(l) ? ` · ${nextMs(l)}개면 ×2` : ' · 최고 등급'}`; x.bb.innerHTML = `${l ? '확장' : '개업'} ×${n}<small>${fmt(c)}</small>`; x.bb.disabled = !!locked || s.c < c; });
       ups.forEach(x => { const own = hasU(x.u.id), ok = lv(x.u.need[0]) >= x.u.need[1]; x.r.classList.toggle('lock', !ok && !own); x.bb.innerHTML = own ? '보유' : `구입<small>${fmt(x.u.cost)}</small>`; x.bb.disabled = own || !ok || s.c < x.u.cost; });
     };
     I = { upd, ring: on => { gc.style.display = on ? '' : 'none'; } }; upd();

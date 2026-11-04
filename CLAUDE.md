@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v32). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v33). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512, 3.x는 thinkingLevel low. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -47,7 +47,7 @@
 - 모든 `img`는 기본 `object-fit:contain`(index.html). 찌그러짐 점검은 Playwright로 화면마다 img 비율 비교.
 - 오락실 그림은 `.arc img{object-fit:contain}`로 찌그러짐 방지. 서바이버 캔버스는 실제 화면 크기로 맞춤.
 - 영상통화 대화창: 아래쪽 반투명 유리 패널(높이 28vh), 위쪽 "대화 접기/펼치기"(`#logTog`, `.app.lmin`)로 레나 얼굴을 가리지 않게.
-- 게임: ① 빗속의 고양이(서바이버 형식, 캔버스, 5분 버티기, 기본 공격 = 뱀파이어 서바이버식 초승달 채찍: 바라보는 쪽 가로 베기, 2레벨부터 0.15초 뒤 반대쪽) ② 리듬 다이얼(키패드 리듬, 음악은 WebAudio로 직접 합성, 3곡) ③ 해골 전화국(3분 영업, `S.idr`) ④ 해골과 카드 대결(덱 빌딩, 지하 10층, `S.cardRun`) ⑤ 해골 빚 슬롯(클로버핏 같은 빚 갚기 슬롯, 부적, `S.slotRun`).
+- 게임: ① 빗속의 고양이(서바이버 형식, 캔버스, 5분 버티기. 기본 공격 = 길고 납작한 흰 채찍 베기(바라보는 쪽, 2레벨부터 0.15초 뒤 반대쪽). 무기 8레벨·보조 5레벨, `EVO` 진화(무기 8레벨+짝 보조로 보물 상자), 상자는 강한 해골·보스가 떨어뜨림(`openChest`), 분홍 가로등(type 'lamp')을 부수면 케이크·자석 열쇠·번개 부적·동전(`PICK`)) ② 리듬 다이얼(키패드 리듬, 음악은 WebAudio로 직접 합성. 100만 점 만점, 클리어 게이지 70%, FULL COMBO/ALL PERFECT) ③ 해골 전화국(3분 영업, `S.idr`. 같은 부스 10·25·50·100개마다 ×2, ×1/×10/MAX 사기) ④ 해골과 카드 대결(덱 빌딩, 지하 10층, `S.cardRun`. 층마다 갈림길 `roomOpts`(해골/강한 해골/쉼터/상점/?), 골드 `R.gold`, 상점 `shop()`(카드·유물·카드 빼기), 사건 `EVENTS`) ⑤ 해골 빚 슬롯(빚 갚기 슬롯, 부적, `S.slotRun`. 빚을 갚을 때마다 그림 하나를 기계에 넣음 `R.add`: 더 자주·값 +1).
 - 그림: `assets/lena/g/`(Higgsfield GPT Image 2.5로 만든 스프라이트 시트를 잘라 씀; 원본 `art/new/games/`). 표지 `ban_*.jpg`, 서바이버 `s_*`, 부스 `b_*`, 카드 그림 `c_*`, 적 `e_*`, 골목 바닥 `tile.jpg`.
 
 ## 레나가 먼저 움직이기 (`proactive.js`, app.js 함수를 감싸서 덧붙임)

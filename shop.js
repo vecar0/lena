@@ -135,7 +135,7 @@ function give(g) {
   const bonus = today().want === g.id ? 2 : 1; a.pt += g.h * bonus; a.last = dk(new Date()); a.gifts = a.gifts || {}; a.gifts[g.id] = (a.gifts[g.id] || 0) + 1; save();
   fx(SI(g.i)); tone([880, 1320], .1, .04, 'triangle', .1);
   const after = lv(a.pt); let line = pick(g.say) + (bonus > 1 ? ' …제가 갖고 싶었던 거 어떻게 알았어요?' : '');
-  if (after > before) { line += `\n(호감도 「${tierOf(after).name}」 단계가 됐어요! 레나 수첩에 새 이야기가 생겼어요)`; unlockNote(after); }
+  if (after > before) { line += `\n(호감도 「${tierOf(after).name}」가 됐어요! 레나 수첩에 새 이야기가 생겼어요)`; unlockNote(after); }
   refreshSheet(); renderAff(); setTimeout(() => say(line, 'happy', false), 600);
 }
 async function unlockNote(n) {
@@ -268,10 +268,10 @@ function renderAff() {
 let tab = 'today';
 SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매일 자정에 바뀌어요`, r: B => {
   decay(); const a = A(), n = lv(a.pt), [m, mt] = mood(), s = today();
-  const c = el('div', 'card'), top = el('div', 'affc'), av = el('div', 'ava2'), tx = el('div'); tx.append(el('b', null, `${tierOf(n).name} · ${m}`), el('small', null, `호감도 ${n}단계. ` + mt + ' 하루 지날 때마다 호감도가 조금씩 내려가요.'));
+  const c = el('div', 'card'), top = el('div', 'affc'), av = el('div', 'ava2'), tx = el('div'); tx.append(el('b', null, `${tierOf(n).name} · ${m}`), el('small', null, mt + ' 하루 지날 때마다 호감도가 조금씩 내려가요.'));
   top.append(av, tx); c.appendChild(top);
   const hb = el('div', 'hbar'), hi = el('i'); hi.style.width = Math.min(100, (a.pt - need(n)) / Math.max(1, need(n + 1) - need(n)) * 100) + '%'; hb.appendChild(hi); c.appendChild(hb);
-  c.appendChild(el('div', 'hint', `「${tierOf(n + 1).name}」까지 ${need(n + 1) - a.pt}점 · 단계가 오르면 레나 수첩에 비밀 이야기가 하나씩 열려요`));
+  c.appendChild(el('div', 'hint', `「${tierOf(n + 1).name}」까지 ${need(n + 1) - a.pt}점 · 오르면 레나 수첩에 비밀 이야기가 하나씩 열려요`));
   const w = GIFT.find(g => g.id === s.want); const wb = el('div', 'want'), wi = el('img'); wi.src = SI(w.i); wi.alt = ''; wb.append(wi, document.createTextNode(`오늘 레나가 갖고 싶은 것: ${w.n} (호감도 2배)`)); c.appendChild(wb);
   B.appendChild(c);
   const T = el('div', 'tabs'); [['today', '오늘의 자판기'], ['gift', '선물'], ['decor', '부스 꾸미기'], ['note', '레나 수첩']].forEach(([v, l]) => { const b = el('button', tab === v ? 'on' : '', l); b.onclick = () => { tab = v; refreshSheet(); }; T.appendChild(b); }); T.style.marginTop = '14px'; B.appendChild(T);
@@ -296,7 +296,7 @@ SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 �
     B.appendChild(G); if (D().on.length) B.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', decorEdit))); B.appendChild(el('div', 'hint', `모은 장식 ${D().own.length}/${DECOR.length} · 6개까지 붙일 수 있어요. 누르면 붙이고 떼요. 붙인 장식은 레나 뒤 유리에 붙어 영상통화 화면에 보여요. 장식은 오늘의 자판기에 날마다 하나씩 나와요.`));
   } else {
     const L = a.notes; if (!L.length) B.appendChild(empty('아직 비어 있어요. 호감도가 「저장된 번호」가 되면 첫 비밀이 열려요.', 'st_heart'));
-    L.forEach((t, i) => { const d = el('div', 'note2'); d.append(el('h5', null, `${i + 1}단계 · 레나의 비밀`), document.createTextNode(t)); B.appendChild(d); });
+    L.forEach((t, i) => { const d = el('div', 'note2'); d.append(el('h5', null, `${tierOf(i + 1).name} · 레나의 비밀`), document.createTextNode(t)); B.appendChild(d); });
     const nx = el('div', 'note2 lock'); nx.textContent = `호감도가 「${tierOf(L.length + 1).name}」가 되면 다음 이야기가 열려요.`; B.appendChild(nx);
   }
 } };

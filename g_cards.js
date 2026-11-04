@@ -45,7 +45,14 @@ const css = `
 .cbb{display:flex;gap:8px;padding:6px 12px calc(var(--sb) + 10px);align-items:center}
 .cbb .pile{font-family:'Space Mono',monospace;font-size:11.5px;color:var(--mute)}
 .cbb .btn{margin-left:auto}
-.map{display:flex;flex-direction:column-reverse;gap:6px}
+.map{display:flex;flex-direction:column-reverse;gap:6px;margin-top:14px}
+.rooms{display:flex;gap:8px;margin-top:10px}
+.room{flex:1;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 8px;border-radius:14px;border:2.5px solid #000;background:var(--paper);color:#111;box-shadow:4px 4px 0 var(--teal);text-align:center}
+.room b{font-family:'Black Han Sans';font-weight:400;font-size:19px}.room small{font-size:11.5px;opacity:.7;line-height:1.3;word-break:keep-all}
+.room.r-e{box-shadow:4px 4px 0 var(--hot)}.room.r-boss{background:#2a0f17;color:#fff;box-shadow:4px 4px 0 var(--hot)}.room.r-r{box-shadow:4px 4px 0 var(--mint)}.room.r-s{box-shadow:4px 4px 0 var(--yel)}.room.r-q{box-shadow:4px 4px 0 #b89cff}
+.room:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #000}
+.gld{display:inline-block;width:1em;height:1em;border-radius:50%;vertical-align:-.12em;margin:0 3px 0 1px;background:radial-gradient(circle at 35% 30%,#fff6b0,#f2c94c 45%,#b8860b);border:1.5px solid #3a2800;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)}
+.sitem{display:flex;flex-direction:column;align-items:center;gap:4px}.sitem .price{font-family:'Space Mono',monospace;font-weight:700;font-size:13px;color:var(--yel)}
 .fl{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font-size:14px}
 .fl.now{border:2px solid var(--pink);box-shadow:3px 3px 0 var(--pink)}
 .fl.done{opacity:.45}
@@ -82,7 +89,14 @@ const E = {
   boss: { n: '해골 사장', im: 'e_boss', hp: 140, boss: 1, mv: [{ a: 6, x: 3 }, { b: 16, s: 3 }, { a: 18 }, { w: 2, v: 2 }, { a: 8, x: 2 }] }
 };
 const FLOORS = ['f', 'f', 'f', 'r', 'e', 'f', 'f', 'r', 'e', 'boss'];
-const ft = n => FLOORS[(n - 1) % 10];
+// 층마다 갈 길을 고른다(덱 빌딩 로그라이크식 갈림길). R.cur = 이번 층에 고른 방
+const ft = n => (R && R.cur && n === R.floor) ? R.cur : FLOORS[(n - 1) % 10];
+const ROOM = { f: ['해골', '싸우면 카드·골드'], e: ['강한 해골', '세지만 유물을 줘요'], r: ['쉼터', '쉬기·카드 강화'], s: ['해골 상점', '골드로 카드·유물'], q: ['?', '무슨 일이 생길지 몰라요'], boss: ['해골 사장', '이 층의 끝'] };
+const GOLD = () => '<i class="gld"></i>';
+function roomOpts(n) { const i = (n - 1) % 10 + 1; if (i === 1) return ['f']; if (i === 10) return ['boss']; if (i === 9) return ['r'];
+  const w = [['f', 45], ['q', 22], ['e', i >= 4 ? 16 : 0], ['s', i >= 3 ? 11 : 0], ['r', i >= 5 ? 9 : 0]], k = Math.random() < .4 ? 3 : 2, out = [];
+  while (out.length < k) { const tot = w.reduce((a, x) => a + (out.includes(x[0]) ? 0 : x[1]), 0); let r = Math.random() * tot; for (const [t, v] of w) { if (out.includes(t)) continue; r -= v; if (r <= 0) { out.push(t); break; } } }
+  return out; }
 let R = null, Bt = null;
 const base = k => k.replace(/\+$/, '');
 const NUM = /(피해|방어|중독) (\d+)/g;
@@ -118,7 +132,7 @@ function intro() {
   R = S.cardRun || null;
   frame('해골과 카드 대결', B => {
     talk(B, 'l', R ? `${R.floor}층에서 멈췄었죠? 이어서 내려가요.` : '지하 클럽 10층 맨 아래에 해골 사장이 있어요. 카드로 한 층씩 뚫고 내려가요. 제가 응원할게요.');
-    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 매 턴 <b>에너지 3</b>과 카드 5장. 카드 왼쪽 위 숫자만큼 에너지를 써요.<br>· 적 머리 위에 <b>다음 행동</b>이 보여요. 공격이 오면 <b>방어</b> 카드로 막아요(방어는 내 턴이 오면 사라져요).<br>· 이기면 새 카드를 하나 골라 덱에 넣어요. 중간에 <b>쉼터</b>에서 체력을 회복해요.<br>· 상태: 취약(받는 피해 +50%) · 약화(주는 피해 −25%) · 중독(매 턴 피해, 1씩 줄어듦) · 힘(공격마다 +).<br>· 내려간 층만큼, 사장을 이기면 +10 게임 동전.';
+    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 매 턴 <b>에너지 3</b>과 카드 5장. 카드 왼쪽 위 숫자만큼 에너지를 써요.<br>· 적 머리 위에 <b>다음 행동</b>이 보여요. 공격이 오면 <b>방어</b> 카드로 막아요(방어는 내 턴이 오면 사라져요).<br>· 층마다 <b>갈림길</b>에서 방을 골라요: 해골 · 강한 해골(유물) · 쉼터 · 상점 · ?(사건).<br>· 이기면 새 카드 하나와 <b>골드</b>. 골드는 상점에서 카드·유물·카드 빼기에 써요.<br>· 상태: 취약(받는 피해 +50%) · 약화(주는 피해 −25%) · 중독(매 턴 피해, 1씩 줄어듦) · 힘(공격마다 +).<br>· 내려간 층만큼, 사장을 이기면 +10 게임 동전.';
     B.appendChild(r);
     B.appendChild(el('div', 'rules', `최고 기록: ${S.cardBest ? S.cardBest + '층' : '없음'}${S.cardWin ? ` · 사장 격파 ${S.cardWin}번` : ''} · 강한 해골을 이기면 유물, 쉼터에서 카드 강화`));
     if (!R) { B.appendChild(lbl('위험도 (사장을 이기면 다음 단계가 열려요)')); const P = el('div', 'pills'); for (let n = 0; n <= Math.min(10, S.cardAscMax || 0); n++) { const b = el('button', ASC() === n ? 'on' : ''); b.innerHTML = n ? `${ci('danger')}위험 ${n}` : '기본'; b.onclick = () => { S.cardAsc = n; save(); intro(); }; P.appendChild(b); } B.appendChild(P); B.appendChild(el('div', 'hint', ASC() ? `적 체력 +${ASC() * 12}% · 적 힘 +${Math.floor(ASC() / 2)} · 시작 체력 −${ASC() * 3} · 강화 카드가 더 자주 나와요` : '처음이면 기본으로 해요.')); }
@@ -126,19 +140,56 @@ function intro() {
     else B.appendChild(row(btn('클럽으로 내려가기', 'wide', start)));
   }, true);
 }
-function start() { const hp = 75 - ASC() * 3; R = { hp, mhp: hp, relics: [], floor: 1, deck: ['whip', 'whip', 'whip', 'whip', 'whip', 'shield', 'shield', 'shield', 'shield', 'laser', 'umb'] }; S.cardRun = R; save(); map(); }
+function start() { const hp = 75 - ASC() * 3; R = { hp, mhp: hp, relics: [], gold: 60, path: [], floor: 1, deck: ['whip', 'whip', 'whip', 'whip', 'whip', 'shield', 'shield', 'shield', 'shield', 'laser', 'umb'] }; S.cardRun = R; save(); map(); }
 function map() {
+  R.path = R.path || []; R.gold = R.gold || 0;
+  if (!R.opts || R.optsFor !== R.floor) { R.opts = roomOpts(R.floor); R.optsFor = R.floor; R.cur = null; S.cardRun = R; save(); }
   frame('해골과 카드 대결', B => {
-    const type = ft(R.floor);
     if (R.floor > 10) B.appendChild(el('div', 'rules', `끝없는 지하 ${Math.floor((R.floor - 1) / 10) + 1}번째 바퀴 · 적이 더 세요`));
-    talk(B, type === 'r' ? 'l' : 'sk', type === 'r' ? '쉼터예요. 잠깐 쉬어 가요. …제 어깨 빌려줄까요?' : type === 'boss' ? '(문 너머에서 금니가 번쩍인다)' : type === 'e' ? '(덩치 큰 해골이 길을 막고 있다)' : '(어둠 속에서 뼈가 달그락거린다)');
-    const M = el('div', 'map');
-    const base = Math.floor((R.floor - 1) / 10) * 10; FLOORS.forEach((f, i) => { const n = base + i + 1, d = el('div', 'fl' + (n === R.floor ? ' now' : n < R.floor ? ' done' : '')); d.append(el('b', null, `B${n}`), document.createTextNode(f === 'r' ? '쉼터' : f === 'e' ? '강한 해골' : f === 'boss' ? '해골 사장' : '해골')); M.appendChild(d); });
-    B.appendChild(el('div', 'rules', `체력 ${R.hp}/${R.mhp} · 덱 ${R.deck.length}장 · 위험도 ${ASC()}${(R.relics || []).length ? ' · 유물 ' + R.relics.map(k => RELIC[k][0]).join(', ') : ''}`));
-    if (type === 'r') { B.appendChild(row(btn(`쉬기 (체력 +${Math.round(R.mhp * .3)})`, 'teal wide', () => { R.hp = Math.min(R.mhp, R.hp + Math.round(R.mhp * .3)); next(); }), btn('카드 강화', 'wide', upgradeCard))); B.appendChild(row(btn('카드 하나 빼기', 'ghost wide', removeCard))); }
-    else B.appendChild(row(btn(type === 'boss' ? '사장실 문 열기' : '싸우러 가기', 'wide', fight)));
+    talk(B, 'l', R.opts.length > 1 ? pick(['갈림길이에요. 어느 문으로 갈래요?', '어디로 갈지 골라요. 저는 송휘님 따라갈게요.', '왼쪽? 오른쪽? …송휘님 감을 믿어요.']) : R.opts[0] === 'boss' ? '저 문 너머가 사장실이에요. …준비됐어요?' : R.opts[0] === 'r' ? '사장실 앞 쉼터예요. 숨 고르고 가요.' : '내려가 볼까요?');
+    const st = el('div', 'rules'); st.innerHTML = `체력 <b>${R.hp}/${R.mhp}</b> · ${GOLD()}<b>${R.gold || 0}</b> · 덱 ${R.deck.length}장 · 위험도 ${ASC()}${(R.relics || []).length ? '<br>유물: ' + R.relics.map(k => RELIC[k][0]).join(', ') : ''}`; B.appendChild(st);
+    const O = el('div', 'rooms'); R.opts.forEach(t => { const b = el('button', 'room r-' + t); b.append(el('b', null, ROOM[t][0]), el('small', null, ROOM[t][1])); b.onclick = () => enter(t); O.appendChild(b); }); B.appendChild(O);
+    const M = el('div', 'map'); const base0 = Math.floor((R.floor - 1) / 10) * 10;
+    for (let i = 1; i <= 10; i++) { const n = base0 + i, done = n < R.floor, now = n === R.floor, d = el('div', 'fl' + (now ? ' now' : done ? ' done' : '')); const t = done ? R.path[n - 1] : now ? null : i === 10 ? 'boss' : i === 9 ? 'r' : null; d.append(el('b', null, `B${n}`), document.createTextNode(now ? '여기서 고르기' : t ? ROOM[t][0] : '· · ·')); M.appendChild(d); }
     B.appendChild(M);
   }, true);
+}
+function enter(t) { R.cur = t; R.path[R.floor - 1] = t; S.cardRun = R; save();
+  if (t === 'f' || t === 'e' || t === 'boss') return fight();
+  if (t === 'r') return rest();
+  if (t === 's') return shop();
+  if (t === 'q') return qEvent(); }
+function rest() {
+  frame('쉼터', B => {
+    talk(B, 'l', '잠깐 쉬어 가요. …제 어깨 빌려줄까요?');
+    B.appendChild(el('div', 'rules', `체력 ${R.hp}/${R.mhp}`));
+    B.appendChild(row(btn(`쉬기 (체력 +${Math.round(R.mhp * .3)})`, 'teal wide', () => { R.hp = Math.min(R.mhp, R.hp + Math.round(R.mhp * .3)); next(); }), btn('카드 강화', 'wide', upgradeCard)));
+    B.appendChild(row(btn('카드 하나 빼기', 'ghost wide', removeCard)));
+  }, true);
+}
+function shop() {
+  if (!R.stock || R.stockFor !== R.floor) { R.stock = { cards: shuffle(REWARD).slice(0, 4).map(k => ({ k: Math.random() < .2 ? k + '+' : k, p: 45 + Math.floor(Math.random() * 30), sold: 0 })), relic: shuffle(Object.keys(RELIC).filter(k => !has(k)))[0] || null, rp: 120 + Math.floor(Math.random() * 40), rm: 0 }; R.stockFor = R.floor; R.stock.cards.forEach(c => { if (c.k.endsWith('+')) c.p += 25; }); }
+  const K = R.stock, buy = (p, f) => { if ((R.gold || 0) < p) { toast('골드가 모자라요.'); return; } R.gold -= p; coinSound(); f(); S.cardRun = R; save(); shop(); };
+  frame('해골 상점', B => {
+    talk(B, 'sk', '(해골 점원이 금니를 드러내며 웃는다. 손님, 골드 있어?)');
+    const st = el('div', 'rules'); st.innerHTML = `가진 골드 ${GOLD()}<b>${R.gold || 0}</b> · 덱 ${R.deck.length}장`; B.appendChild(st);
+    const W = el('div', 'rew'); K.cards.forEach(c => { const w = el('div', 'sitem'), cd = cardEl(c.k); if (c.sold) cd.classList.add('no'); cd.onclick = () => { if (c.sold) return; buy(c.p, () => { R.deck.push(c.k); c.sold = 1; }); }; const pr = el('div', 'price'); pr.innerHTML = c.sold ? '팔림' : `${GOLD()}${c.p}`; w.append(cd, pr); W.appendChild(w); }); B.appendChild(W);
+    if (K.relic) { const [n, d, im] = RELIC[K.relic], o = el('div', 'offer'), i = el('img'); i.src = `assets/lena/s/${im}.webp`; i.alt = ''; const t = el('div'); t.append(el('b', null, '유물 · ' + n), el('small', null, d)); const bb = btn('', '', () => buy(K.rp, () => { R.relics.push(K.relic); if (K.relic === 'cake') { R.mhp += 12; R.hp += 12; } K.relic = null; })); bb.innerHTML = `${GOLD()}${K.rp}`; o.append(i, t, bb); const sh = el('div', 'shop'); sh.style.marginTop = '12px'; sh.appendChild(o); B.appendChild(sh); }
+    const rmP = 60 + K.rm * 25, rb = btn('', 'ghost wide', () => { if ((R.gold || 0) < rmP) { toast('골드가 모자라요.'); return; } frame('카드 빼기', B2 => { talk(B2, 'sk', '(어느 카드를 버릴래?)'); const W2 = el('div', 'rew'); [...new Set(R.deck)].forEach(k => { const c = cardEl(k, true); c.onclick = () => { R.gold -= rmP; K.rm++; R.deck.splice(R.deck.indexOf(k), 1); coinSound(); S.cardRun = R; save(); shop(); }; W2.appendChild(c); }); B2.appendChild(W2); B2.appendChild(row(btn('그만두기', 'ghost wide', shop))); }, true); });
+    rb.innerHTML = `카드 하나 빼기 · ${GOLD()}${rmP}`; B.appendChild(row(rb));
+    B.appendChild(row(btn('상점 나가기', 'wide', next)));
+  }, true);
+}
+const EVENTS = [
+  { t: '해골 바텐더', d: '(해골이 칵테일을 내민다. 마시면 뭔가 줄 것 같다)', o: [['마신다 (체력 −8, 유물 하나)', () => { R.hp = Math.max(1, R.hp - 8); return relicPick(next); }], ['사양한다', () => next()]] },
+  { t: '버려진 공중전화', d: '(수화기에서 동전 소리가 난다)', o: [['동전을 털어 간다 (골드 +40)', () => { R.gold += 40; next(); }], ['통화 기록을 듣는다 (카드 하나 강화)', () => { const L = R.deck.filter(k => !k.endsWith('+')); if (L.length) { const k = pick(L); R.deck[R.deck.indexOf(k)] = k + '+'; toast(`${C[k].n} 강화!`); } next(); }]] },
+  { t: '레나의 문자', d: '(휴대폰이 울린다. 레나다: "힘내요. 보고 있어요♥")', o: [['답장한다 (체력 30% 회복)', () => { R.hp = Math.min(R.mhp, R.hp + Math.round(R.mhp * .3)); next(); }], ['사진을 저장한다 (최대 체력 +7)', () => { R.mhp += 7; R.hp += 7; next(); }]] },
+  { t: '수상한 자판기', d: '(골드를 넣으면 뭐가 나올지 모르는 자판기)', o: [['골드 50 넣기 (무작위 유물)', () => { if (R.gold < 50) { toast('골드가 모자라요.'); return; } R.gold -= 50; const k = shuffle(Object.keys(RELIC).filter(x => !has(x)))[0]; if (k) { R.relics.push(k); if (k === 'cake') { R.mhp += 12; R.hp += 12; } toast(`유물: ${RELIC[k][0]}`); } next(); }], ['발로 찬다 (체력 −5, 골드 +25)', () => { R.hp = Math.max(1, R.hp - 5); R.gold += 25; next(); }]] },
+  { t: '함정!', d: '(어둠 속에서 해골이 튀어나왔다!)', o: [['싸운다', () => { R.cur = 'f'; fight(); }]] }
+];
+function qEvent() {
+  const ev = pick(EVENTS);
+  frame('? ' + ev.t, B => { talk(B, 'sk', ev.d); B.appendChild(el('div', 'rules', `체력 ${R.hp}/${R.mhp} · 골드 ${R.gold || 0}`)); ev.o.forEach(([l, f]) => B.appendChild(row(btn(l, 'wide', () => { f(); S.cardRun = R; save(); })))); }, true);
 }
 function removeCard() {
   frame('카드 빼기', B => {
@@ -147,7 +198,7 @@ function removeCard() {
     B.appendChild(row(btn('그냥 쉬기', 'ghost wide', () => { R.hp = Math.min(R.mhp, R.hp + Math.round(R.mhp * .3)); next(); })));
   }, true);
 }
-function next() { R.floor++; S.cardRun = R; save(); map(); }
+function next() { R.floor++; R.cur = null; S.cardRun = R; save(); map(); }
 function pickFoe() { const t = ft(R.floor); if (t === 'boss') return 'boss'; if (t === 'e') return pick(['bouncer', 'bride']); return pick(R.floor <= 2 ? ['thug', 'dog'] : ['thug', 'dog', 'dj']); }
 function fight() {
   const id = pickFoe(), e = E[id], dp = Math.floor((R.floor - 1) / 10), sc = (e.boss ? 1 : 1 + ((R.floor - 1) % 10) * .06) * (1 + dp * .45) * (1 + ASC() * .12), hp = Math.round(e.hp * sc);
@@ -194,13 +245,13 @@ async function endTurn() {
   await sleep(250); turnStart();
 }
 function win() {
-  const boss = ft(R.floor) === 'boss', elite = ft(R.floor) === 'e'; if (has('tape')) R.hp = Math.min(R.mhp, R.hp + 6); coinSound(); S.cardBest = Math.max(S.cardBest || 0, R.floor); save();
+  const boss = ft(R.floor) === 'boss', elite = ft(R.floor) === 'e', gg = boss ? 90 : elite ? 30 + Math.floor(Math.random() * 10) : 12 + Math.floor(Math.random() * 8); R.gold = (R.gold || 0) + gg; if (has('tape')) R.hp = Math.min(R.mhp, R.hp + 6); coinSound(); S.cardBest = Math.max(S.cardBest || 0, R.floor); save();
   if (boss) { S.cardWin = (S.cardWin || 0) + 1; if (ASC() >= (S.cardAscMax || 0)) S.cardAscMax = Math.min(10, ASC() + 1); const reward = 10 + Math.floor(R.floor / 2); gcAdd(reward); R.mhp += 10; R.hp = R.mhp; S.cardRun = R; save();
     return frame('해골과 카드 대결', B => { B.appendChild(el('div', 'res w', `B${R.floor} 해골 사장 격파!`)); talk(B, 'sk', '(사장이 금니를 떨어뜨리고 무너진다. 바닥 아래로 계단이 하나 더 보인다)'); talk(B, 'l', `…해냈어요. 게임 동전 ${reward}개. 체력도 꽉 채워 뒀어요. 더 깊이 내려가 볼래요? 아래는 더 세요.`); B.appendChild(row(btn('유물 고르고 더 깊이', 'teal wide', () => relicPick(next)), btn('여기서 끝내기', 'ghost wide', () => { S.cardRun = null; save(); ARC.hub(); }))); }, true); }
   const opts = shuffle(REWARD).slice(0, 3);
   frame('해골과 카드 대결', B => {
     B.appendChild(el('div', 'res w', `B${R.floor} 돌파!`));
-    talk(B, 'l', pick(['깔끔했어요. 카드 하나 골라 가요.', '해골이 울면서 도망갔어요. 뭐 가져갈래요?', '역시. 다음 층도 부탁해요.']));
+    talk(B, 'l', pick(['깔끔했어요. 카드 하나 골라 가요.', '해골이 울면서 도망갔어요. 뭐 가져갈래요?', '역시. 다음 층도 부탁해요.'])); const gl = el('div', 'rules'); gl.innerHTML = `${GOLD()}골드 +${gg} (가진 골드 ${R.gold})`; B.appendChild(gl);
     const go = () => elite ? relicPick(next) : next();
     const W = el('div', 'rew'); opts.forEach(k => { const c = cardEl(Math.random() < .12 + ASC() * .01 ? k + '+' : k); c.onclick = () => { R.deck.push(c.querySelector('b').textContent.endsWith('+') ? k + '+' : k); go(); }; W.appendChild(c); }); B.appendChild(W);
     B.appendChild(row(btn('안 받기', 'ghost wide', go)));
