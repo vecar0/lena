@@ -34,12 +34,13 @@
 - 그림체는 PixAI LoRA: 사용자 LoRA(DiT.3 모델용, 스타일·#귀여운, 제작자 "ピ") — 선명한 선, 밝고 깨끗한 색, 큰 눈. 리소·밤 분위기는 프롬프트로 조금 더한다. 첫 시험 그림: `art/new/test1_ref.webp` (레퍼런스 넣고 만든 것 — 레퍼런스 소녀와 너무 비슷해서 v2로 바꿈)
 - 해골: 사람보다 훨씬 큰 검은 해골, 청록·빨강 테두리. 소녀 뒤에서 드리움. 말은 없음
 
-## PixAI 프롬프트 (기준 그림 1장)
-- 세로 3:4, 배경 포함 완성 그림. 이후 표정·자세는 이 그림을 편집해서 만든다
+## PixAI 프롬프트 (기준 그림 1장, 현재)
+- 세로 9:16(앱에서 양옆을 조금 잘라 화면을 꽉 채움), 배경 포함 완성 그림. 이후 표정·자세는 이 그림을 편집해서 만든다
+- 마음에 드는 그림이 나오면 시드를 고정하고 단어만 바꾼다. 손만 이상하면 인페인트로 고친다
 - 프롬프트:
-  `1girl, solo focus, inside a public phone booth at night, holding a payphone receiver to her ear, looking up at viewer, high angle shot from above, one hand reaching toward the camera with foreshortening, short messy pale pink blonde bob hair, pink eyes, round pink tinted sunglasses on head, multiple ear piercings, ear cuffs, long pink nails, silver rings, white shirt, loose black necktie, cropped black jacket, black pleated skirt, chain accessories, playful teasing smile, a giant black skeleton looming behind her, risograph print style, teal and mint tritone with hot pink and red accents, halftone dots, misregistered print, grainy texture, rain streaks, paint splatter, dense collage, street punk fashion, masterpiece, best quality`
+  `1girl, adult woman, thick outlines, sharp lineart, detailed eyes, dark eyes, deep eye color, long eyelashes, dark atmosphere, muted colors, neon glow, phone booth at night, graffiti, paint splatter, rain, from above, looking up at viewer, dutch angle, holding green phone receiver to ear, other hand twirling phone cord with finger, one eye closed, tongue out, playful, silver wolf cut hair with pink tips, round pink sunglasses on head, choker, long pink nails, black leather jacket, white cropped collared shirt, midriff, large breasts, plaid mini skirt, giant black skeleton behind her`
 - 네거티브:
-  `lowres, bad anatomy, bad hands, extra fingers, missing fingers, text, watermark, signature, blurry, 3d, photorealistic`
+  `lowres, bad anatomy, bad hands, text, watermark, necktie, t-shirt, facial mark, child, blurry, oversaturated, selfie, holding camera, outstretched arm, reaching, extra hands, extra arms, disembodied hand, pov hands, grin, teeth`
 
 ## 아직 정할 것
 - 이름 확정
