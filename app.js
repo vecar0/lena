@@ -600,8 +600,12 @@ window.addEventListener('pagehide', () => pushSend(false, true));
 
 // 키보드가 올라오면 화면을 보이는 부분에 맞춘다(iOS)
 // 키보드가 올라와 있을 때만 보이는 부분에 맞춘다(아이폰 홈 화면 앱에서 평소 높이를 잘못 알려 주는 문제 피하기)
+// 홈 화면 앱(standalone)에서 아이폰이 높이를 상태바만큼 작게 알려 줘서 아래가 비는 문제: 화면 실제 높이로 채운다
+const standalone = () => navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+function full() { if (standalone()) { const h = Math.max(innerHeight, Math.round(screen.height || 0)); app.style.top = '0px'; app.style.bottom = 'auto'; app.style.height = h + 'px'; document.documentElement.style.height = document.body.style.height = h + 'px'; } else { app.style.height = ''; app.style.top = ''; app.style.bottom = ''; } }
+full(); addEventListener('resize', () => setTimeout(full, 100)); addEventListener('orientationchange', () => setTimeout(full, 300));
 if (window.visualViewport) { const vv = window.visualViewport; const typing = () => { const a = document.activeElement; return a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && !/^(time|date|datetime-local|file)$/.test(a.type); };
-  const fit = () => { if (typing() && innerHeight - vv.height > 120) { app.style.height = vv.height + 'px'; app.style.top = vv.offsetTop + 'px'; app.style.bottom = 'auto'; const L = $('log'); if (L) L.scrollTop = L.scrollHeight; } else { app.style.height = ''; app.style.top = ''; app.style.bottom = ''; } };
+  const fit = () => { if (typing() && innerHeight - vv.height > 120) { app.style.height = vv.height + 'px'; app.style.top = vv.offsetTop + 'px'; app.style.bottom = 'auto'; const L = $('log'); if (L) L.scrollTop = L.scrollHeight; } else full(); };
   vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); document.addEventListener('focusout', () => setTimeout(fit, 120)); document.addEventListener('focusin', () => setTimeout(fit, 350)); }
 
 // ---------------- init ----------------

@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v22). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v23). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -36,7 +36,7 @@
 2. 실제 폰에서 전단지·버튼 위치 미세 조정.
 
 ## 앱 아이콘
-- `icon-512.png`/`icon-180.png`: 민트 고양이 카드가 아이콘을 꽉 채움(아이폰 모서리 모양에 맞춘 둥근 네모), 검은 테두리 + 오른쪽 아래 검은 두께·그림자·광택. 핑크 없음 + 광택(`art/new/avatar/cat_pin_5.png`), 위쪽 광택과 부드러운 그림자로 입체감.
+- `icon-512.png`/`icon-180.png`: 고양이 그림(`art/new/avatar/cat_pin_5.png`)이 아이콘 끝까지 꽉 참(다른 앱 아이콘처럼 테두리·바탕 없음). 입체감은 위쪽 광택과 가장자리 안쪽 그림자로만.
 
 ## 오락실 (다이얼 8번, 홈의 동전 배지)
 - 파일: `arcade.js`(허브·게임 동전·해골 빚 슬롯, 전역 `ARC`), 게임마다 `g_surv.js` `g_rhythm.js` `g_idle.js` `g_cards.js` — `ARC.reg({id,order,name,ban,sub,start})`로 등록. 화면은 `ARC.frame(제목, 내용함수, 뒤로버튼, flat)`, 루프·소리는 `ARC.cleanup`에 정리 함수를 넣는다.
@@ -52,4 +52,4 @@
 - 새 Cloudflare Worker `lena-box`(KV 바인딩 `BOX`)를 사용자가 직접 배포해야 함. 앱 0번 설정 > 단축어에서 주소 입력. 열쇠 `S.boxTok`.
 - B2: 앱이 `/alarms`에 모닝콜·⏰ 표시 전단지 시간을 올리고, 밤 10시 단축어 자동화가 받아 시계 알람 생성. C3 공유 시트 단축어·C4 잠금화면/제어센터 단축어가 `/in`으로 보내면 앱이 `/inbox`를 가져와 통화로 정리.
 - 영상 화면 점무늬는 `.dots` 층, 레나+수화기·전화선·벽 전화기를 오려 낸 `assets/lena/dotmask.png`(rembg isnet-anime + 초록색 골라내기로 만든 가림판)로 그 위에만 안 깔림. 오락실의 레나 말풍선 사진은 음성통화일 때 고양이, 영상통화일 때 레나 얼굴(`.talkr i.face`).
-- 화면 높이: `.app{position:fixed;inset:0}`. visualViewport로 높이를 맞추는 건 키보드가 올라와 있을 때만(아이폰 홈 화면 앱은 평소 높이를 상태바만큼 작게 알려 줘서 아래가 비었었음).
+- 화면 높이: `.app{position:fixed;inset:0}`, 홈 화면 앱(standalone)에서는 `full()`이 `screen.height`로 높이를 직접 채움(아이폰이 상태바만큼 작게 알려 줘서 아래가 검게 비었음). visualViewport로 높이를 맞추는 건 키보드가 올라와 있을 때만(아이폰 홈 화면 앱은 평소 높이를 상태바만큼 작게 알려 줘서 아래가 비었었음).
