@@ -42,7 +42,7 @@ let G = null;
 function intro() {
   frame('빗속의 고양이', B => {
     talk(B, 'l', '비 오는 골목에 해골들이 몰려와요. 5분만 버티면 새벽이에요. …제 고양이 잘 지켜 줘요?');
-    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 화면 아무 데나 대고 <b>끌면</b> 고양이가 움직여요. 공격은 알아서 해요.<br>· 해골이 떨어뜨린 <b>초록 보석</b>을 모으면 레벨이 올라요. 그때 무기나 능력을 <b>하나 골라요</b>.<br>· 2분 30초, 4분 30초에 큰 해골이 나와요.<br>· 5분 버티면 승리. 쓰러뜨린 수와 버틴 시간만큼 게임 동전을 받아요.';
+    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 화면 아무 데나 대고 <b>끌면</b> 고양이가 움직여요. 공격은 알아서 해요.<br>· 해골이 떨어뜨린 <b>초록 보석</b>을 모으면 레벨이 올라요. 그때 무기나 능력을 <b>하나 골라요</b>.<br>· 2분 30초, 4분 30초에 큰 해골이 나와요.<br>· 5분 버티면 승리, 그 뒤로 <b>계속 버티기</b>도 돼요. 쓰러지기 직전 한 번은 레나가 일으켜 줘요. 쓰러뜨린 수와 버틴 시간만큼 게임 동전을 받아요.';
     B.appendChild(r);
     B.appendChild(el('div', 'rules', `최고 기록: ${S.svBest ? `${Math.floor(S.svBest / 60)}분 ${S.svBest % 60}초` : '없음'} · 최다 처치 ${S.svKill || 0}`));
     B.appendChild(row(btn('골목으로 들어가기', 'wide', play)));
@@ -59,7 +59,7 @@ function play() {
   let vw = 0, vh = 0, dpr = Math.min(2, devicePixelRatio || 1);
   const fit = () => { const r = W.getBoundingClientRect(); vw = r.width; vh = r.height; cv.width = vw * dpr; cv.height = vh * dpr; };
   fit(); const ro = new ResizeObserver(fit); ro.observe(W);
-  G = { t: 0, p: { x: 0, y: 0, hp: 100, mhp: 100, spd: 150, mag: 70, inv: 0, face: 1, fx: 1, fy: 0, cd: 1 }, en: [], gems: [], pr: [], fx: [], nums: [], lv: 1, xp: 0, need: 6, kills: 0, w: { whip: 1 }, wt: {}, paused: false, over: false, spawn: 0, boss: [150, 270], shake: 0, rain: [...Array(70)].map(() => ({ x: Math.random(), y: Math.random(), s: .6 + Math.random() * .8 })) };
+  G = { t: 0, p: { x: 0, y: 0, hp: 130, mhp: 130, spd: 150, mag: 70, inv: 0, face: 1, fx: 1, fy: 0, cd: 1 }, en: [], gems: [], pr: [], fx: [], nums: [], lv: 1, xp: 0, need: 6, kills: 0, w: { whip: 1 }, wt: {}, paused: false, over: false, spawn: 0, boss: [150, 270], shake: 0, rain: [...Array(70)].map(() => ({ x: Math.random(), y: Math.random(), s: .6 + Math.random() * .8 })) };
   // 입력: 아무 데나 끌면 조이스틱
   const J = { on: false, ox: 0, oy: 0, x: 0, y: 0 }, keys = {};
   const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
@@ -82,7 +82,7 @@ function play() {
     if (e.hp <= 0) { e.dead = true; G.kills++; G.gems.push({ x: e.x, y: e.y, v: e.xp, h: Math.random() < .02 }); if (e.type === 'boss') { for (let i = 0; i < 14; i++) G.gems.push({ x: e.x + (Math.random() - .5) * 120, y: e.y + (Math.random() - .5) * 120, v: 3 }); G.shake = .5; tone([90], .3, .12, 'square'); } }
   }
   const T = { ghost: { hp: 6, spd: 72, dmg: 8, r: 15, s: 46, xp: 1, im: 's_ghost' }, bat: { hp: 4, spd: 125, dmg: 6, r: 13, s: 46, xp: 1, im: 's_bat' }, hand: { hp: 20, spd: 46, dmg: 12, r: 19, s: 54, xp: 2, im: 's_hand' }, boss: { hp: 700, spd: 58, dmg: 25, r: 44, s: 132, xp: 10, im: 's_boss' } };
-  function spawn(type) { const t = T[type], a = Math.random() * Math.PI * 2, R = Math.hypot(vw, vh) / 2 + 60, k = 1 + G.t / 140; G.en.push({ type, x: G.p.x + Math.cos(a) * R, y: G.p.y + Math.sin(a) * R, hp: t.hp * (type === 'boss' ? 1 : k), mhp: t.hp * k, spd: t.spd, dmg: t.dmg, r: t.r, s: t.s, xp: t.xp, im: t.im, ph: Math.random() * 6, flash: 0 }); }
+  function spawn(type) { const t = T[type], a = Math.random() * Math.PI * 2, R = Math.hypot(vw, vh) / 2 + 60, k = 1 + G.t / 220; G.en.push({ type, x: G.p.x + Math.cos(a) * R, y: G.p.y + Math.sin(a) * R, hp: t.hp * (type === 'boss' ? 1 : k), mhp: t.hp * k, spd: t.spd, dmg: t.dmg, r: t.r, s: t.s, xp: t.xp, im: t.im, ph: Math.random() * 6, flash: 0 }); }
   const lvOf = k => G.w[k] || 0;
   function weapons(dt) {
     const p = G.p, cdm = Math.pow(.92, lvOf('cof'));
@@ -117,13 +117,19 @@ function play() {
       M.appendChild(b); });
     W.appendChild(M); coinSound();
   }
+  function revive() {
+    G.lvlup = true; const M = el('div', 'lvl'); M.appendChild(el('h3', null, '쓰러지기 직전!'));
+    const tk = el('div', 'talkr'), ti = el('i'); tk.append(ti, el('span', null, '안 돼요. …딱 한 번, 제가 일으켜 줄게요.')); M.appendChild(tk);
+    M.appendChild(row(btn('레나 손 잡고 일어나기', 'teal wide', () => { G.rev = 1; G.p.hp = G.p.mhp * .6; G.p.inv = 2; G.en = G.en.filter(e => dist2(e, G.p) > 260 * 260); G.lvlup = false; M.remove(); last = performance.now(); coinSound(); }), btn('그만하기', 'ghost wide', () => { M.remove(); G.lvlup = false; end(false); })));
+    W.appendChild(M);
+  }
   function end(win) {
-    G.over = true; const t = Math.floor(G.t), reward = Math.floor(G.kills / 30) + Math.floor(t / 60) * 2 + (win ? 10 : 0);
+    G.over = true; const t = Math.floor(G.t), reward = Math.max(0, Math.floor(G.kills / 30) + Math.floor(t / 60) * 2 + (win && !G.paid ? 10 : 0) - (G.paidR || 0)); G.paid = G.paid || win; G.paidR = (G.paidR || 0) + reward;
     S.svBest = Math.max(S.svBest || 0, t); S.svKill = Math.max(S.svKill || 0, G.kills); save(); if (reward) gcAdd(reward);
     const M = el('div', 'lvl'); M.appendChild(el('h3', null, win ? '새벽이 왔어요!' : '쓰러졌어요…'));
     const s = el('div', 'rules'); s.innerHTML = `버틴 시간 <b>${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}</b> · 처치 <b>${G.kills}</b> · 레벨 <b>${G.lv}</b><br>게임 동전 <b>+${reward}</b>`; M.appendChild(s);
     const tk = el('div', 'talkr'), ti = el('i'); tk.append(ti, el('span', null, win ? '진짜 버텼어요? …멋있다. 오늘은 제가 반했어요.' : pick(['괜찮아요, 고양이는 무사해요. 다시 해요.', '해골들이 너무 많았죠. 다음엔 레이저부터 챙겨요.'])));
-    M.appendChild(tk); M.appendChild(row(btn('다시 하기', 'wide', play), btn('오락실로', 'ghost wide', () => ARC.hub())));
+    M.appendChild(tk); if (win && !G.endless) M.appendChild(row(btn('계속 버티기 (끝없는 밤)', 'teal wide', () => { M.remove(); G.over = false; G.endless = true; G.nb = G.t + 60; last = performance.now(); }))); M.appendChild(row(btn('다시 하기', 'wide', play), btn('오락실로', 'ghost wide', () => ARC.hub())));
     W.appendChild(M); win ? (coinSound(), setTimeout(coinSound, 200)) : tone([220, 160], .5, .08, 'triangle');
   }
   function step(dt) {
@@ -133,15 +139,15 @@ function play() {
     if (J.on) { const dx = J.x - J.ox, dy = J.y - J.oy, d = Math.hypot(dx, dy); if (d > 6) { mx = dx / Math.max(d, 50); my = dy / Math.max(d, 50); } }
     const m = Math.hypot(mx, my); if (m > 1) { mx /= m; my /= m; }
     p.x += mx * p.spd * dt; p.y += my * p.spd * dt; if (Math.abs(mx) > .1) p.face = mx > 0 ? 1 : -1;
-    p.inv = Math.max(0, p.inv - dt); p.hp = Math.min(p.mhp, p.hp + dt * .4 * lvOf('milk'));
+    p.inv = Math.max(0, p.inv - dt); p.hp = Math.min(p.mhp, p.hp + dt * (.5 + .5 * lvOf('milk')));
     // 등장
-    G.spawn += dt * (0.9 + G.t / 26);
+    G.spawn += dt * (0.7 + G.t / 42);
     while (G.spawn > 1 && G.en.length < 230) { G.spawn--; const r = Math.random(); spawn(G.t > 90 && r < .28 ? 'hand' : G.t > 45 && r < .55 ? 'bat' : 'ghost'); }
     if (G.boss.length && G.t >= G.boss[0]) { G.boss.shift(); spawn('boss'); G.shake = .4; tone([70, 90], .6, .1, 'sawtooth'); }
     // 적
     for (const e of G.en) { const a = Math.atan2(p.y - e.y, p.x - e.x); let sp = e.spd; if (e.type === 'bat') { e.ph += dt * 6; e.x += Math.cos(a + Math.sin(e.ph) * .9) * sp * dt; e.y += Math.sin(a + Math.sin(e.ph) * .9) * sp * dt; } else { e.x += Math.cos(a) * sp * dt; e.y += Math.sin(a) * sp * dt; }
       e.flash = Math.max(0, e.flash - dt);
-      if (!p.inv && dist2(e, p) < (e.r + 16) ** 2) { p.hp -= e.dmg; p.inv = .55; G.shake = .2; tone([160], .08, .08, 'square'); if (p.hp <= 0) { p.hp = 0; return end(false); } } }
+      if (!p.inv && dist2(e, p) < (e.r + 16) ** 2) { p.hp -= e.dmg; p.inv = .55; G.shake = .2; tone([160], .08, .08, 'square'); if (p.hp <= 0) { p.hp = 0; return G.rev ? end(false) : revive(); } } }
     // 서로 밀어내기(가볍게)
     for (let i = 0; i < G.en.length; i += 2) { const a = G.en[i], b = G.en[i + 1]; if (!b) break; const d = Math.sqrt(dist2(a, b)) || 1, o = a.r + b.r - d; if (o > 0) { const ux = (a.x - b.x) / d, uy = (a.y - b.y) / d; a.x += ux * o / 2; a.y += uy * o / 2; b.x -= ux * o / 2; b.y -= uy * o / 2; } }
     weapons(dt);
@@ -155,7 +161,8 @@ function play() {
     G.gems = G.gems.filter(g => !g.got && dist2(g, p) < 1600 * 1600); if (G.gems.length > 300) G.gems.splice(0, G.gems.length - 300);
     if (G.xp >= G.need) { G.xp -= G.need; G.lv++; G.need = Math.round(6 + G.lv * 4.5); choose(); }
     G.fx.forEach(f => f.t -= dt); G.fx = G.fx.filter(f => f.t > 0); G.nums.forEach(n => { n.t -= dt; n.y -= 40 * dt; }); G.nums = G.nums.filter(n => n.t > 0); G.shake = Math.max(0, G.shake - dt);
-    if (G.t >= 300) end(true);
+    if (G.t >= 300 && !G.endless) end(true);
+    if (G.endless && G.t >= G.nb) { G.nb += 120; spawn('boss'); G.shake = .4; }
   }
   function draw() {
     const p = G.p; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -190,7 +197,7 @@ function play() {
     if (J.on) { ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(J.ox, J.oy, 46, 0, 7); ctx.stroke(); const dx = J.x - J.ox, dy = J.y - J.oy, d = Math.hypot(dx, dy), k = d > 46 ? 46 / d : 1; ctx.fillStyle = 'rgba(255,61,154,.6)'; ctx.beginPath(); ctx.arc(J.ox + dx * k, J.oy + dy * k, 18, 0, 7); ctx.fill(); }
     // HUD
     $('svHp').style.width = (p.hp / p.mhp * 100) + '%'; $('svXp').style.width = (G.xp / G.need * 100) + '%';
-    const t = Math.floor(G.t); $('svT').textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')} / 5:00`; $('svK').textContent = `LV${G.lv} · ${G.kills}`;
+    const t = Math.floor(G.t); $('svT').textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}${G.endless ? ' · 끝없는 밤' : ' / 5:00'}`; $('svK').textContent = `LV${G.lv} · ${G.kills}`;
   }
   function loop(now) {
     if (!G) return; const dt = Math.min(.05, (now - last) / 1000); last = now;
@@ -200,5 +207,5 @@ function play() {
   raf = requestAnimationFrame(loop);
 }
 
-ARC.reg({ id: 'surv', order: 1, name: '빗속의 고양이', ban: 'surv', sub: () => `5분 버티기 · 최고 ${S.svBest ? Math.floor(S.svBest / 60) + '분 ' + S.svBest % 60 + '초' : '-'}`, start: intro });
+ARC.reg({ id: 'surv', order: 1, name: '빗속의 고양이', ban: 'surv', icon: gimg('s_cat'), color: '#ff3d9a', sub: () => `5분 버티기 · 최고 ${S.svBest ? Math.floor(S.svBest / 60) + '분 ' + S.svBest % 60 + '초' : '-'}`, start: intro });
 })();

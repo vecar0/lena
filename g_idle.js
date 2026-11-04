@@ -6,7 +6,7 @@ const css = `
 .idt{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 2px}
 .idt b{font-family:'Space Mono',monospace;font-size:34px;color:var(--yel);text-shadow:3px 3px 0 #000;line-height:1.1}
 .idt small{font-family:'Space Mono',monospace;font-size:13px;color:var(--mint)}
-.itap{position:relative;height:190px;border-radius:18px;border:3px solid #000;background:url(assets/lena/g/ban_idle.jpg) center/cover;box-shadow:5px 5px 0 var(--pink);overflow:hidden;display:flex;align-items:flex-end;justify-content:center;gap:4px}
+.itap{position:relative;height:190px;border-radius:18px;border:3px solid #000;background:radial-gradient(ellipse at 50% 85%,rgba(255,61,154,.35),transparent 60%),linear-gradient(#1b2027,#0f1216);box-shadow:5px 5px 0 var(--pink);overflow:hidden;display:flex;align-items:flex-end;justify-content:center;gap:4px}
 .itap::after{content:"누르면 동전";position:absolute;top:8px;left:10px;font-size:11.5px;font-weight:800;background:rgba(0,0,0,.6);padding:3px 8px;border-radius:9px}
 .itap img.bm{height:150px;filter:drop-shadow(4px 4px 0 rgba(0,0,0,.6));transition:transform .08s}
 .itap img.wk{height:84px;margin-bottom:6px;filter:drop-shadow(3px 3px 0 rgba(0,0,0,.6))}
@@ -99,5 +99,5 @@ function render(got) {
   ARC.cleanup = () => { I = null; save(); };
 }
 
-ARC.reg({ id: 'idle', order: 3, name: '해골 전화국', ban: 'idle', sub: () => S.idl ? `동전 ${fmt(st().c)} · 초당 ${rate() < 10 ? rate().toFixed(1) : fmt(rate())}` : '부스를 늘려 부자 되기 · 꺼 둬도 쌓임', start: open });
+ARC.reg({ id: 'idle', order: 3, name: '해골 전화국', ban: 'idle', icon: gimg('b_neon'), color: '#9ff5e4', sub: () => S.idl ? `동전 ${fmt(st().c)} · 초당 ${rate() < 10 ? rate().toFixed(1) : fmt(rate())}` : '부스를 늘려 부자 되기 · 꺼 둬도 쌓임', start: open });
 })();

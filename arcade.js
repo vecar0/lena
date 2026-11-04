@@ -16,13 +16,14 @@ const css = `
 .talkr i.sk{background:#151515 url(assets/lena/st_skull.webp) center/80% no-repeat;box-shadow:2px 2px 0 var(--teal)}
 .talkr span{font-size:14.5px;font-weight:700;line-height:1.45;word-break:keep-all}
 .gcards{display:grid;gap:12px}
-.gban{position:relative;height:118px;border-radius:16px;border:2.5px solid #000;background:#222 center/cover;box-shadow:4px 4px 0 var(--pink);overflow:hidden;text-align:left}
-.gban:nth-child(2n){box-shadow:4px 4px 0 var(--teal)}
-.gban:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--pink)}
-.gbt{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 9px;background:linear-gradient(transparent,rgba(0,0,0,.85))}
-.gbt b{display:block;font-family:'Black Han Sans';font-weight:400;font-size:21px;text-shadow:2px 2px 0 #000}
-.gbt small{display:block;font-size:12px;color:#d6e4e2;margin-top:2px}
-.gban>em{position:absolute;right:10px;top:10px;font-style:normal;font-size:11.5px;font-weight:800;background:var(--yel);color:#111;padding:3px 8px;border-radius:10px;border:2px solid #000}
+.gban{position:relative;display:flex;align-items:center;gap:12px;min-height:96px;padding:12px 14px;border-radius:16px;border:2px solid #000;background:var(--panel2);box-shadow:4px 4px 0 var(--gc,var(--pink));overflow:hidden;text-align:left}
+.gban::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 88% 50%,var(--gc,var(--pink)),transparent 55%);opacity:.22}
+.gban:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--gc,var(--pink))}
+.gban img{position:relative;width:76px;height:76px;object-fit:contain;flex:none;order:2;margin-left:auto;filter:drop-shadow(3px 3px 0 rgba(0,0,0,.5))}
+.gbt{position:relative;flex:1;min-width:0}
+.gbt b{display:block;font-family:'Black Han Sans';font-weight:400;font-size:20px}
+.gbt small{display:block;font-size:12.5px;color:var(--mute);margin-top:3px;line-height:1.4;word-break:keep-all}
+.gban>em{position:absolute;left:14px;top:-1px;font-style:normal;font-size:10.5px;font-weight:800;background:var(--yel);color:#111;padding:2px 7px;border-radius:0 0 8px 8px;border:2px solid #000;border-top:0}
 .abody.flat{padding:0;overflow:hidden;gap:0}
 .abody>*{flex-shrink:0}
 .abody.flat>*{flex-shrink:1}
@@ -103,9 +104,9 @@ function hub(fresh) {
     talk(B, 'l', fresh ? `${nmc()}오늘 게임 동전 10개 넣어 뒀어요. …다 잃어도 울지 마요.` : pick(['한 판 해요? 저 보는 앞에서 지면 더 재밌는데.', '해골들이 기다려요. 오늘은 뭐 할래요?', '오늘은 운 좋은 얼굴이네요.']));
     const G = el('div', 'gcards');
     GAMES.forEach((g, i) => {
-      const c = el('button', 'gban'); c.style.backgroundImage = `url(assets/lena/g/ban_${g.ban}.jpg)`;
+      const c = el('button', 'gban'); c.style.setProperty('--gc', g.color || 'var(--pink)'); const ic = el('img'); ic.src = g.icon; ic.alt = '';
       const t = el('div', 'gbt'); t.append(el('b', null, g.name), el('small', null, g.sub()));
-      c.appendChild(t); if (g.cost) c.appendChild(el('em', null, `입장 동전 ${g.cost}`)); c.onclick = () => { dtmf((i % 9) + 1); g.start(); }; G.appendChild(c);
+      c.append(t, ic); if (g.cost) c.appendChild(el('em', null, `입장 동전 ${g.cost}`)); c.onclick = () => { dtmf((i % 9) + 1); g.start(); }; G.appendChild(c);
     });
     B.appendChild(G);
     B.appendChild(el('div', 'rules', '게임 동전은 매일 10개씩 들어와요(최대 99). 게임을 잘하면 더 받아요. 다 잃으면 하루 한 번 레나가 3개 빌려줘요.'));
@@ -135,15 +136,15 @@ const CH = [
 ];
 const has = id => (R && R.ch.includes(id));
 let R = null, spinning = false;
-function quota(n) { return Math.round(30 * Math.pow(1.55, n - 1) * (has('bk') ? .85 : 1)); }
-function spinsPer() { return 7 + (has('ph') ? 2 : 0); }
+function quota(n) { return Math.round(26 * Math.pow(1.36, n - 1) * (has('bk') ? .85 : 1)); }
+function spinsPer() { return 8 + (has('ph') ? 2 : 0); }
 function slotEnter() {
   R = S.slotRun || null;
   if (R) return slotDraw();
   frame('해골 빚 슬롯', B => {
     talk(B, 'sk', '(해골이 두꺼운 장부를 펼쳐 보인다. 첫 장에 당신 이름이 적혀 있다)');
     talk(B, 'l', '빚 갚는 게임이에요. 밤마다 정해진 만큼 벌어서 해골한테 갚으면 돼요. …못 갚으면? 끝이죠, 뭐.');
-    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 밤마다 레버를 <b>7번</b> 당길 수 있어요. 5×3칸에 그림이 나와요.<br>· 같은 그림이 <b>가로로 3칸 이상</b>, <b>세로 3칸</b>, <b>대각선 3칸</b> 이어지면 칩을 벌어요. 해골은 아무 그림 대신이 돼요.<br>· 그림 값: 동전 1 · 하트 2 · 입술 3 · 번개 3 · 별 5. 가로 3칸 ×2, 4칸 ×5, 5칸 ×12, 세로 ×3, 대각선 ×2.<br>· 밤이 끝나면 벌어 둔 칩으로 <b>빚</b>을 갚아요. 남은 칩으로 <b>부적</b>을 사서 기계를 유리하게 바꿔요.<br>· 빚은 밤마다 커져요. 못 갚으면 끝. 버틴 밤 × 3개만큼 게임 동전을 받아요.';
+    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 밤마다 레버를 <b>8번</b> 당길 수 있어요. 5×3칸에 그림이 나와요.<br>· 같은 그림이 <b>가로로 3칸 이상</b>, <b>세로 3칸</b>, <b>대각선 3칸</b> 이어지면 칩을 벌어요. 해골은 아무 그림 대신이 돼요.<br>· 그림 값: 동전 1 · 하트 2 · 입술 3 · 번개 3 · 별 5. 가로 3칸 ×2, 4칸 ×5, 5칸 ×12, 세로 ×3, 대각선 ×2.<br>· 밤이 끝나면 벌어 둔 칩으로 <b>빚</b>을 갚아요. 남은 칩으로 <b>부적</b>을 사서 기계를 유리하게 바꿔요.<br>· 빚은 밤마다 커져요. 못 갚으면 끝. 버틴 밤 × 3개만큼 게임 동전을 받아요.';
     B.appendChild(r);
     B.appendChild(row(btn(gc() >= 3 ? '동전 3개 넣고 시작' : '동전이 모자라요 (3개 필요)', 'wide', () => { if (gc() < 3) { toast('게임 동전이 모자라요.'); return; } gcAdd(-3); coinSound(); R = { night: 1, spins: 7, chips: 0, ch: [], rr: true, grid: null, offers: null }; R.spins = spinsPer(); S.slotRun = R; save(); slotDraw(); })));
   }, true);
@@ -200,11 +201,19 @@ async function spin() {
 }
 function settle() {
   const q = quota(R.night);
-  if (R.chips < q) return over(false);
+  if (R.chips < q) { if (!R.loan) return loanAsk(q); return over(false); }
   R.chips -= q; R.night++; R.spins = spinsPer(); R.rr = true; R.grid = null;
   const pool = CH.filter(c => !R.ch.includes(c.id)); R.offers = []; while (R.offers.length < 3 && pool.length) R.offers.push(pool.splice(Math.random() * pool.length | 0, 1)[0].id);
   R.say = ''; S.slotBest = Math.max(S.slotBest || 0, R.night - 1); S.slotRun = R; save(); coinSound();
   slotDraw();
+}
+function loanAsk(q) {
+  frame('해골 빚 슬롯', B => {
+    B.appendChild(el('div', 'res l', `빚 ${q - R.chips} 모자라요`));
+    talk(B, 'sk', '(해골이 장부를 덮으려다 멈춘다)');
+    talk(B, 'l', '…한 번만 제가 대신 갚아 줄게요. 대신 다음 밤엔 더 열심히 해요? 약속.');
+    B.appendChild(row(btn('레나 외상으로 버티기 (한 번만)', 'teal wide', () => { R.loan = 1; R.chips = q; settle(); }), btn('여기서 끝내기', 'ghost wide', () => over(false))));
+  }, true);
 }
 function shop(B) {
   talk(B, 'l', `빚 갚았어요! ${R.night - 1}번째 밤 통과. 남은 칩 ${R.chips}개로 부적 하나 골라 봐요.`);
@@ -227,7 +236,7 @@ function over(quit) {
   R = null;
 }
 
-reg({ id: 'slot', order: 5, name: '해골 빚 슬롯', ban: 'slot', cost: 3, sub: () => `밤마다 해골에게 빚 갚기 · 최고 ${S.slotBest || 0}밤`, start: slotEnter });
+reg({ id: 'slot', order: 5, name: '해골 빚 슬롯', ban: 'slot', icon: img('st_lips'), color: '#f2ea3a', cost: 3, sub: () => `밤마다 해골에게 빚 갚기 · 최고 ${S.slotBest || 0}밤`, start: slotEnter });
 
 // 다이얼 8번 = 오락실
 SH[8] = { t: '오락실', s: '', r: () => {}, direct: openArc };
