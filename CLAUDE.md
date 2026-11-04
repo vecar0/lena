@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v28). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v29). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -63,4 +63,4 @@
 - 호감도 `S.aff`(pt, last, dday, gifts, notes): 단계 = floor(sqrt(pt/5)). 하루 지날 때마다 −6점. 기분(설렘/두근두근/보통/서운/삐침)은 마지막 선물부터 지난 날로. 대화 프롬프트에 단계·기분을 넘김.
 - 선물 9종(`assets/lena/s/g_*`), 날마다 "레나가 갖고 싶은 것"(호감도 2배)과 가끔 반값. 단계가 오르면 레나 수첩에 비밀 이야기(12개 준비, 그 뒤는 Gemini가 새로 씀).
 - 오늘의 자판기 `S.shop`: 날짜로 정해지는 4칸(선물 2, 부스 장식 1, 쓸모 1: 운세·게임 동전 5·전화국 2시간 부스트·레나 손편지). 자정에 바뀜.
-- 부스 장식 8종(`assets/lena/s/d_*`, `S.decor` own/on/pos): 4개까지. `#decorL`은 `.dots` 바로 뒤 층이라 dotmask로 레나·수화기·벽 전화기에 가려져 레나 뒤 유리에 붙은 것처럼 보임(반투명·유리 반사). 자판기 > 부스 꾸미기 > "부스 유리에 직접 붙이기"(`decorEdit`)로 끌어서 위치, 크게/작게, 기울기 조절 → `S.decor.pos[id]={x,y,r,w}`.
+- 부스 장식 8종(`assets/lena/s/d_*`, `S.decor` own/on/gl): 4개까지. `#decorL`은 `.dots` 바로 앞 층(점무늬가 스티커 위에도 깔림)이고 dotmask로 레나·수화기·벽 전화기에 가려져 레나 뒤 유리에 붙은 것처럼 보임. 배경 그림(1050×1872, cover·가운데 위) 속 뒤쪽 유리판을 `QUAD`(원근 네 모서리)로 잡아 스티커를 `matrix3d`로 기울이고, 붙일 수 있는 범위는 `GLASS` 다각형 안으로 제한. 위치는 유리판 좌표 `S.decor.gl[id]={a,b,r,w}`. 유리 위 물방울 캔버스(`.gdrop`)가 스티커 위에 맺힘. 자판기 > 부스 꾸미기 > "부스 유리에 직접 붙이기"(`decorEdit`): 유리 범위 점선 표시, 끌기·크기·기울기.
