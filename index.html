@@ -22,12 +22,11 @@
   --ease:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:#08090b;color:#fff;font-family:Pretendard,system-ui,-apple-system,sans-serif;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+html,body{height:100%;min-height:100%;background:#0b0f12;color:#fff;font-family:Pretendard,system-ui,-apple-system,sans-serif;overscroll-behavior:none;-webkit-text-size-adjust:100%}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,select,textarea{font:inherit;font-size:16px;color:inherit}
 body{position:fixed;inset:0;overflow:hidden}
-.app{position:fixed;left:0;right:0;top:0;height:100vh;height:100dvh;max-width:520px;margin:0 auto;overflow:hidden;background:var(--ink)}
-@media (display-mode:standalone){.app{height:100lvh}}
+.app{position:fixed;inset:0;max-width:520px;margin:0 auto;overflow:hidden;background:var(--ink)}
 .home,.ctl,.keys,.ctop,.inc,.shead,button{user-select:none;-webkit-user-select:none}
 .mono{font-family:'Space Mono',ui-monospace,monospace}
 .han{font-family:'Black Han Sans',Pretendard,sans-serif;font-weight:400}
