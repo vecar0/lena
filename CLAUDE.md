@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v25). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v26). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -40,7 +40,7 @@
 
 ## 오락실 (다이얼 8번, 홈의 동전 배지)
 - 파일: `arcade.js`(허브·게임 동전·해골 빚 슬롯, 전역 `ARC`), 게임마다 `g_surv.js` `g_rhythm.js` `g_idle.js` `g_cards.js` — `ARC.reg({id,order,name,ban,sub,start})`로 등록. 화면은 `ARC.frame(제목, 내용함수, 뒤로버튼, flat)`, 루프·소리는 `ARC.cleanup`에 정리 함수를 넣는다.
-- 게임 동전 `S.gc`: 매일 +10(최대 99), 0개면 하루 한 번 3개 빌림. 할 일 동전 `S.coins`와 따로. 할 일 동전은 오늘의 운세(1개)·전화국 부스트(1개)에 쓴다.
+- 게임 동전 `S.gc`: 매일 +10(최대 99), 0개면 하루 한 번 3개 빌림. 할 일 동전 `S.coins`와 따로. 할 일 동전은 레나 자판기(`shop.js`)에서 쓴다.
 - 허브 카드는 표지 그림 대신 차분한 카드 + 스프라이트 아이콘(`icon`,`color`). 게임은 오래 이어지게: 서바이버는 한 번 부활 + 5분 뒤 '끝없는 밤', 리듬은 곡 길이 2배 + '끝없는 밤' 메들리(하트 10개), 카드는 사장 뒤로 끝없는 지하(10층마다 강해짐), 슬롯은 빚 완만 + 레나 외상 한 번.
 - 게임: ① 빗속의 고양이(서바이버 형식, 캔버스, 5분 버티기) ② 리듬 다이얼(키패드 리듬, 음악은 WebAudio로 직접 합성, 3곡) ③ 해골 전화국(방치형, 꺼 둬도 8시간까지 쌓임, `S.idl`) ④ 해골과 카드 대결(덱 빌딩, 지하 10층, `S.cardRun`) ⑤ 해골 빚 슬롯(클로버핏 같은 빚 갚기 슬롯, 부적, `S.slotRun`).
 - 그림: `assets/lena/g/`(Higgsfield GPT Image 2.5로 만든 스프라이트 시트를 잘라 씀; 원본 `art/new/games/`). 표지 `ban_*.jpg`, 서바이버 `s_*`, 부스 `b_*`, 카드 그림 `c_*`, 적 `e_*`, 골목 바닥 `tile.jpg`.
@@ -54,3 +54,10 @@
 - 영상 화면 점무늬는 `.dots` 층, 레나+수화기·전화선·벽 전화기를 오려 낸 `assets/lena/dotmask.png`(rembg isnet-anime + 초록색 골라내기로 만든 가림판)로 그 위에만 안 깔림. 오락실의 레나 말풍선 사진은 음성통화일 때 고양이, 영상통화일 때 레나 얼굴(`.talkr i.face`).
 - 화면 높이: `.app{position:fixed;inset:0}`, 홈 화면 앱(standalone)에서는 `full()`이 `screen.height`로 높이를 직접 채움(아이폰이 상태바만큼 작게 알려 줘서 아래가 검게 비었음). visualViewport로 높이를 맞추는 건 키보드가 올라와 있을 때만(아이폰 홈 화면 앱은 평소 높이를 상태바만큼 작게 알려 줘서 아래가 비었었음).
 - 입술 키스 효과(`kissFromMouth`)는 음성 → 영상통화로 넘어갈 때만, 레나 입(그림 기준 x .554, y .493)에서 키스 하나가 나와 오른쪽으로 날아감. 대화 기분 스티커에서 입술은 뺐음.
+
+## 레나 자판기·호감도 (`shop.js`, 할 일 동전을 계속 쓰는 곳)
+- 열기: 음성통화 화면 이름 아래 "♥ 호감도" 배지, 영상통화 화면 동전 배지, 오락실 버튼 → `openSheet('shop')`.
+- 호감도 `S.aff`(pt, last, dday, gifts, notes): 단계 = floor(sqrt(pt/5)). 하루 지날 때마다 −6점. 기분(설렘/두근두근/보통/서운/삐침)은 마지막 선물부터 지난 날로. 대화 프롬프트에 단계·기분을 넘김.
+- 선물 9종(`assets/lena/s/g_*`), 날마다 "레나가 갖고 싶은 것"(호감도 2배)과 가끔 반값. 단계가 오르면 레나 수첩에 비밀 이야기(12개 준비, 그 뒤는 Gemini가 새로 씀).
+- 오늘의 자판기 `S.shop`: 날짜로 정해지는 4칸(선물 2, 부스 장식 1, 쓸모 1: 운세·게임 동전 5·전화국 2시간 부스트·레나 손편지). 자정에 바뀜.
+- 부스 장식 8종(`assets/lena/s/d_*`, `S.decor` own/on): 영상통화 화면에 4개까지 붙임(`#decorL`).

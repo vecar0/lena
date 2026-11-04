@@ -112,9 +112,7 @@ function hub(fresh) {
     B.appendChild(G);
     B.appendChild(el('div', 'rules', '게임 동전은 매일 10개씩 들어와요(최대 99). 게임을 잘하면 더 받아요. 다 잃으면 하루 한 번 레나가 3개 빌려줘요.'));
     if (gc() < 1) B.appendChild(row(btn('레나에게 동전 빌리기', 'wide', () => { if (S.gcLoan === dk(new Date())) { toast('오늘은 이미 빌렸어요. 내일 또 와요.'); return; } S.gcLoan = dk(new Date()); gcAdd(3); coinSound(); hub(); })));
-    const sp = el('div', 'rules'); sp.innerHTML = `할 일 동전 <b>${S.coins}</b>개 · 1개로 레나의 <b>오늘의 운세 전화</b> (하루 한 번)`;
-    B.appendChild(sp);
-    B.appendChild(row(btn(S.fortDay === dk(new Date()) ? '🔮 오늘 운세는 이미 들었어요' : '🔮 할 일 동전 1개로 오늘의 운세', 'ghost wide', () => { if (fortuneCall()) closeArc(); })));
+    B.appendChild(row(btn(`🎁 레나 자판기 · 할 일 동전 ${S.coins || 0}개`, 'ghost wide', () => { closeArc(); openSheet('shop'); })));
   });
 }
 
