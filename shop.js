@@ -76,12 +76,16 @@ const GIFT = [
 const DECOR = [
   { id: 'neon', n: '네온 하트', p: 4, i: 'd_neon' }, { id: 'disco', n: '미러볼', p: 5, i: 'd_disco' }, { id: 'plush', n: '해골 인형', p: 4, i: 'd_plush' },
   { id: 'polar', n: '폴라로이드', p: 3, i: 'd_polar' }, { id: 'lights', n: '별 전구', p: 4, i: 'd_lights' }, { id: 'duck', n: '선글라스 오리', p: 3, i: 'd_duck' },
-  { id: 'cactus', n: '선인장 화분', p: 3, i: 'd_cactus' }, { id: 'cherry', n: '체리 방향제', p: 2, i: 'd_cherry' }
+  { id: 'cactus', n: '선인장 화분', p: 3, i: 'd_cactus' }, { id: 'cherry', n: '체리 방향제', p: 2, i: 'd_cherry' },
+  // 리액션 스티커: 레나 머리 옆 유리에 붙이면 레나가 말하거나 반응하는 것처럼 보인다
+  { id: 'bheart', n: '하트 말풍선', p: 3, i: 'd_bheart', rx: 1 }, { id: 'bdots', n: '…말풍선', p: 2, i: 'd_bdots', rx: 1 }, { id: 'bshout', n: '?! 외침', p: 2, i: 'd_bshout', rx: 1 },
+  { id: 'anger', n: '빠직 표시', p: 2, i: 'd_anger', rx: 1 }, { id: 'blush', n: '발그레', p: 2, i: 'd_blush', rx: 1 }, { id: 'notes', n: '콧노래', p: 2, i: 'd_notes', rx: 1 },
+  { id: 'crown', n: '작은 왕관', p: 3, i: 'd_crown', rx: 1 }, { id: 'halo', n: '천사 링', p: 3, i: 'd_halo', rx: 1 }, { id: 'arrow', n: '여기 봐 화살표', p: 2, i: 'd_arrow', rx: 1 }
 ];
 const UTIL = [
   { id: 'fortune', n: '오늘의 운세 전화', d: '레나가 오늘 운세를 봐 줘요', p: 1, i: 'assets/lena/st_star.webp', buy: () => fortuneCall() },
-  { id: 'gc', n: '게임 동전 5개', d: '오락실에서 쓰는 동전', p: 1, i: 'assets/lena/st_coin.webp', buy: () => { S.gc = Math.min(999, (S.gc || 0) + 5); save(); toast('게임 동전 +5'); return true; } },
-  { id: 'boost', n: '전화국 2시간 부스트', d: '해골 전화국 수익 ×2', p: 1, i: 'assets/lena/g/b_neon.webp', buy: () => { if (!S.idl) { toast('해골 전화국을 먼저 한 번 열어 주세요.'); return false; } S.idl.boost = Math.max(Date.now(), S.idl.boost || 0) + 2 * 3600e3; save(); toast('2시간 동안 전화국 수익 ×2!'); return true; } },
+  { id: 'gc', n: '게임 동전 5개', d: '오락실에서 쓰는 동전', p: 1, i: CUR('gc'), buy: () => { S.gc = Math.min(999, (S.gc || 0) + 5); save(); toast('게임 동전 +5'); return true; } },
+  { id: 'rpick', n: '리액션 스티커 뽑기', d: '레나 옆에 붙이는 말풍선·반응 스티커 하나', p: 2, i: 'assets/lena/s/d_bheart.webp', buy: () => { const L = DECOR.filter(d => d.rx && !D().own.includes(d.id)); if (!L.length) { toast('리액션 스티커를 다 모았어요!'); return false; } const d = pick(L); D().own.push(d.id); if (D().on.length < 6) D().on.push(d.id); save(); renderDecor(); toast(`${d.n} 스티커가 나왔어요! 부스 꾸미기에서 붙여요.`); return true; } },
   { id: 'letter', n: '레나의 손편지', d: '음성사서함에 남는 짧은 편지', p: 2, i: 'assets/lena/st_tape.webp', buy: () => letter() }
 ];
 const SECRET = [
@@ -108,7 +112,7 @@ window.lenaMood = () => { const a = A(); return { lv: lv(a.pt), mood: mood()[0],
 // 오늘의 자판기 (날짜로 정해지는 랜덤)
 function rng(seed) { let s = 0; for (const c of seed) s = (s * 31 + c.charCodeAt(0)) >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 function today() {
-  const k = dk(new Date()); if (S.shop && S.shop.day === k) return S.shop;
+  const k = dk(new Date()); if (S.shop && S.shop.day === k && S.shop.slots.every(sl => sl.t !== 'u' || UTIL.some(u => u.id === sl.id))) return S.shop;
   const r = rng(k + (S.name || '')), pickR = a => a[Math.floor(r() * a.length)];
   const g1 = pickR(GIFT.slice(0, 7)), want = pickR(GIFT.filter(g => g.id !== g1.id));
   const own = (S.decor && S.decor.own) || [], dl = DECOR.filter(d => !own.includes(d.id));
@@ -149,6 +153,7 @@ const IMW = 1050, IMH = 1872;
 const QUAD = [[.035, .12], [.66, .04], [.74, .76], [.10, .80]]; // 유리판 네 모서리(그림 기준 비율): 왼위, 오른위, 오른아래, 왼아래
 const GLASS = [[.035, .12], [.65, .04], [.70, .30], [.79, .72], [.30, .79], [.035, .34]]; // 실제로 붙일 수 있는 유리 영역
 const SLOTS = [[.2, .1, -6], [.62, .07, 5], [.14, .42, 4], [.5, .2, -4]];
+const RXS = [[.42, .2, -8], [.22, .07, 6], [.3, .3, -4], [.7, .12, 6], [.52, .1, 0], [.1, .2, -10]]; // 리액션 스티커 기본 자리: 레나 머리 둘레
 function homog(src, dst) { // 네 점 → 네 점 사영 변환 [a,b,c,d,e,f,g,h]
   const A = [], B = [];
   for (let i = 0; i < 4; i++) { const [x, y] = src[i], [u, v] = dst[i]; A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); B.push(u); A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); B.push(v); }
@@ -162,7 +167,7 @@ function view() { // 지금 화면에서 그림이 놓인 자리(cover, 가운�
   const q = QUAD.map(toS); return { W, H, toS, H1: homog([[0, 0], [1, 0], [1, 1], [0, 1]], q), H2: homog(q, [[0, 0], [1, 0], [1, 1], [0, 1]]), poly: GLASS.map(toS), q };
 }
 const inPoly = (pt, P) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi) c = !c; } return c; };
-const P = id => { const D0 = D(); D0.gl = D0.gl || {}; if (!D0.gl[id]) { const i = D0.on.indexOf(id), [a, b, r] = SLOTS[Math.max(0, i) % 4]; D0.gl[id] = { a, b, r, w: .2 }; } return D0.gl[id]; };
+const P = id => { const D0 = D(); D0.gl = D0.gl || {}; if (!D0.gl[id]) { const i = D0.on.indexOf(id), rx = (DECOR.find(x => x.id === id) || {}).rx, [a, b, r] = rx ? RXS[Math.max(0, i) % RXS.length] : SLOTS[Math.max(0, i) % 4]; D0.gl[id] = { a, b, r, w: .2 }; } return D0.gl[id]; };
 function corners(V, p) { // 스티커 네 모서리(유리판 좌표) → 화면 좌표
   const k = Math.hypot(V.q[1][0] - V.q[0][0], V.q[1][1] - V.q[0][1]) / Math.hypot(V.q[3][0] - V.q[0][0], V.q[3][1] - V.q[0][1]); // 유리판 가로/세로 비
   const h = p.w / 2, c = Math.cos(p.r * Math.PI / 180), s = Math.sin(p.r * Math.PI / 180);
@@ -174,7 +179,7 @@ function renderDecor() {
   let L = $('decorL'); if (!L) { L = el('div', 'decor'); L.id = 'decorL'; document.querySelector('.dots').before(L); }
   L.innerHTML = ''; if (!L.clientWidth) return; const V = view();
   if (document.getElementById('app').classList.contains('dedit')) { const sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sv.setAttribute('class', 'gzone'); sv.setAttribute('viewBox', `0 0 ${V.W} ${V.H}`); sv.innerHTML = `<polygon points="${V.poly.map(p => p.join(',')).join(' ')}"/>`; L.appendChild(sv); }
-  D().on.slice(0, 4).forEach(id => {
+  D().on.slice(0, 6).forEach(id => {
     const d = DECOR.find(x => x.id === id); if (!d) return; const p = P(id);
     if (!okPos(V, p)) { p.a = Math.min(.8, Math.max(.2, p.a)); p.b = Math.min(.6, Math.max(.1, p.b)); }
     const s = el('div', 'stk' + (edSel === id ? ' sel' : '')); s.style.setProperty('--im', `url(${SI(d.i)})`); s.dataset.id = id;
@@ -224,7 +229,7 @@ function decorEdit() {
 function renderAff() {
   const hd = document.querySelector('.ahead .hd'); if (!hd) return; let b = $('affB');
   if (!b) { b = el('button', 'affb'); b.id = 'affB'; b.onclick = () => { dtmf(8); openSheet('shop'); }; hd.appendChild(b); }
-  const a = A(), [m] = mood(); b.innerHTML = `<i>♥</i>호감도 <u>${lv(a.pt)}</u> · ${m}`;
+  const a = A(), [m] = mood(); b.innerHTML = `${ci('heart')}호감도 <u>${lv(a.pt)}</u> · ${m}`;
 }
 // 자판기 시트
 let tab = 'today';
@@ -237,7 +242,7 @@ SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 �
   const w = GIFT.find(g => g.id === s.want); const wb = el('div', 'want'), wi = el('img'); wi.src = SI(w.i); wi.alt = ''; wb.append(wi, document.createTextNode(`오늘 레나가 갖고 싶은 것: ${w.n} (호감도 2배)`)); c.appendChild(wb);
   B.appendChild(c);
   const T = el('div', 'tabs'); [['today', '오늘의 자판기'], ['gift', '선물'], ['decor', '부스 꾸미기'], ['note', '레나 수첩']].forEach(([v, l]) => { const b = el('button', tab === v ? 'on' : '', l); b.onclick = () => { tab = v; refreshSheet(); }; T.appendChild(b); }); T.style.marginTop = '14px'; B.appendChild(T);
-  const coinI = '<img src="assets/lena/st_coin.webp" alt="">';
+  const coinI = `<img src="${CUR('todo')}" alt="">`;
   const card = (img, name, sub, price, onBuy, tag, sold) => { const v = el('button', 'vi' + (sold ? ' sold' : '')); if (tag) v.appendChild(el('span', 'tag' + (tag === '희귀' ? ' r' : ''), tag)); const im = el('img'); im.src = img; im.alt = ''; v.append(im, el('b', null, name)); if (sub) v.appendChild(el('small', null, sub)); const pr = el('span', 'pr'); pr.innerHTML = sold ? '구입함' : `${coinI}${price}`; v.appendChild(pr); v.onclick = () => { if (!sold) onBuy(); }; return v; };
   if (tab === 'today') {
     const V = el('div', 'vend'), vt = el('div', 'vt'); vt.append(el('span', null, 'LENA VENDING'), el('span', null, `${dk(new Date()).slice(5).replace('-', '/')} · 자정에 교체`)); V.appendChild(vt);
@@ -254,8 +259,8 @@ SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 �
     const cnt = a.gifts || {}; const tot = Object.values(cnt).reduce((x, y) => x + y, 0); B.appendChild(el('div', 'hint', `지금까지 준 선물 ${tot}개`));
   } else if (tab === 'decor') {
     const G = el('div', 'dl'); DECOR.forEach(d => { const own = D().own.includes(d.id), on = D().on.includes(d.id); const t = el('button', 'dt' + (on ? ' on' : '') + (own ? '' : ' lock')); const im = el('img'); im.src = SI(d.i); im.alt = d.n; t.appendChild(im);
-      t.onclick = () => { if (!own) { toast(`${d.n}: 오늘의 자판기에 나오면 살 수 있어요 (동전 ${d.p}개).`); return; } const o = D().on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 4) o.shift(); o.push(d.id); } save(); renderDecor(); refreshSheet(); }; G.appendChild(t); });
-    B.appendChild(G); if (D().on.length) B.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', decorEdit))); B.appendChild(el('div', 'hint', `모은 장식 ${D().own.length}/${DECOR.length} · 4개까지 붙일 수 있어요. 누르면 붙이고 떼요. 붙인 장식은 레나 뒤 유리에 붙어 영상통화 화면에 보여요. 장식은 오늘의 자판기에 날마다 하나씩 나와요.`));
+      t.onclick = () => { if (!own) { toast(`${d.n}: 오늘의 자판기에 나오면 살 수 있어요 (동전 ${d.p}개).`); return; } const o = D().on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 6) o.shift(); o.push(d.id); } save(); renderDecor(); refreshSheet(); }; G.appendChild(t); });
+    B.appendChild(G); if (D().on.length) B.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', decorEdit))); B.appendChild(el('div', 'hint', `모은 장식 ${D().own.length}/${DECOR.length} · 6개까지 붙일 수 있어요. 누르면 붙이고 떼요. 붙인 장식은 레나 뒤 유리에 붙어 영상통화 화면에 보여요. 장식은 오늘의 자판기에 날마다 하나씩 나와요.`));
   } else {
     const L = a.notes; if (!L.length) B.appendChild(empty('아직 비어 있어요. 호감도 1단계가 되면 첫 비밀이 열려요.', 'st_heart'));
     L.forEach((t, i) => { const d = el('div', 'note2'); d.append(el('h5', null, `${i + 1}단계 · 레나의 비밀`), document.createTextNode(t)); B.appendChild(d); });

@@ -40,25 +40,17 @@ const MAXL = 5;
 let G = null;
 
 const MV = () => { if (!S.sv) S.sv = { bones: 0, up: {}, asc: 0, ascMax: 0 }; S.sv.up = S.sv.up || {}; return S.sv; };
-const UPS = [['hp', '튼튼한 몸', '최대 체력 +10%'], ['dmg', '날카로운 발톱', '모든 공격 +10%'], ['spd', '가벼운 발', '이동 속도 +5%'], ['mag', '동전 자석', '보석 끌어오는 거리 +15%'], ['luck', '행운의 방울', '하트(회복) 나올 확률 ↑'], ['greed', '해골 장부', '뼛조각 +15%'], ['cd', '빠른 손', '무기 재사용 −4%'], ['rev', '레나의 손', '부활 +1번 (최대 2)']];
-const upLv = k => MV().up[k] || 0, upMax = k => k === 'rev' ? 2 : 5, upCost = k => Math.round((k === 'rev' ? 60 : 12) * Math.pow(1.7, upLv(k)));
-const NIGHT = n => n ? `밤 ${n + 1} · 적 체력 +${n * 25}% · 수 +${n * 12}% · 공격 +${n * 10}% · 뼛조각 +${n * 25}%` : '밤 1 · 기본';
+const upLv = () => 0; // 영구 강화 없음: 한 판 한 판 처음부터
+const NIGHT = n => n ? `밤 ${n + 1} · 적 체력 +${n * 25}% · 수 +${n * 12}% · 공격 +${n * 10}% · 동전 보상 +${n * 25}%` : '밤 1 · 기본';
 function intro() {
   const M = MV();
   frame('빗속의 고양이', B => {
-    talk(B, 'l', '비 오는 골목에 해골들이 몰려와요. 5분 버티면 새벽이에요. …뼛조각 모아서 고양이 키워 줘요.');
-    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 화면을 <b>끌면</b> 고양이가 움직이고, 공격은 알아서 해요.<br>· 초록 보석으로 레벨업 → 무기·능력 <b>하나 고르기</b>. 1분마다 해골 떼, 2:30·4:30에 보스.<br>· 판이 끝나면 <b>뼛조각</b>을 받아요. 아래에서 <b>영구 강화</b>에 써요.<br>· 5분 버티면 다음 <b>밤 단계</b>가 열려요. 단계가 높을수록 어렵고 보상이 커요.';
+    talk(B, 'l', '비 오는 골목에 해골들이 몰려와요. 5분 버티면 새벽이에요. …한 판에 다 걸어요. 레벨업 고르는 게 전부예요.');
+    const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 화면을 <b>끌면</b> 고양이가 움직이고, 공격은 알아서 해요.<br>· 초록 보석으로 레벨업 → 무기·능력 <b>하나 고르기</b>. 1분마다 해골 떼, 2:30·4:30에 보스.<br>· 영구 강화는 없어요. 매 판 레벨 1부터, <b>고르는 순서</b>가 실력이에요.<br>· 5분 버티면 다음 <b>밤 단계</b>가 열려요. 단계가 높을수록 어렵고 보상이 커요.';
     B.appendChild(lbl('밤 단계'));
-    const P = el('div', 'pills'); for (let n = 0; n <= Math.min(9, M.ascMax); n++) { const b = el('button', M.asc === n ? 'on' : '', `밤 ${n + 1}`); b.onclick = () => { M.asc = n; save(); intro(); }; P.appendChild(b); } B.appendChild(P);
+    const P = el('div', 'pills'); for (let n = 0; n <= Math.min(9, M.ascMax); n++) { const b = el('button', M.asc === n ? 'on' : ''); b.innerHTML = n ? `${ci('danger')}밤 ${n + 1}` : '밤 1'; b.onclick = () => { M.asc = n; save(); intro(); }; P.appendChild(b); } B.appendChild(P);
     B.appendChild(el('div', 'hint', NIGHT(M.asc)));
     B.appendChild(row(btn(`밤 ${M.asc + 1} 골목으로 들어가기`, 'wide', play)));
-    B.appendChild(lbl(`영구 강화 · 뼛조각 ${M.bones}개`));
-    const G2 = el('div', 'shop');
-    UPS.forEach(([k, n, d]) => { const o = el('div', 'offer'), im = el('img'); im.src = gimg(k === 'hp' ? 's_heart' : k === 'mag' ? 's_gem' : k === 'rev' ? 's_cathurt' : k === 'dmg' ? 'c_whip' : k === 'greed' ? 's_boss' : k === 'cd' ? 'c_bolt' : k === 'luck' ? 'c_kiss' : 's_cat'); im.alt = '';
-      const t = el('div'); t.append(el('b', null, `${n} ${'●'.repeat(upLv(k))}${'○'.repeat(upMax(k) - upLv(k))}`), el('small', null, d));
-      const full = upLv(k) >= upMax(k), b = btn(full ? '최대' : `🦴 ${upCost(k)}`, '', () => { if (full || M.bones < upCost(k)) { toast('뼛조각이 모자라요.'); return; } M.bones -= upCost(k); M.up[k] = upLv(k) + 1; save(); coinSound(); intro(); });
-      b.disabled = full || M.bones < upCost(k); o.append(im, t, b); G2.appendChild(o); });
-    B.appendChild(G2);
     B.appendChild(r);
     B.appendChild(el('div', 'rules', `최고 기록: ${S.svBest ? `${Math.floor(S.svBest / 60)}분 ${S.svBest % 60}초` : '없음'} · 최다 처치 ${S.svKill || 0} · 깬 밤 ${M.ascMax}`));
   }, true);
@@ -139,12 +131,12 @@ function play() {
     W.appendChild(M);
   }
   function end(win) {
-    G.over = true; const t = Math.floor(G.t), reward = Math.max(0, Math.floor(G.kills / 30) + Math.floor(t / 60) * 2 + (win && !G.paid ? 10 : 0) - (G.paidR || 0)); G.paid = G.paid || win; G.paidR = (G.paidR || 0) + reward;
-    const M2 = MV(), bones = Math.round((G.kills / 8 + t / 20) * (1 + .25 * G.asc) * (1 + .15 * upLv('greed'))) - (G.paidB || 0); G.paidB = (G.paidB || 0) + bones; M2.bones += bones; if (win && G.asc >= M2.ascMax) M2.ascMax = Math.min(9, G.asc + 1); S.svBest = Math.max(S.svBest || 0, t); S.svKill = Math.max(S.svKill || 0, G.kills); save(); if (reward) gcAdd(reward);
+    G.over = true; const t = Math.floor(G.t), reward = Math.max(0, Math.round((Math.floor(G.kills / 30) + Math.floor(t / 60) * 2 + (win && !G.paid ? 10 : 0)) * (1 + .25 * G.asc)) - (G.paidR || 0)); G.paid = G.paid || win; G.paidR = (G.paidR || 0) + reward;
+    const M2 = MV(); if (win && G.asc >= M2.ascMax) M2.ascMax = Math.min(9, G.asc + 1); S.svBest = Math.max(S.svBest || 0, t); S.svKill = Math.max(S.svKill || 0, G.kills); save(); if (reward) gcAdd(reward);
     const M = el('div', 'lvl'); M.appendChild(el('h3', null, win ? '새벽이 왔어요!' : '쓰러졌어요…'));
-    const s = el('div', 'rules'); s.innerHTML = `버틴 시간 <b>${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}</b> · 처치 <b>${G.kills}</b> · 레벨 <b>${G.lv}</b><br>게임 동전 <b>+${reward}</b> · 뼛조각 <b>+${bones}</b>${win && G.asc + 1 === MV().ascMax ? `<br>🔓 밤 ${G.asc + 2} 열림!` : ''}`; M.appendChild(s);
+    const s = el('div', 'rules'); s.innerHTML = `버틴 시간 <b>${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}</b> · 처치 <b>${G.kills}</b> · 레벨 <b>${G.lv}</b><br>${ci('gc')}게임 동전 <b>+${reward}</b>${win && G.asc + 1 === MV().ascMax ? `<br>🔓 밤 ${G.asc + 2} 열림!` : ''}`; M.appendChild(s);
     const tk = el('div', 'talkr'), ti = el('i', $('app').classList.contains('outside') ? '' : 'face'); tk.append(ti, el('span', null, win ? '진짜 버텼어요? …멋있다. 오늘은 제가 반했어요.' : pick(['괜찮아요, 고양이는 무사해요. 다시 해요.', '해골들이 너무 많았죠. 다음엔 레이저부터 챙겨요.'])));
-    M.appendChild(tk); if (win && !G.endless) M.appendChild(row(btn('계속 버티기 (끝없는 밤)', 'teal wide', () => { M.remove(); G.over = false; G.endless = true; G.nb = G.t + 60; last = performance.now(); }))); M.appendChild(row(btn('강화하러 가기', 'wide', intro), btn('바로 다시', 'ghost wide', play)));
+    M.appendChild(tk); if (win && !G.endless) M.appendChild(row(btn('계속 버티기 (끝없는 밤)', 'teal wide', () => { M.remove(); G.over = false; G.endless = true; G.nb = G.t + 60; last = performance.now(); }))); M.appendChild(row(btn('처음 화면', 'wide', intro), btn('바로 다시', 'ghost wide', play)));
     W.appendChild(M); win ? (coinSound(), setTimeout(coinSound, 200)) : tone([220, 160], .5, .08, 'triangle');
   }
   function step(dt) {

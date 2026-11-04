@@ -26,8 +26,8 @@ const css = `
 .cme .hpb{flex:1;width:auto;min-width:140px;height:18px}
 .cme .hpb span{line-height:14px;font-size:12px}
 .ken{display:flex;gap:4px}
-.ken i{width:20px;height:20px;border-radius:50%;background:var(--yel);border:2px solid #000;box-shadow:0 0 8px var(--yel)}
-.ken i.x{background:#333;box-shadow:none}
+.ken i{width:24px;height:24px;background:url(assets/lena/cur/energy.webp) center/contain no-repeat;filter:drop-shadow(0 0 5px rgba(242,234,58,.6))}
+.ken i.x{filter:grayscale(1) brightness(.4)}
 .khand{overflow:hidden;display:flex;justify-content:center;padding:6px 8px 4px 18px;min-height:150px;align-items:flex-end}
 .khand::-webkit-scrollbar{display:none}
 .khand .kc{margin-left:-12px;width:min(84px,calc((100vw - 30px) / 4.4));height:140px;padding-top:18px}.khand .kc img{width:50px;height:44px}.khand .kc b{font-size:12px}.khand .kc small{font-size:10.5px}.khand .kc:nth-child(odd){transform:rotate(-1.5deg)}.khand .kc:nth-child(even){transform:rotate(1.5deg) translateY(-3px)}
@@ -121,7 +121,7 @@ function intro() {
     const r = el('div', 'rules'); r.innerHTML = '<b>하는 법</b><br>· 매 턴 <b>에너지 3</b>과 카드 5장. 카드 왼쪽 위 숫자만큼 에너지를 써요.<br>· 적 머리 위에 <b>다음 행동</b>이 보여요. 공격이 오면 <b>방어</b> 카드로 막아요(방어는 내 턴이 오면 사라져요).<br>· 이기면 새 카드를 하나 골라 덱에 넣어요. 중간에 <b>쉼터</b>에서 체력을 회복해요.<br>· 상태: 취약(받는 피해 +50%) · 약화(주는 피해 −25%) · 중독(매 턴 피해, 1씩 줄어듦) · 힘(공격마다 +).<br>· 내려간 층만큼, 사장을 이기면 +10 게임 동전.';
     B.appendChild(r);
     B.appendChild(el('div', 'rules', `최고 기록: ${S.cardBest ? S.cardBest + '층' : '없음'}${S.cardWin ? ` · 사장 격파 ${S.cardWin}번` : ''} · 강한 해골을 이기면 유물, 쉼터에서 카드 강화`));
-    if (!R) { B.appendChild(lbl('위험도 (사장을 이기면 다음 단계가 열려요)')); const P = el('div', 'pills'); for (let n = 0; n <= Math.min(10, S.cardAscMax || 0); n++) { const b = el('button', ASC() === n ? 'on' : '', n ? `위험 ${n}` : '기본'); b.onclick = () => { S.cardAsc = n; save(); intro(); }; P.appendChild(b); } B.appendChild(P); B.appendChild(el('div', 'hint', ASC() ? `적 체력 +${ASC() * 12}% · 적 힘 +${Math.floor(ASC() / 2)} · 시작 체력 −${ASC() * 3} · 강화 카드가 더 자주 나와요` : '처음이면 기본으로 해요.')); }
+    if (!R) { B.appendChild(lbl('위험도 (사장을 이기면 다음 단계가 열려요)')); const P = el('div', 'pills'); for (let n = 0; n <= Math.min(10, S.cardAscMax || 0); n++) { const b = el('button', ASC() === n ? 'on' : ''); b.innerHTML = n ? `${ci('danger')}위험 ${n}` : '기본'; b.onclick = () => { S.cardAsc = n; save(); intro(); }; P.appendChild(b); } B.appendChild(P); B.appendChild(el('div', 'hint', ASC() ? `적 체력 +${ASC() * 12}% · 적 힘 +${Math.floor(ASC() / 2)} · 시작 체력 −${ASC() * 3} · 강화 카드가 더 자주 나와요` : '처음이면 기본으로 해요.')); }
     if (R) B.appendChild(row(btn('이어서 하기', 'wide', map), btn('새로 시작', 'ghost wide', () => { if (confirm('지금 판을 버리고 새로 시작할까요?')) start(); })));
     else B.appendChild(row(btn('클럽으로 내려가기', 'wide', start)));
   }, true);
