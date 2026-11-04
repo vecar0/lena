@@ -165,7 +165,7 @@ $('lenaHit').onclick = () => { tapN++; clearTimeout(tapT); tapT = setTimeout(() 
 let curSheet = 0;
 const SH = {};
 function openSheet(n) {
-  closePad(); const s = SH[n]; if (!s) return; curSheet = n;
+  closePad(); const s = SH[n]; if (!s) return; if (s.direct) { s.direct(); return; } curSheet = n;
   $('shNum').textContent = n; $('shT').textContent = s.t; $('shS').textContent = typeof s.s === 'function' ? s.s() : (s.s || '');
   const B = $('shB'); B.innerHTML = ''; s.r(B); B.scrollTop = 0;
   $('sheet').classList.add('open'); app.classList.add('dim');
@@ -358,7 +358,7 @@ $('aMiss').onclick = () => { dtmf(9); openSheet(9); };
 $('aSet').onclick = () => { dtmf(0); openSheet(0); };
 
 // ---------------- dial pad ----------------
-const KEYS = [[1, '오늘'], [2, '할 일'], [3, '이번 주'], [4, '예약 전화'], [5, '음성사서함'], [6, '통화 일기'], [7, '모닝콜'], [8, '동전함'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
+const KEYS = [[1, '오늘'], [2, '할 일'], [3, '이번 주'], [4, '예약 전화'], [5, '음성사서함'], [6, '통화 일기'], [7, '모닝콜'], [8, '오락실'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
 (function buildPad() {
   const K = $('keys');
   KEYS.forEach(([k, l]) => { const b = el('button', 'k' + (k === 7 ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 9) { const e = el('em'); e.hidden = true; b.appendChild(e); }
