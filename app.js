@@ -276,8 +276,15 @@ SH[7] = { t: '모닝콜', s: () => S.morning ? `매일 ${S.morning}에 전화해
   const c = el('div', 'card'), t = inp('time', '', S.morning || '08:00');
   c.append(row(t, btn(S.morning ? '시간 바꾸기' : '켜기', '', () => { S.morning = t.value || '08:00'; S.mcDone = new Date() >= mcAt(new Date()) ? dk(new Date()) : ''; save(); pushSync(true); refreshSheet(); say(`내일부터 ${S.morning}, 제가 깨워요. 안 받으면 부재중으로 남길 거예요.`, 'tease', false); })));
   if (S.morning) c.appendChild(row(btn('끄기', 'ghost wide', () => { S.morning = ''; save(); pushSync(true); refreshSheet(); say('모닝콜 껐어요. …아쉽네.', 'pout', false); }), btn('지금 받아 보기', 'teal wide', () => { closeSheet(); incoming('morning', true); })));
-  c.appendChild(el('div', 'hint', '정한 시간에 폰 알림으로 전화가 오고, 앱을 열면 레나가 오늘 일정을 브리핑해요. 2시간 안에 안 받으면 부재중이 돼요.'));
+  c.appendChild(el('div', 'hint', '정한 시간에 폰 알림으로 전화가 오고, 받을 때까지 2분마다 다섯 번 더 와요. 앱을 열면 레나가 오늘 일정을 브리핑해요.'));
   B.appendChild(c);
+  if (S.morning) {
+    B.appendChild(lbl('진짜 알람도 같이'));
+    const a = el('div', 'card');
+    a.append(row(btn(`아이폰 알람에 ${S.morning} 넣기`, 'teal wide', () => { location.href = `shortcuts://run-shortcut?name=${encodeURIComponent('레나 알람')}&input=text&text=${encodeURIComponent(S.morning)}`; })));
+    const h = el('div', 'hint'); h.innerHTML = '앱 알림은 한 번씩만 "띵" 울려요. 무음이어도·앱이 꺼져 있어도 크게 계속 울리게 하려면 아이폰 <b>시계 알람</b>을 같이 쓰세요. 위 버튼은 단축어로 알람을 만들어 줘요.<br><br><b>처음 한 번만 준비</b><br>1. 단축어 앱 → + → 이름을 <b>레나 알람</b>으로<br>2. 동작 추가에서 <b>알람 생성</b>(시계)을 고르기<br>3. 시간 칸을 눌러 <b>단축어 입력</b>으로, 레이블은 "레나 모닝콜"<br>4. 완료 → 이제 위 버튼을 누르면 알람이 생겨요';
+    a.appendChild(h); B.appendChild(a);
+  }
   if (!S.pushOn) B.appendChild(el('div', 'hint', '폰 알림이 꺼져 있으면 앱을 열 때만 울려요. 0번 설정에서 켜 주세요.'));
 } };
 
@@ -578,8 +585,8 @@ function plan() {
   if (S.morning) for (let i = 0; i < 8; i++) { const d = new Date(); d.setDate(d.getDate() + i); const m = mcAt(d); if (m.getTime() <= now) continue; const ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
     if (S.mcDone === dk(d)) continue;
     rem.push({ id: 'mc_' + dk(d), at: m.getTime(), body: `📞 모닝콜 — ${n}일어나요.` + (ev.length ? ` 오늘 ${ev[0].due.slice(11, 16)} '${ev[0].text}'${ev.length > 1 ? ` 외 ${ev.length - 1}개` : ''}.` : ' 오늘은 비어 있어요.') });
-    // 앱을 열어 받을 때까지 3분마다 두 번 더 울린다(받으면 다음 동기화 때 빠진다)
-    [[3, '📞 또 전화했어요. …안 일어나면 계속 걸 거예요.'], [6, '📞 마지막이에요. 일어나요, 진짜로.']].forEach(([mm, b], j) => { const a = m.getTime() + mm * 60e3; if (a > now) rem.push({ id: `mc_${dk(d)}_${j + 2}`, at: a, body: b }); }); }
+    // 앱을 열어 받을 때까지 2분마다 다섯 번 더 울린다(받으면 다음 동기화 때 빠진다)
+    [[2, '📞 또 전화했어요. 일어나요~'], [4, '📞 …안 받으면 계속 걸 거예요.'], [6, '📞 해골이 유리 두드리고 있어요. 똑똑.'], [8, '📞 진짜 일어나야 돼요. 지금!'], [10, '📞 마지막이에요. 일어났으면 앱 열어서 받아 줘요.']].forEach(([mm, b], j) => { const a = m.getTime() + mm * 60e3; if (a > now) rem.push({ id: `mc_${dk(d)}_${j + 2}`, at: a, body: b }); }); }
   return { reminders: rem.sort((a, b) => a.at - b.at).slice(0, 120), routines: [], water: null, tz: new Date().getTimezoneOffset(), brief: null };
 }
 let pushT = 0, lastPlan = '', pstat = '';
