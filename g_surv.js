@@ -26,7 +26,7 @@ const IM = {}; const L = (k, src) => { if (!IM[k]) { const i = new Image(); i.sr
 L('lips', img('st_lips')); L('tile', 'assets/lena/g/tile.jpg'); L('bolt', img('st_bolt'));
 
 const WP = {
-  whip: { n: '전화선 채찍', d: '바라보는 쪽을 전화선으로 후려쳐요', i: gimg('s_phone') },
+  whip: { n: '전화선 채찍', d: '바라보는 쪽을 가로로 크게 베요. 2레벨부터 뒤쪽도', i: gimg('s_phone') },
   laser: { n: '선글라스 레이저', d: '가장 가까운 적에게 꿰뚫는 레이저', i: gimg('c_laser') },
   heart: { n: '하트 실드', d: '하트가 몸 주위를 돌며 막고 때려요', i: gimg('s_heart') },
   bolt: { n: '번개 콜', d: '화면 속 적에게 번개가 떨어져요', i: img('st_bolt') },
@@ -95,8 +95,10 @@ function play() {
     const p = G.p, cdm = Math.pow(.92, lvOf('cof'));
     const ready = (k, cd) => { G.wt[k] = (G.wt[k] || 0) - dt; if (G.wt[k] <= 0) { G.wt[k] = cd * cdm; return true; } return false; };
     if (lvOf('whip') && ready('whip', 1.15 - lvOf('whip') * .08)) {
-      const L = lvOf('whip'), len = 105 + L * 14, dmg = 9 + L * 4, sides = L >= 3 ? [p.face, -p.face] : [p.face];
-      sides.forEach(sd => { G.fx.push({ k: 'whip', x: p.x, y: p.y, sd, len, t: .22 }); for (const e of G.en) { const dx = (e.x - p.x) * sd, dy = Math.abs(e.y - p.y); if (dx > -10 && dx < len + e.r && dy < 34 + e.r) hit(e, dmg, sd * 8, 0); } });
+      // 뱀파이어 서바이버식 채찍: 바라보는 쪽을 가로로 넓게 베고, 2레벨부터 0.15초 뒤 반대쪽도 벤다
+      const L = lvOf('whip'), len = 120 + L * 16, dmg = 10 + L * 4, sd0 = p.face;
+      const slash = (sd, yo) => { G.fx.push({ k: 'whip', x: p.x, y: p.y + yo, sd, len, t: .25, t0: .25 }); tone([220 + Math.random() * 40], .05, .025, 'sawtooth'); for (const e of G.en) { const dx = (e.x - p.x) * sd, dy = Math.abs(e.y - (p.y + yo - 10)); if (dx > -12 && dx < len + e.r && dy < 26 + e.r) hit(e, dmg, sd * 9, 0); } };
+      slash(sd0, -4); if (L >= 2) G.later = (G.later || []).concat({ at: G.t + .15, f: () => slash(-sd0, 10) });
       tone([200], .04, .03, 'sawtooth');
     }
     if (lvOf('laser') && ready('laser', 1.7 - lvOf('laser') * .12)) {
@@ -168,6 +170,7 @@ function play() {
     for (const g of G.gems) { const d2 = dist2(g, p); if (d2 < p.mag * p.mag) { const d = Math.sqrt(d2) || 1; g.x += (p.x - g.x) / d * 420 * dt; g.y += (p.y - g.y) / d * 420 * dt; } if (d2 < 22 * 22) { g.got = true; if (g.h) p.hp = Math.min(p.mhp, p.hp + 20); G.xp += g.v; tone([1500 + Math.random() * 300], .03, .02); } }
     G.gems = G.gems.filter(g => !g.got && dist2(g, p) < 1600 * 1600); if (G.gems.length > 300) G.gems.splice(0, G.gems.length - 300);
     if (G.xp >= G.need) { G.xp -= G.need; G.lv++; G.need = Math.round(6 + G.lv * 4.5); choose(); }
+    if (G.later && G.later.length) { const due = G.later.filter(x => x.at <= G.t); G.later = G.later.filter(x => x.at > G.t); due.forEach(x => x.f()); }
     G.fx.forEach(f => f.t -= dt); G.fx = G.fx.filter(f => f.t > 0); G.nums.forEach(n => { n.t -= dt; n.y -= 40 * dt; }); G.nums = G.nums.filter(n => n.t > 0); G.shake = Math.max(0, G.shake - dt);
     if (G.t >= 300 && !G.endless) end(true);
     if (G.endless && G.t >= G.nb) { G.nb += 120; spawn('boss'); G.shake = .4; }
@@ -187,7 +190,14 @@ function play() {
     for (const k of G.pr) S2('lips', k.x, k.y, 24);
     // 효과
     for (const f of G.fx) { ctx.save(); ctx.globalAlpha = Math.min(1, f.t * 6);
-      if (f.k === 'whip') { ctx.strokeStyle = '#3ee07a'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.beginPath(); const x0 = f.x - cx, y0 = f.y - cy; ctx.moveTo(x0, y0); for (let i = 1; i <= 12; i++) { const u = i / 12; ctx.lineTo(x0 + f.sd * f.len * u, y0 - Math.sin(u * Math.PI) * 26 + Math.sin(u * 30) * 5); } ctx.stroke(); ctx.strokeStyle = '#eaffef'; ctx.lineWidth = 2; ctx.stroke(); }
+      if (f.k === 'whip') { // 초승달 모양 베기 자국: 앞이 굵고 끝으로 갈수록 가늘어지며 사라진다
+        const x0 = f.x - cx, y0 = f.y - cy - 10, u = 1 - f.t / f.t0, L = f.len * (.75 + .25 * Math.min(1, u * 4)), sd = f.sd, th = 34 * (1 - u * .5);
+        ctx.globalAlpha = Math.min(1, f.t / f.t0 * 1.6); ctx.shadowColor = '#ff3d9a'; ctx.shadowBlur = 14;
+        const g = ctx.createLinearGradient(x0, 0, x0 + sd * L, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.35, 'rgba(255,255,255,.85)'); g.addColorStop(.85, '#ffffff'); g.addColorStop(1, 'rgba(255,61,154,.9)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x0 + sd * 8, y0 + 4);
+        ctx.quadraticCurveTo(x0 + sd * L * .55, y0 - th * 1.7, x0 + sd * L, y0 - 2);
+        ctx.quadraticCurveTo(x0 + sd * L * .55, y0 - th * .45, x0 + sd * 8, y0 + 4); ctx.fill();
+        ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(159,245,228,.8)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x0 + sd * 14, y0 + 1); ctx.quadraticCurveTo(x0 + sd * L * .55, y0 - th * 1.25, x0 + sd * L * .97, y0 - 3); ctx.stroke(); }
       if (f.k === 'laser') { ctx.strokeStyle = '#ff3d9a'; ctx.lineWidth = 9; ctx.shadowColor = '#ff3d9a'; ctx.shadowBlur = 16; ctx.beginPath(); ctx.moveTo(f.x - cx, f.y - cy - 14); ctx.lineTo(f.ex - cx, f.ey - cy); ctx.stroke(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke(); }
       if (f.k === 'bolt') { ctx.strokeStyle = '#f2ea3a'; ctx.lineWidth = 5; ctx.shadowColor = '#f2ea3a'; ctx.shadowBlur = 14; ctx.beginPath(); let x = f.x - cx + (Math.random() - .5) * 20, y = f.y - cy - 260; ctx.moveTo(x, y); while (y < f.y - cy) { y += 30; x += (Math.random() - .5) * 34; ctx.lineTo(x, Math.min(y, f.y - cy)); } ctx.stroke(); ctx.beginPath(); ctx.arc(f.x - cx, f.y - cy, 46 * (1 - f.t * 2), 0, 7); ctx.strokeStyle = 'rgba(242,234,58,.7)'; ctx.lineWidth = 3; ctx.stroke(); }
       ctx.restore(); }
