@@ -601,7 +601,10 @@ function plan() {
     if (at > now) rem.push({ id: t.id + 'b', at, body: `'${t.text}' 시간이에요. …제가 말했죠?` }); });
   S.calls.forEach(c => { if (!c.done && c.at > now) rem.push({ id: c.id, at: c.at, body: c.text ? `📞 레나예요. 약속한 전화 — ${c.text}` : `📞 레나예요. …그냥 목소리 듣고 싶어서요.` }); });
   if (S.morning) for (let i = 0; i < 8; i++) { const d = new Date(); d.setDate(d.getDate() + i); const m = mcAt(d); if (m.getTime() <= now) continue; const ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
-    rem.push({ id: 'mc_' + dk(d), at: m.getTime(), body: `📞 모닝콜 — ${n}일어나요.` + (ev.length ? ` 오늘 ${ev[0].due.slice(11, 16)} '${ev[0].text}'${ev.length > 1 ? ` 외 ${ev.length - 1}개` : ''}.` : ' 오늘은 비어 있어요.') }); }
+    if (S.mcDone === dk(d)) continue;
+    rem.push({ id: 'mc_' + dk(d), at: m.getTime(), body: `📞 모닝콜 — ${n}일어나요.` + (ev.length ? ` 오늘 ${ev[0].due.slice(11, 16)} '${ev[0].text}'${ev.length > 1 ? ` 외 ${ev.length - 1}개` : ''}.` : ' 오늘은 비어 있어요.') });
+    // 앱을 열어 받을 때까지 3분마다 두 번 더 울린다(받으면 다음 동기화 때 빠진다)
+    [[3, '📞 또 전화했어요. …안 일어나면 계속 걸 거예요.'], [6, '📞 마지막이에요. 일어나요, 진짜로.']].forEach(([mm, b], j) => { const a = m.getTime() + mm * 60e3; if (a > now) rem.push({ id: `mc_${dk(d)}_${j + 2}`, at: a, body: b }); }); }
   return { reminders: rem.sort((a, b) => a.at - b.at).slice(0, 120), routines: [], water: null, tz: new Date().getTimezoneOffset(), brief: null };
 }
 let pushT = 0, lastPlan = '', pstat = '';
