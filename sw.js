@@ -1,5 +1,5 @@
 // 레나 — 서비스 워커. 배포할 때마다 C의 버전을 1 올린다.
-const C='lena-v10',F=['./','index.html','app.js','manifest.json','icon-180.png','icon-512.png',
+const C='lena-v11',F=['./','index.html','app.js','manifest.json','icon-180.png','icon-512.png',
  'assets/lena/bg.mp4','assets/lena/poster.jpg','assets/lena/face.jpg','assets/lena/cat.jpg','assets/lena/knock.webp',
  'assets/lena/paper_pink.webp','assets/lena/paper_teal.webp','assets/lena/paper_white.webp','assets/lena/paper_yellow.webp',
  'assets/lena/st_bolt.webp','assets/lena/st_coin.webp','assets/lena/st_heart.webp','assets/lena/st_lips.webp','assets/lena/st_peace.webp','assets/lena/st_phone.webp','assets/lena/st_skull.webp','assets/lena/st_star.webp','assets/lena/st_tape.webp',
