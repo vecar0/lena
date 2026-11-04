@@ -88,6 +88,8 @@ body{position:fixed;inset:0;overflow:hidden}
 
 .pop{position:absolute;z-index:6;width:64px;pointer-events:none;animation:pop 1.6s var(--ease) forwards}
 @keyframes pop{0%{opacity:0;transform:scale(.2) rotate(-30deg)}18%{opacity:1;transform:scale(1.15) rotate(8deg)}30%{transform:scale(1) rotate(0)}75%{opacity:1}100%{opacity:0;transform:translateY(-40px) scale(.9) rotate(6deg)}}
+.kiss{position:absolute;z-index:6;width:58px;margin:-18px 0 0 -29px;pointer-events:none;opacity:0;filter:drop-shadow(2px 2px 0 rgba(0,0,0,.5));animation:kiss 1.4s var(--ease) forwards}
+@keyframes kiss{0%{opacity:0;transform:translate(0,0) scale(.15) rotate(0)}15%{opacity:1;transform:translate(calc(var(--dx)*.15),calc(var(--dy)*.15)) scale(.6) rotate(calc(var(--r)*.4))}70%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.15) rotate(var(--r))}}
 .coinfly{position:absolute;z-index:60;width:44px;pointer-events:none;animation:coin 1s var(--ease) forwards}
 @keyframes coin{0%{transform:translateY(0) scale(.6) rotateY(0);opacity:0}20%{opacity:1;transform:translateY(-50px) scale(1.1) rotateY(180deg)}100%{transform:translateY(-140px) scale(.7) rotateY(720deg);opacity:0}}
 
