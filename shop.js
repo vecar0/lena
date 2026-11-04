@@ -40,11 +40,17 @@ const css = `
 .note2.lock{background:#2a2e35;color:var(--mute);box-shadow:none;border:1px dashed var(--line)}
 .decor{position:absolute;inset:0;pointer-events:none;-webkit-mask:url(assets/lena/dotmask.png) center top/cover no-repeat;mask:url(assets/lena/dotmask.png) center top/cover no-repeat;transition:opacity .25s}
 .app.outside .decor,.app.dim .decor{opacity:0}
-.stk{position:absolute;width:var(--w,62px);aspect-ratio:1;transform:translate(-50%,-50%) rotate(var(--r,0deg));background:var(--im) center/contain no-repeat;opacity:.9;filter:saturate(.85) brightness(.88) contrast(1.05) drop-shadow(0 0 1px rgba(255,255,255,.35)) drop-shadow(1px 2px 1.5px rgba(0,0,0,.45));touch-action:none}
-.stk::after{content:"";position:absolute;inset:0;background:linear-gradient(118deg,transparent 30%,rgba(255,255,255,.38) 42%,rgba(255,255,255,.06) 52%,transparent 60%),linear-gradient(rgba(150,220,255,.12),rgba(255,61,154,.1));-webkit-mask:var(--im) center/contain no-repeat;mask:var(--im) center/contain no-repeat;mix-blend-mode:screen}
-.app.dedit .decor{-webkit-mask:none;mask:none;pointer-events:auto;z-index:60;background:rgba(0,0,0,.25)}
-.app.dedit .stk{opacity:1;outline:1.5px dashed rgba(255,255,255,.55);outline-offset:4px;border-radius:8px;cursor:grab}
-.app.dedit .stk.sel{outline-color:var(--pink)}
+.stk{position:absolute;left:0;top:0;width:100px;height:100px;transform-origin:0 0;background:var(--im) center/contain no-repeat;opacity:.86;filter:brightness(.72) saturate(.78) contrast(1.02) drop-shadow(0 0 .5px rgba(255,255,255,.45)) drop-shadow(0 0 1.2px rgba(0,0,0,.35));touch-action:none}
+.stk::before{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,61,154,.22),transparent 40%,rgba(47,224,200,.16));-webkit-mask:var(--im) center/contain no-repeat;mask:var(--im) center/contain no-repeat;mix-blend-mode:overlay}
+.stk::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 28%,rgba(255,255,255,.42) 38%,rgba(255,255,255,.08) 47%,transparent 55%,transparent 70%,rgba(255,255,255,.14) 76%,transparent 82%);-webkit-mask:var(--im) center/contain no-repeat;mask:var(--im) center/contain no-repeat;mix-blend-mode:screen;animation:glint 7s ease-in-out infinite}
+@keyframes glint{0%,100%{opacity:.75}50%{opacity:1}}
+.gdrop{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.8}
+.app.dedit .gdrop{opacity:.35}
+.gzone{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.gzone polygon{fill:rgba(159,245,228,.13);stroke:var(--mint);stroke-width:2;stroke-dasharray:7 6;stroke-linejoin:round}
+.app.dedit .decor{-webkit-mask:none;mask:none;pointer-events:auto;z-index:60;background:rgba(0,0,0,.35)}
+.app.dedit .stk{opacity:1;filter:brightness(.95) drop-shadow(0 0 3px rgba(0,0,0,.6));cursor:grab}
+.app.dedit .stk.sel{filter:brightness(1) drop-shadow(0 0 2px var(--pink)) drop-shadow(0 0 6px var(--pink))}
 .app.dedit .home,.app.dedit .callv{opacity:0;pointer-events:none}
 .dbar{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:61;display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:18px;background:rgba(10,12,15,.88);border:1px solid var(--line)}
 .dbar p{font-size:13px;color:var(--mute);line-height:1.45;word-break:keep-all}
@@ -136,29 +142,83 @@ async function letter() {
   S.memory.push('📮 레나의 편지: ' + t.slice(0, 300)); save(); say(t, 'happy', false); toast('편지는 5번 음성사서함에 보관했어요.'); return true;
 }
 // 부스 꾸미기
-const SLOTS = [[14, 24, -8], [36, 11, 6], [88, 15, -5], [8, 43, 5]];
 function D() { if (!S.decor) S.decor = { own: [], on: [] }; return S.decor; }
-// 부스 유리에 붙은 스티커: 레나 가림판(dotmask)으로 잘라서 레나 뒤 유리에 붙은 것처럼 보인다
-const P = id => { const D0 = D(); D0.pos = D0.pos || {}; if (!D0.pos[id]) { const i = D0.on.indexOf(id), [x, y, r] = SLOTS[Math.max(0, i) % 4]; D0.pos[id] = { x, y, r, w: 62 }; } return D0.pos[id]; };
+// 부스 유리에 붙은 스티커: 배경 그림 속 뒤쪽 유리판(원근 사각형)에 맞춰 matrix3d로 기울이고,
+// 레나 가림판(dotmask)으로 잘라서 레나 뒤 유리에 붙은 것처럼 보인다. 위치는 유리판 좌표(a,b: 0~1)로 저장.
+const IMW = 1050, IMH = 1872;
+const QUAD = [[.035, .12], [.66, .04], [.74, .76], [.10, .80]]; // 유리판 네 모서리(그림 기준 비율): 왼위, 오른위, 오른아래, 왼아래
+const GLASS = [[.035, .12], [.65, .04], [.70, .30], [.79, .72], [.30, .79], [.035, .34]]; // 실제로 붙일 수 있는 유리 영역
+const SLOTS = [[.2, .1, -6], [.62, .07, 5], [.14, .42, 4], [.5, .2, -4]];
+function homog(src, dst) { // 네 점 → 네 점 사영 변환 [a,b,c,d,e,f,g,h]
+  const A = [], B = [];
+  for (let i = 0; i < 4; i++) { const [x, y] = src[i], [u, v] = dst[i]; A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); B.push(u); A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); B.push(v); }
+  for (let c = 0; c < 8; c++) { let p = c; for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r; [A[c], A[p]] = [A[p], A[c]]; [B[c], B[p]] = [B[p], B[c]]; for (let r = 0; r < 8; r++) if (r !== c) { const f = A[r][c] / A[c][c]; for (let k = c; k < 8; k++) A[r][k] -= f * A[c][k]; B[r] -= f * B[c]; } }
+  return B.map((b, i) => b / A[i][i]);
+}
+const ap = (h, [x, y]) => { const w = h[6] * x + h[7] * y + 1; return [(h[0] * x + h[1] * y + h[2]) / w, (h[3] * x + h[4] * y + h[5]) / w]; };
+function view() { // 지금 화면에서 그림이 놓인 자리(cover, 가운데 위)
+  const L = $('decorL'), W = L.clientWidth, H = L.clientHeight, s = Math.max(W / IMW, H / IMH);
+  const toS = ([u, v]) => [(W - IMW * s) / 2 + u * IMW * s, v * IMH * s];
+  const q = QUAD.map(toS); return { W, H, toS, H1: homog([[0, 0], [1, 0], [1, 1], [0, 1]], q), H2: homog(q, [[0, 0], [1, 0], [1, 1], [0, 1]]), poly: GLASS.map(toS), q };
+}
+const inPoly = (pt, P) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi) c = !c; } return c; };
+const P = id => { const D0 = D(); D0.gl = D0.gl || {}; if (!D0.gl[id]) { const i = D0.on.indexOf(id), [a, b, r] = SLOTS[Math.max(0, i) % 4]; D0.gl[id] = { a, b, r, w: .2 }; } return D0.gl[id]; };
+function corners(V, p) { // 스티커 네 모서리(유리판 좌표) → 화면 좌표
+  const k = Math.hypot(V.q[1][0] - V.q[0][0], V.q[1][1] - V.q[0][1]) / Math.hypot(V.q[3][0] - V.q[0][0], V.q[3][1] - V.q[0][1]); // 유리판 가로/세로 비
+  const h = p.w / 2, c = Math.cos(p.r * Math.PI / 180), s = Math.sin(p.r * Math.PI / 180);
+  return [[-h, -h], [h, -h], [h, h], [-h, h]].map(([x, y]) => ap(V.H1, [p.a + x * c - y * s, p.b + (x * s + y * c) * k]));
+}
+const okPos = (V, p) => corners(V, p).every(pt => inPoly(pt, V.poly));
 let edSel = null;
 function renderDecor() {
-  let L = $('decorL'); if (!L) { L = el('div', 'decor'); L.id = 'decorL'; document.querySelector('.dots').after(L); }
-  L.innerHTML = ''; D().on.slice(0, 4).forEach(id => { const d = DECOR.find(x => x.id === id); if (!d) return; const p = P(id), s = el('div', 'stk' + (edSel === id ? ' sel' : '')); s.style.setProperty('--im', `url(${SI(d.i)})`); s.style.left = p.x + '%'; s.style.top = p.y + '%'; s.style.setProperty('--r', p.r + 'deg'); s.style.setProperty('--w', p.w + 'px'); s.dataset.id = id; L.appendChild(s); });
+  let L = $('decorL'); if (!L) { L = el('div', 'decor'); L.id = 'decorL'; document.querySelector('.dots').before(L); }
+  L.innerHTML = ''; if (!L.clientWidth) return; const V = view();
+  if (document.getElementById('app').classList.contains('dedit')) { const sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sv.setAttribute('class', 'gzone'); sv.setAttribute('viewBox', `0 0 ${V.W} ${V.H}`); sv.innerHTML = `<polygon points="${V.poly.map(p => p.join(',')).join(' ')}"/>`; L.appendChild(sv); }
+  D().on.slice(0, 4).forEach(id => {
+    const d = DECOR.find(x => x.id === id); if (!d) return; const p = P(id);
+    if (!okPos(V, p)) { p.a = Math.min(.8, Math.max(.2, p.a)); p.b = Math.min(.6, Math.max(.1, p.b)); }
+    const s = el('div', 'stk' + (edSel === id ? ' sel' : '')); s.style.setProperty('--im', `url(${SI(d.i)})`); s.dataset.id = id;
+    const m = homog([[0, 0], [100, 0], [100, 100], [0, 100]], corners(V, p));
+    s.style.transform = `matrix3d(${m[0]},${m[3]},0,${m[6]},${m[1]},${m[4]},0,${m[7]},0,0,1,0,${m[2]},${m[5]},0,1)`;
+    L.appendChild(s);
+  });
+  if (D().on.length) L.appendChild(drops(V));
 }
+let dropC = null;
+function drops(V) { // 유리 위 물방울(스티커 위에 맺힘) — 유리판 모양으로 잘라 냄
+  const key = V.W + 'x' + V.H; if (dropC && dropC.key === key) return dropC.c;
+  const dpr = Math.min(2, devicePixelRatio || 1), c = el('canvas', 'gdrop'); c.width = V.W * dpr; c.height = V.H * dpr; const x = c.getContext('2d'); x.scale(dpr, dpr);
+  c.style.clipPath = `polygon(${V.poly.map(([a, b]) => `${a}px ${b}px`).join(',')})`;
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const xs = V.poly.map(p => p[0]), ys = V.poly.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  for (let i = 0; i < 26; i++) { const sx = x0 + rnd() * (x1 - x0), sy = y0 + rnd() * (y1 - y0) * .7, len = 30 + rnd() * 120, g = x.createLinearGradient(sx, sy, sx, sy + len); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.7, 'rgba(220,240,255,.16)'); g.addColorStop(1, 'rgba(255,255,255,.3)'); x.strokeStyle = g; x.lineWidth = 1 + rnd() * 1.6; x.beginPath(); x.moveTo(sx, sy); x.bezierCurveTo(sx + rnd() * 4 - 2, sy + len * .4, sx + rnd() * 6 - 3, sy + len * .7, sx + rnd() * 4 - 2, sy + len); x.stroke(); }
+  for (let i = 0; i < 230; i++) {
+    const px = x0 + rnd() * (x1 - x0), py = y0 + rnd() * (y1 - y0), r = rnd() < .85 ? .7 + rnd() * 1.8 : 2.5 + rnd() * 3, ry = r * (1 + rnd() * .35);
+    x.fillStyle = 'rgba(10,14,20,.28)'; x.beginPath(); x.ellipse(px + .4, py + .8, r, ry, 0, 0, 7); x.fill();
+    const g = x.createRadialGradient(px - r * .35, py - ry * .4, 0, px, py, Math.max(r, ry)); g.addColorStop(0, 'rgba(255,255,255,.75)'); g.addColorStop(.35, 'rgba(210,235,255,.18)'); g.addColorStop(.85, 'rgba(255,255,255,.05)'); g.addColorStop(1, 'rgba(255,255,255,.35)');
+    x.fillStyle = g; x.beginPath(); x.ellipse(px, py, r, ry, 0, 0, 7); x.fill();
+  }
+  dropC = { key, c }; return c;
+}
+addEventListener('resize', () => setTimeout(renderDecor, 50));
 function decorEdit() {
-  closeSheet(); renderDecor(); const app = $('app'); app.classList.add('dedit'); const L = $('decorL');
-  if (!D().on.length) { toast('먼저 부스 꾸미기에서 장식을 골라 주세요.'); app.classList.remove('dedit'); return; }
-  edSel = D().on[0]; renderDecor();
-  const bar = el('div', 'dbar'); bar.appendChild(el('p', null, '끌어서 유리에 붙여요. 레나 뒤로 가면 레나에 가려져요. 고른 스티커는 아래 버튼으로 크기·기울기를 바꿔요.'));
-  const mod = f => () => { if (!edSel) return; f(P(edSel)); save(); renderDecor(); };
-  bar.append(row(btn('작게', 'ghost', mod(p => p.w = Math.max(36, p.w - 8))), btn('크게', 'ghost', mod(p => p.w = Math.min(130, p.w + 8))), btn('↺', 'ghost', mod(p => p.r -= 8)), btn('↻', 'ghost', mod(p => p.r += 8))));
-  bar.lastChild.className = 'r';
-  const done = btn('다 붙였어요', 'wide', () => { app.classList.remove('dedit'); edSel = null; bar.remove(); L.onpointerdown = null; save(); renderDecor(); toast('부스 유리에 붙였어요.'); });
-  bar.appendChild(done); app.appendChild(bar);
-  let drag = null;
-  L.onpointerdown = e => { const t = e.target.closest('.stk'); if (!t) return; e.preventDefault(); edSel = t.dataset.id; L.querySelectorAll('.stk').forEach(x => x.classList.toggle('sel', x === t)); const r = L.getBoundingClientRect(), p = P(edSel); drag = { t, p, r, dx: e.clientX - (r.left + p.x / 100 * r.width), dy: e.clientY - (r.top + p.y / 100 * r.height) }; t.setPointerCapture(e.pointerId); t.style.cursor = 'grabbing';
-    t.onpointermove = ev => { if (!drag) return; drag.p.x = Math.max(3, Math.min(97, (ev.clientX - drag.dx - r.left) / r.width * 100)); drag.p.y = Math.max(8, Math.min(92, (ev.clientY - drag.dy - r.top) / r.height * 100)); t.style.left = drag.p.x + '%'; t.style.top = drag.p.y + '%'; };
-    t.onpointerup = t.onpointercancel = () => { drag = null; t.style.cursor = ''; tone([900], .03, .03); save(); }; };
+  closeSheet(); const app = $('app');
+  if (!D().on.length) { toast('먼저 부스 꾸미기에서 장식을 골라 주세요.'); return; }
+  app.classList.add('dedit'); edSel = D().on[0]; renderDecor(); const L = $('decorL');
+  const bar = el('div', 'dbar'); bar.appendChild(el('p', null, '밝게 표시된 뒤쪽 유리에만 붙일 수 있어요. 끌어서 옮기고, 레나 뒤로 가면 레나에 가려져요.'));
+  const mod = f => () => { if (!edSel) return; const p = P(edSel), old = { ...p }; f(p); if (!okPos(view(), p)) { Object.assign(p, old); toast('유리 밖으로 나가요.'); return; } save(); renderDecor(); };
+  const r = row(btn('작게', 'ghost', mod(p => p.w = Math.max(.1, p.w - .03))), btn('크게', 'ghost', mod(p => p.w = Math.min(.42, p.w + .03))), btn('↺', 'ghost', mod(p => p.r -= 8)), btn('↻', 'ghost', mod(p => p.r += 8)));
+  r.className = 'r'; bar.appendChild(r);
+  bar.appendChild(btn('다 붙였어요', 'wide', () => { app.classList.remove('dedit'); edSel = null; bar.remove(); L.onpointerdown = null; save(); renderDecor(); toast('부스 유리에 붙였어요.'); }));
+  app.appendChild(bar);
+  L.onpointerdown = e => {
+    const t = e.target.closest('.stk'); if (!t) return; e.preventDefault(); edSel = t.dataset.id; L.querySelectorAll('.stk').forEach(x => x.classList.toggle('sel', x === t));
+    const V = view(), rc = L.getBoundingClientRect(), p = P(edSel), at = ev => ap(V.H2, [ev.clientX - rc.left, ev.clientY - rc.top]), [a0, b0] = at(e), off = [p.a - a0, p.b - b0];
+    L.setPointerCapture(e.pointerId);
+    L.onpointermove = ev => { const [a, b] = at(ev), n = { ...p, a: a + off[0], b: b + off[1] }; if (okPos(V, n)) { p.a = n.a; p.b = n.b; renderDecor(); } else { // 벽에 닿으면 한 축씩만이라도 따라가게
+        const na = { ...p, a: n.a }, nb = { ...p, b: n.b }; if (okPos(V, na)) { p.a = na.a; renderDecor(); } else if (okPos(V, nb)) { p.b = nb.b; renderDecor(); } } };
+    L.onpointerup = L.onpointercancel = () => { L.onpointermove = null; tone([900], .03, .03); save(); };
+  };
 }
 // 음성통화 화면 이름 아래 호감도 배지
 function renderAff() {
