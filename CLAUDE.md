@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v23). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v24). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -53,3 +53,4 @@
 - B2: 앱이 `/alarms`에 모닝콜·⏰ 표시 전단지 시간을 올리고, 밤 10시 단축어 자동화가 받아 시계 알람 생성. C3 공유 시트 단축어·C4 잠금화면/제어센터 단축어가 `/in`으로 보내면 앱이 `/inbox`를 가져와 통화로 정리.
 - 영상 화면 점무늬는 `.dots` 층, 레나+수화기·전화선·벽 전화기를 오려 낸 `assets/lena/dotmask.png`(rembg isnet-anime + 초록색 골라내기로 만든 가림판)로 그 위에만 안 깔림. 오락실의 레나 말풍선 사진은 음성통화일 때 고양이, 영상통화일 때 레나 얼굴(`.talkr i.face`).
 - 화면 높이: `.app{position:fixed;inset:0}`, 홈 화면 앱(standalone)에서는 `full()`이 `screen.height`로 높이를 직접 채움(아이폰이 상태바만큼 작게 알려 줘서 아래가 검게 비었음). visualViewport로 높이를 맞추는 건 키보드가 올라와 있을 때만(아이폰 홈 화면 앱은 평소 높이를 상태바만큼 작게 알려 줘서 아래가 비었었음).
+- 입술 키스 효과(`kissFromMouth`)는 음성 → 영상통화로 넘어갈 때만, 레나 입(그림 기준 x .554, y .493)에서 나와 오른쪽으로 날아감. 대화 기분 스티커에서 입술은 뺐음.

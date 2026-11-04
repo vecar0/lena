@@ -102,7 +102,7 @@ function missed() {
 
 // ---------------- home ----------------
 let lineT = 0;
-const STK = { tease: 'st_lips', happy: 'st_heart', worry: 'st_bolt', pout: 'st_skull', surprise: 'st_star', calm: '' };
+const STK = { tease: '', happy: 'st_heart', worry: 'st_bolt', pout: 'st_skull', surprise: 'st_star', calm: '' };
 function popSticker(mood) {
   const s = STK[mood]; if (!s || app.classList.contains('calling') && !$('log')) return;
   const i = el('img', 'pop'); i.src = `assets/lena/${s}.webp`;
@@ -332,7 +332,19 @@ SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
 function toAudio() { app.classList.add('outside'); $('bg').pause(); if (!app.classList.contains('calling')) openCall(); else renderLog(); renderHome(); }
 function toVideo() {
   stopVoice(); recStop(); dtmf('#'); app.classList.remove('outside', 'calling'); clearInterval(callTimer);
-  const v = $('bg'); v.play().catch(() => {}); renderHome(); say(pick([`${nmc()}짜잔. …얼굴 보니까 좋죠?`, '영상으로 보니까 더 예쁘죠? 솔직하게.', '어머, 카메라 켰어요? 잠깐, 머리 정리 좀…']), 'tease', false);
+  const v = $('bg'); v.play().catch(() => {}); renderHome(); say(pick([`${nmc()}짜잔. …얼굴 보니까 좋죠?`, '영상으로 보니까 더 예쁘죠? 솔직하게.', '어머, 카메라 켰어요? 잠깐, 머리 정리 좀…']), 'calm', false);
+  setTimeout(kissFromMouth, 350);
+}
+// 음성 → 영상으로 넘어갈 때만: 레나 입에서 입술 키스가 튀어나온다
+function kissFromMouth() {
+  const W = app.clientWidth, H = app.clientHeight, sc = Math.max(W / 1136, H / 2048), dw = 1136 * sc, dh = 2048 * sc;
+  const x = (W - dw) / 2 + dw * .554, y = dh * .493;
+  for (let i = 0; i < 3; i++) {
+    const k = el('img', 'kiss'); k.src = 'assets/lena/st_lips.webp'; k.alt = '';
+    k.style.left = x + 'px'; k.style.top = y + 'px'; k.style.setProperty('--dx', (90 + i * 45) + 'px'); k.style.setProperty('--dy', (10 - i * 38) + 'px'); k.style.setProperty('--r', (-14 + i * 16) + 'deg'); k.style.animationDelay = (i * .16) + 's';
+    app.appendChild(k); setTimeout(() => k.remove(), 1700 + i * 160);
+  }
+  tone([1320], .05, .04, 'triangle'); tone([1760], .08, .035, 'triangle', .08);
 }
 $('toAudio').onclick = $('toAudio2').onclick = () => { dtmf(1); toAudio(); };
 $('aVid').onclick = toVideo;
