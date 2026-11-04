@@ -8,6 +8,8 @@ const pick = a => a[Math.random() * a.length | 0];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const DAY = 864e5;
 const WD = '일월화수목금토';
+// 재화 그림: gc 게임 동전, todo 할 일 동전, chip 슬롯 칩, debt 빚, phone 전화국 동전, energy 에너지, heart 호감도, medal 등급, danger 위험도
+const CUR = n => `assets/lena/cur/${n}.webp`, ci = n => `<img class="ci" src="${CUR(n)}" alt="">`;
 function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 function hm(d) { return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function localISO(d) { return `${dk(d)}T${hm(d)}`; }
@@ -85,7 +87,7 @@ function setDone(t, v, srcEl) {
 function coinPop(srcEl) {
   coinSound();
   const r = (srcEl && srcEl.getBoundingClientRect && srcEl.getBoundingClientRect()) || { left: app.clientWidth / 2, top: app.clientHeight / 2, width: 0, height: 0 };
-  const ar = app.getBoundingClientRect(), i = el('img', 'coinfly'); i.src = 'assets/lena/st_coin.webp';
+  const ar = app.getBoundingClientRect(), i = el('img', 'coinfly'); i.src = CUR('todo');
   i.style.left = (r.left - ar.left + r.width / 2 - 22) + 'px'; i.style.top = (r.top - ar.top + r.height / 2 - 22) + 'px';
   app.appendChild(i); setTimeout(() => i.remove(), 1100);
 }
@@ -137,7 +139,7 @@ function renderHome() {
     todo.slice(0, 3).forEach(t => f.appendChild(el('i', null, t.text)));
     f.onclick = () => openSheet(2); F.appendChild(f);
   }
-  const c = el('button', 'coinb'); const ci = el('img'); ci.src = 'assets/lena/st_coin.webp'; ci.alt = ''; c.append(ci, el('span', null, '× ' + S.coins)); c.onclick = () => openSheet(8); F.appendChild(c);
+  const c = el('button', 'coinb'); const ci = el('img'); ci.src = CUR('todo'); ci.alt = ''; c.append(ci, el('span', null, '× ' + S.coins)); c.onclick = () => openSheet(8); F.appendChild(c);
   const late = S.items.filter(isLate);
   const K = $('knock'); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openSheet(1); };
   // 열린 키패드 숫자 배지

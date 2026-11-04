@@ -104,7 +104,7 @@ function menu() {
   frame('리듬 다이얼', B => {
     talk(B, 'l', '키패드가 반짝이면 테두리가 버튼에 딱 맞을 때 눌러요. …제 심장 박자랑 맞춰 볼래요?');
     const L = el('div', 'songs');
-    SONGS.forEach(s => { let r; const b = el('button', 'song'); const t = el('div'); t.append(el('b', null, s.n), el('small', null, `${s.sub} · ${s.bpm} BPM`)); const sc = el('div', 'st', (r = (S.rh || {})[rk(s)]) ? `${r.g}\n${r.s}` : '—'); sc.style.whiteSpace = 'pre'; b.append(t, sc); b.onclick = () => { dtmf(s.lvl); play(s); }; L.appendChild(b); });
+    SONGS.forEach(s => { let r; const b = el('button', 'song'); const t = el('div'); t.append(el('b', null, s.n), el('small', null, `${s.sub} · ${s.bpm} BPM`)); const sc = el('div', 'st'); sc.innerHTML = (r = (S.rh || {})[rk(s)]) ? `${ci('medal')}${r.g}<br>${r.s}` : '—'; b.append(t, sc); b.onclick = () => { dtmf(s.lvl); play(s); }; L.appendChild(b); });
     const P = el('div', 'pills'); P.style.margin = '0 0 10px'; DIF.forEach((d, i) => { const lock = i > unl(); const b = el('button', dif() === i ? 'on' : '', lock ? '🔒 ' + d.n : d.n); b.onclick = () => { if (lock) { toast(i === 2 ? '아무 곡이나 A 등급을 받으면 열려요.' : '어려움에서 S 등급을 받으면 열려요.'); return; } S.rhDif = i; save(); menu(); }; P.appendChild(b); });
     B.appendChild(P); B.appendChild(L);
     B.appendChild(el('div', 'hint', `${DIF[dif()].n}: 링이 ${DIF[dif()].ap}초 동안 줄어들어요 · 점수 ×${DIF[dif()].mul} · 동전 ×${DIF[dif()].rw}`));
@@ -160,7 +160,7 @@ function play(song) {
     const res = { ...st }; ARC.cleanup = null; st.stop = true; clearTimeout(sched); setTimeout(() => { try { out.disconnect(); } catch (e) {} }, 400); st = null;
     frame(song.n, B2 => {
       B2.appendChild(el('div', 'grade', g));
-      const s = el('div', 'rules'); s.innerHTML = `점수 <b>${res.score.toLocaleString()}</b> · 최대 콤보 <b>${res.max}</b><br>PERFECT ${res.p} · GOOD ${res.g} · MISS ${res.m} · 정확도 ${Math.round(acc * 100)}%<br>게임 동전 <b>+${reward}</b>`; B2.appendChild(s);
+      const s = el('div', 'rules'); s.innerHTML = `점수 <b>${res.score.toLocaleString()}</b> · 최대 콤보 <b>${res.max}</b><br>PERFECT ${res.p} · GOOD ${res.g} · MISS ${res.m} · 정확도 ${Math.round(acc * 100)}%<br>${ci('gc')}게임 동전 <b>+${reward}</b>`; B2.appendChild(s);
       talk(B2, 'l', g === 'S' ? '…지금 그 손가락, 반칙이에요. 너무 잘하잖아요.' : g === 'A' ? '박자 감각 좋은데요? 춤도 잘 춰요?' : g === 'B' ? '나쁘지 않아요. 한 번 더 하면 A예요.' : '박자보다 제 얼굴을 너무 봤죠?');
       B2.appendChild(row(btn('다시 하기', 'wide', () => play(song)), btn('노래 고르기', 'ghost wide', menu)));
     }, true);

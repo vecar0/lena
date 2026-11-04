@@ -21,11 +21,12 @@ const css = `
 .gban{position:relative;display:flex;align-items:center;gap:12px;min-height:96px;padding:12px 14px;border-radius:16px;border:2px solid #000;background:var(--panel2);box-shadow:4px 4px 0 var(--gc,var(--pink));overflow:hidden;text-align:left}
 .gban::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 88% 50%,var(--gc,var(--pink)),transparent 55%);opacity:.22}
 .gban:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--gc,var(--pink))}
-.gban img{position:relative;width:76px;height:76px;object-fit:contain;flex:none;order:2;margin-left:auto;filter:drop-shadow(3px 3px 0 rgba(0,0,0,.5))}
+.gban>img{position:relative;width:76px;height:76px;object-fit:contain;flex:none;order:2;margin-left:auto;filter:drop-shadow(3px 3px 0 rgba(0,0,0,.5))}
 .gbt{position:relative;flex:1;min-width:0}
 .gbt b{display:block;font-family:'Black Han Sans';font-weight:400;font-size:20px}
 .gbt small{display:block;font-size:12.5px;color:var(--mute);margin-top:3px;line-height:1.4;word-break:keep-all}
 .gban>em{position:absolute;left:14px;top:-1px;font-style:normal;font-size:10.5px;font-weight:800;background:var(--yel);color:#111;padding:2px 7px;border-radius:0 0 8px 8px;border:2px solid #000;border-top:0}
+.gban>em{display:flex;align-items:center;gap:1px}.gban>em .ci{width:14px;height:14px;margin:0 1px}
 .abody.flat{padding:0;overflow:hidden;gap:0}
 .abody>*{flex-shrink:0}
 .abody.flat>*{flex-shrink:1}
@@ -91,7 +92,7 @@ function frame(title, body, back, flat) {
   const x = el('button', 'sx'); x.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg>'; x.onclick = closeArc; h.appendChild(x);
   const B = el('div', 'abody' + (flat ? ' flat' : '')); A.append(h, B); body(B); hdr(); return B;
 }
-function hdr() { const g = $('gcb'); if (!g) return; g.innerHTML = ''; const i = el('img'); i.src = img('st_coin'); i.alt = ''; g.append(i, document.createTextNode(gc())); }
+function hdr() { const g = $('gcb'); if (!g) return; g.innerHTML = ''; const i = el('img'); i.src = CUR('gc'); i.alt = ''; g.append(i, document.createTextNode(gc())); g.title = '게임 동전'; }
 function talk(B, who, t) { const r = el('div', 'talkr'), i = el('i', who === 'sk' ? 'sk' : $('app').classList.contains('outside') ? '' : 'face'); const s = el('span', null, t); r.append(i, s); B.appendChild(r); return s; }
 function openArc() { const fresh = gcInit(); A.classList.add('on'); hub(fresh); }
 function closeArc() { if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; } A.classList.remove('on'); cur = ''; if (typeof renderHome === 'function') renderHome(); }
@@ -108,12 +109,13 @@ function hub(fresh) {
     GAMES.forEach((g, i) => {
       const c = el('button', 'gban'); c.style.setProperty('--gc', g.color || 'var(--pink)'); const ic = el('img'); ic.src = g.icon; ic.alt = '';
       const t = el('div', 'gbt'); t.append(el('b', null, g.name), el('small', null, g.sub()));
-      c.append(t, ic); if (g.cost) c.appendChild(el('em', null, `입장 동전 ${g.cost}`)); c.onclick = () => { dtmf((i % 9) + 1); g.start(); }; G.appendChild(c);
+      c.append(t, ic); if (g.cost) { const em = el('em'); em.innerHTML = `입장 ${ci('gc')}${g.cost}`; c.appendChild(em); } c.onclick = () => { dtmf((i % 9) + 1); g.start(); }; G.appendChild(c);
     });
     B.appendChild(G);
     B.appendChild(el('div', 'rules', '게임 동전은 매일 10개씩 들어와요(최대 99). 게임을 잘하면 더 받아요. 다 잃으면 하루 한 번 레나가 3개 빌려줘요.'));
     if (gc() < 1) B.appendChild(row(btn('레나에게 동전 빌리기', 'wide', () => { if (S.gcLoan === dk(new Date())) { toast('오늘은 이미 빌렸어요. 내일 또 와요.'); return; } S.gcLoan = dk(new Date()); gcAdd(3); coinSound(); hub(); })));
-    B.appendChild(row(btn(`🎁 레나 자판기 · 할 일 동전 ${S.coins || 0}개`, 'ghost wide', () => { closeArc(); openSheet('shop'); })));
+    const vb = btn('', 'ghost wide', () => { closeArc(); openSheet('shop'); }); vb.innerHTML = `레나 자판기 · ${ci('todo')}할 일 동전 ${S.coins || 0}개`; B.appendChild(row(vb));
+    const lg = el('div', 'hint'); lg.innerHTML = `${ci('gc')}<b>게임 동전</b>: 오락실 입장·보상 (매일 +10) &nbsp; ${ci('todo')}<b>할 일 동전</b>: 전단지를 떼면 받음, 자판기에서 씀`; B.appendChild(lg);
   });
 }
 
@@ -164,7 +166,7 @@ function slotDraw(gain, hits) {
   cur = 'slot';
   frame('해골 빚 슬롯', B => {
     const M = el('div', 'mach'), st = el('div', 'stat');
-    [['NIGHT', R.night, ''], ['CHIPS', R.chips, ''], ['DEBT', quota(R.night), 'due']].forEach(([a, b, c]) => { const d = el('div', c); d.append(el('small', null, a), el('b', null, b)); st.appendChild(d); });
+    [['NIGHT', R.night, '', 'danger'], ['CHIPS', R.chips, '', 'chip'], ['DEBT', quota(R.night), 'due', 'debt']].forEach(([a, b, c, k]) => { const d = el('div', c), sm = el('small'); sm.innerHTML = ci(k) + a; d.append(sm, el('b', null, b)); st.appendChild(d); });
     M.appendChild(st);
     const G = el('div', 'grid'); G.id = 'sgrid';
     const g = R.grid || [0, 1, 2].map(() => [0, 1, 2, 3, 4].map(roll));
