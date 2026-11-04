@@ -26,7 +26,6 @@ const DEF = {
   items: [], calls: [], memory: [], diary: {}, history: [],
   coins: 0, coinDays: {},
   morning: '', mcDone: '',
-  voice: false, vname: 'Leda',
   srv: 'https://haru-push.vecar0473.workers.dev', uid: '', sec: '', sub: null, pushOn: false,
   ack: 0, fired: {}, seen: 0, firstAt: 0
 };
@@ -143,7 +142,7 @@ function renderHome() {
   const K = $('knock'); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openSheet(1); };
   // 열린 키패드 숫자 배지
   const k9 = document.querySelector('.k[data-k="9"] em'); if (k9) { k9.textContent = M.length; k9.hidden = !M.length; }
-  $('aMissN').textContent = M.length; $('aMissN').hidden = !M.length; $('aSpk').classList.toggle('on', !!S.voice);
+  $('aMissN').textContent = M.length; $('aMissN').hidden = !M.length;
 }
 let knockAt = 0;
 function knockNow() { const K = $('knock'); if (!K.classList.contains('on') || Date.now() - knockAt < 30 * 60e3) return; knockAt = Date.now(); K.classList.remove('tap'); void K.offsetWidth; K.classList.add('tap'); tone([180], .06, .15, 'square'); tone([160], .06, .15, 'square', .2); }
@@ -315,7 +314,6 @@ SH['*'] = { t: '통화 기록', s: () => `최근 ${Math.min(S.history.length, 60
 } };
 
 // 0 설정
-const VOICES = [['Leda', '앳되고 발랄'], ['Aoede', '산뜻'], ['Despina', '부드러움'], ['Sulafat', '따뜻함'], ['Enceladus', '속삭임']];
 SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
   B.appendChild(lbl('호칭'));
   { const t = inp('text', '예: 송휘', S.name); B.appendChild(el('div', 'card')).append(row(t, btn('저장', '', () => { S.name = t.value.trim().slice(0, 12); save(); refreshSheet(); say(S.name ? `${S.name}님. …입에 착 붙네요.` : '이름은 비워 둘게요.', 'tease', false); }))); }
@@ -325,11 +323,6 @@ SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
     c.appendChild(el('div', 'hint', S.key ? '키 저장됨. 통화가 Gemini로 연결돼요.' : '키가 없으면 레나가 정해진 말만 해요. aistudio.google.com에서 무료로 받을 수 있어요.'));
     const s = el('select', 'in'); s.appendChild(new Option('자동 (가장 새 Flash)', '')); (S.mlist || []).forEach(m => s.appendChild(new Option(m, m))); s.value = S.brain || ''; s.onchange = () => { S.brain = s.value; save(); };
     c.append(el('div', 'hint', '대화 두뇌'), row(s)); if (S.model) c.appendChild(el('div', 'hint', '최근 대답한 두뇌: ' + S.model)); }
-  B.appendChild(lbl('목소리'));
-  { const c = B.appendChild(el('div', 'card'));
-    c.append(pills([[true, '켜기'], [false, '끄기']], !!S.voice, v => { S.voice = v; save(); refreshSheet(); if (v) speak(`${nmc()}이렇게 들려요.`); }));
-    if (S.voice) { const P = pills(VOICES, S.vname, v => { S.vname = v; vCache.clear(); save(); refreshSheet(); speak('이 목소리 어때요? …좋죠?'); }); P.style.marginTop = '10px'; c.appendChild(P); }
-    c.appendChild(el('div', 'hint', '레나의 대답을 Gemini 목소리로 읽어 줘요. 키가 필요해요.')); }
   B.appendChild(lbl('폰 알림'));
   { const c = B.appendChild(el('div', 'card')), t = inp('url', 'https://…workers.dev', S.srv);
     c.append(row(t, btn('저장', 'ghost', () => { let v = t.value.trim(); if (v && !/^https?:\/\//.test(v)) v = 'https://' + v; S.srv = v; save(); refreshSheet(); })));
@@ -355,7 +348,7 @@ $('aPad').onclick = () => { dtmf(0); openPad(); };
 $('aBoard').onclick = () => { dtmf(1); openSheet(1); };
 $('aCall').onclick = () => { dtmf(4); openSheet(4); };
 $('aMiss').onclick = () => { dtmf(9); openSheet(9); };
-$('aSpk').onclick = () => { S.voice = !S.voice; save(); renderHome(); if (S.voice) { if (!S.key) toast('목소리는 Gemini 키가 있어야 나와요. 0번 설정에서 넣어 주세요.'); else speak(`${nmc()}이제 제 목소리 들려요?`); } else stopVoice(); };
+$('aSet').onclick = () => { dtmf(0); openSheet(0); };
 
 // ---------------- dial pad ----------------
 const KEYS = [[1, '오늘'], [2, '할 일'], [3, '이번 주'], [4, '예약 전화'], [5, '음성사서함'], [6, '통화 일기'], [7, '모닝콜'], [8, '동전함'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
@@ -522,27 +515,9 @@ function apply(r) {
   return noteEl([...new Set(out)].slice(0, 3).join(' · ') + (out.length > 3 ? ` 외 ${out.length - 3}` : ''), () => { const w = JSON.parse(snap); Object.assign(S, w); save(); renderHome(); addHer('되돌렸어요. 잘못 들었네요, 미안.', true); });
 }
 
-// ---------------- voice (TTS) ----------------
-let curSrc = null, vSeq = 0; const vCache = new Map();
-function stopVoice() { vSeq++; try { curSrc && curSrc.stop(); } catch (e) {} curSrc = null; }
-async function tts(text) {
-  const key = S.vname + '|' + text; if (vCache.has(key)) return vCache.get(key);
-  const body = JSON.stringify({ contents: [{ parts: [{ text: '20대 중반 여성이 밤에 전화로 장난스럽고 나른하게, 살짝 놀리듯 다정하게 말해 줘: ' + text }] }], generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: S.vname || 'Leda' } } } } });
-  for (const m of ['gemini-2.5-flash-preview-tts', 'gemini-2.5-flash-tts']) {
-    const ac = new AbortController(), to = setTimeout(() => ac.abort(), 20000);
-    try { const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(S.key)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: ac.signal }); clearTimeout(to);
-      if (r.status === 404) continue; if (!r.ok) return null; const j = await r.json(); const p = (j.candidates?.[0]?.content?.parts || []).find(x => x.inlineData); if (!p) return null;
-      const bin = atob(p.inlineData.data), n = bin.length >> 1, f = new Float32Array(n); for (let i = 0; i < n; i++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v > 32767) v -= 65536; f[i] = v / 32768; }
-      const rate = +((p.inlineData.mimeType || '').match(/rate=(\d+)/) || [0, 24000])[1], o = { f, rate }; if (vCache.size > 30) vCache.clear(); vCache.set(key, o); return o;
-    } catch (e) { clearTimeout(to); return null; }
-  }
-  return null;
-}
-async function speak(text) {
-  if (!S.voice || !S.key || !text) return; const my = ++vSeq; const a = audio(); if (!a) return;
-  const v = await tts(String(text).replace(/\s+/g, ' ').slice(0, 400)); if (!v || my !== vSeq) return;
-  try { if (a.state !== 'running') await a.resume(); const b = a.createBuffer(1, v.f.length, v.rate); b.copyToChannel(v.f, 0); const s = a.createBufferSource(); s.buffer = b; s.connect(a.destination); s.onended = () => { if (curSrc === s) curSrc = null; }; try { curSrc && curSrc.stop(); } catch (e) {} curSrc = s; s.start(); } catch (e) {}
-}
+// 목소리(TTS)는 쓰지 않는다(사용자가 뺌). 호출하는 곳이 많아 빈 함수로 둔다.
+function speak() {}
+function stopVoice() {}
 
 // ---------------- incoming call ----------------
 let incKind = '', incData = null;
