@@ -44,7 +44,7 @@ body{position:fixed;inset:0;overflow:hidden}
 .miss:active{transform:rotate(-3deg) scale(.95)}
 .miss svg{width:16px;height:16px;fill:#fff}
 .miss.zero{visibility:hidden} /* 부재중이 없으면 자리만 지키고 숨김 */
-.clock{text-align:right;line-height:1.05;text-shadow:2px 2px 0 #000}
+.clock{text-align:right;line-height:1.15;text-shadow:2px 2px 0 #000}
 .clock b{display:block;font-family:'Space Mono',monospace;font-size:30px;color:var(--mint);letter-spacing:-1px}
 .clock span{font-family:'Space Mono',monospace;font-size:11.5px;letter-spacing:1px;opacity:.9}
 
@@ -54,7 +54,7 @@ body{position:fixed;inset:0;overflow:hidden}
 .fly .tp{position:absolute;left:50%;top:-10px;width:70px;height:18px;margin-left:-35px;background-size:100% 100%;transform:rotate(-4deg)}
 .fly small{display:block;font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;opacity:.72;letter-spacing:.5px}
 .fly b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:15px;font-weight:800;line-height:1.3;word-break:keep-all}
-.fly i{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fly i{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;word-break:keep-all}
 .fly i{display:block;font-style:normal;font-size:12.5px;font-weight:600;line-height:1.45}
 .fly i.d{text-decoration:line-through;opacity:.45}
 .f1{right:12px;top:calc(var(--st) + 92px);width:136px;transform:rotate(5deg);--r:5deg;background-image:url(assets/lena/paper_pink.webp);color:#fff}
@@ -430,6 +430,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 <script src="follow.js"></script>
 <script src="plan.js"></script>
 <script src="study.js"></script>
+<script src="notes.js"></script>
 <script src="box.js"></script>
 <script src="shop.js"></script>
 <script src="arcade.js"></script>

@@ -130,7 +130,7 @@ function renderHome() {
   if (nx) {
     const f = el('button', 'fly f1'); f.append(el('div', 'tp'), el('small', null, when(nx.due).toUpperCase()), el('b', null, nx.text));
     f.querySelector('.tp').style.backgroundImage = 'url(assets/lena/tape_white.webp)';
-    if (up.length > 1) f.appendChild(el('small', null, `외 ${up.length - 1}개`));
+    { const more = up.slice(1).filter(t => t.due.slice(0, 10) === nx.due.slice(0, 10)).length; if (more) f.appendChild(el('small', null, `그날 ${more}개 더`)); }
     f.onclick = () => openBoard('today'); F.appendChild(f);
   }
   const todo = openItems().filter(t => !t.due), doneToday = S.items.filter(t => t.done && t.doneAt && dk(new Date(t.doneAt)) === dk(now) && !t.due);
@@ -261,7 +261,7 @@ SH[4] = { t: '예약 전화', s: '정한 시간에 레나가 전화해요', r: B
 
 // 5 음성사서함 (기억)
 SH[5] = { t: '음성사서함', s: () => `레나가 기억하는 것 ${S.memory.length}개`, r: B => {
-  const c = el('div', 'card'), t = inp('text', '레나에게 남길 말 (예: 나 오이 싫어해)');
+  const c = el('div', 'card'), t = inp('text', '예: 나 오이 싫어해');
   const go = () => { const v = t.value.trim(); if (!v) return; if (!S.memory.includes(v)) S.memory.push(v.slice(0, 120)); save(); t.value = ''; refreshSheet(); say(pick(['메시지 잘 받았어요. 안 까먹어요.', '…녹음해 뒀어요. 몇 번 더 들어 볼게요.']), 'happy', false); };
   t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
   c.append(row(t, btn('남기기', '', go))); B.appendChild(c);

@@ -61,7 +61,7 @@ function copy(t) { (navigator.clipboard ? navigator.clipboard.writeText(t) : Pro
 function cpRow(label, text) { const r = el('div', 'cp'); r.append(el('code', null, text), btn('복사', 'ghost', () => copy(text))); const w = el('div'); w.append(el('div', 'hint', label), r); return w; }
 SH.box = { t: '단축어 연결', s: '앱을 안 열어도 레나에게', r: Bx => {
   Bx.appendChild(lbl('1. 우편함 서버 주소'));
-  const c = el('div', 'card'), i = inp('url', 'https://lena-box.○○.workers.dev', S.box || '');
+  const c = el('div', 'card'), i = inp('url', 'https://….workers.dev', S.box || '');
   c.append(row(i, btn('저장', '', async () => { let v = i.value.trim(); if (v && !/^https?:\/\//.test(v)) v = 'https://' + v; S.box = v.replace(/\/+$/, ''); save(); try { const r = await fetch(S.box + '/'); toast(r.ok ? '서버 연결됐어요.' : '서버가 대답을 안 해요. 주소를 확인해요.'); } catch (e) { toast('서버에 닿지 않아요. 주소를 확인해요.'); } syncAlarms(true); refreshSheet(); })));
   const g = el('div', 'guide'); g.innerHTML = '처음 한 번만, 컴퓨터에서 해 주세요.<ol><li>Cloudflare 대시보드 → <b>Workers</b> → 새로 만들기, 이름 <b>lena-box</b></li><li>저장소의 <b>box-worker.js</b> 내용을 통째로 붙여 넣고 배포</li><li>Storage → <b>KV</b>에서 새 공간을 만들고, Worker 설정 → Bindings에 변수 이름 <b>BOX</b>로 연결</li><li>생긴 주소(…workers.dev)를 위 칸에 넣고 저장</li></ol>';
   c.appendChild(g); Bx.appendChild(c);

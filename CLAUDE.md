@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v55). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v56). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512, 3.x는 thinkingLevel low. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -13,7 +13,7 @@
 ## 앱 구조 (app.js)
 - 저장: `localStorage['lena1']` → `S` (name, key, items, calls, memory, diary, history, coins, coinDays, morning, mcDone, srv, uid/sec/sub/pushOn, ack, fired). 처음 실행 때 예전 `haru2`에서 이름·키·알림 연결만 가져온다.
 - **앱을 열면 밖 모드(음성통화 화면)**: 고양이 프사(`assets/lena/cat.jpg`, 하얀 고양이·머리 위 핑크 선글라스·초록 수화기 — 원본 `art/new/avatar/cat_pin_5.png`(사용 중, 선글라스 그라데이션), 다른 후보 1~4·6), 이름·통화 시간, 대화, 버튼 6개(키패드·전단지·**영상통화**·예약 전화·부재중·설정). 배경 영상은 멈춰 둔다. "영상통화"를 누르면 아래 부스 화면으로, 부스 화면 위쪽 "음성으로"를 누르면 다시 밖 모드로.
-- 홈(영상통화) = 비 오는 공중전화 부스(배경 영상 `assets/lena/bg.mp4`, 끊김 없이 반복, 번쩍임 줄임). 위: 부재중 배지(0개면 숨김)·시계. 유리에 붙은 전단지(다음 일정 분홍 '외 N개', 할 일 노랑 '할 일 N'). 동전 개수는 영상 화면에 안 띄움(v36). 지난 일정이 있으면 해골 손이 유리를 "똑똑". 아래: 레나 자막, 버튼 다이얼/수화기 들기/전단지.
+- 홈(영상통화) = 비 오는 공중전화 부스(배경 영상 `assets/lena/bg.mp4`, 끊김 없이 반복, 번쩍임 줄임). 위: 부재중 배지(0개면 숨김)·시계. 유리에 붙은 전단지(다음 일정 분홍 '그날 N개 더'(그날 것만 셈, v56), 할 일 노랑 '할 일 N'). 동전 개수는 영상 화면에 안 띄움(v36). 지난 일정이 있으면 해골 손이 유리를 "똑똑". 아래: 레나 자막, 버튼 다이얼/수화기 들기/전단지.
 - 다이얼(공중전화 키패드, DTMF 소리, v55에 중요도 순으로 정리): 1 전단지(탭 오늘·할 일, `openBoard(tab)`) 2 캘린더(`SH.cal`) 3 시간표(`SH.tt`) 4 공부(`SH[6]`, study.js) 5 전화(`SH.call` = 예약 전화·부재중·통화 기록 탭 `callTab`; 예전 `openSheet(4/9/'*')`는 그 탭으로 열림, 부재중 있으면 부재중 탭 먼저, 키패드 배지도 5번) 6 모닝콜(`SH[7]`, 강조 키) 7 음성사서함(`SH[5]`) 8 오늘의 운세(`SH.fort`=`SH[2]`) 9 자판기(`SH.shop`=`SH[3]`) ✱ 오락실(`SH[8]`) 0 설정 # 닫기. 시트 id와 화면 번호가 다르다: `KEYS`[번호,이름,시트id], 번호 표시는 `NUMOF`(app.js). 통화 일기는 v52에 없앰.
 - 통화 = Gemini 대화(스트리밍 자막, 사진, 음성 입력 SpeechRecognition). 답 JSON: reply, mood(tease/happy/worry/pout/surprise/calm → 스티커 팝), add, done, remove, callback, remember (diary 칸은 남아 있지만 비워 둠, 통화 일기는 v52에 없앰). 저장하면 "✓ … 되돌리기" 쪽지.
 - 전단지를 떼면(끝냄) 찢어지는 연출 + 동전 1개.
@@ -74,6 +74,12 @@
 - 화면 SH[6]: 위 탭 3개 오늘/시험/과목·교재. 오늘 = 단계 카드(D-day·이번 주 할 것) + 프리셋 + 블록 목록(사이에 잡힌 일정 얇게). 블록을 누르면 −10분/+10분/↑앞으로/↓뒤로/과목 바꾸기/빼기, '+ 블록', 고치면 오늘이 `fix`로 굳고 '레나가 다시 짜기'로 풀림. ✓ = 진도·동전+1. 시험 = 목록 + 가장 가까운 시험의 주차별 날짜 계획, 넣기 폼은 버튼 눌러야 열림(과목 여러 개 고르기 + 문제집 범위 선택). 과목·교재 = 한 줄 목록(누르면 단원), 넣기 폼은 접혀 있음(과목 프리셋 칩).
 - 전단지 '캘린더' 탭(달력)은 그대로. 블록 시작 알림 `st_`, 브리핑에 오늘 공부('6 공부 보기'). 말로 넣기: Gemini `study:{mats,exams:[{name,date,subs,ranges}]}`.
 - 시간표 탭(plan.js): 프리셋 칩(학교 평일 08:30~16:30, 학원 월수금/화목 18~20, 과외, 독서실)을 누르면 칸이 채워짐. 시간표 칸을 누르면 그 블록 고치기/지우기(`ttEd`).
+## 노트 (`notes.js`, v56, 4번 공부 > 노트 탭)
+- 사진(1800px로 줄임)·PDF(15MB까지)·글을 최대 12개 → Gemini `generateContent`(maxOutputTokens 8192, mChain/COOL 사용)가 `{secs[{h,pts}],keys[{t,d}],traps[],qs[{q,a}]}`로 정리. 자료에 없는 내용은 지어내지 말고 보충은 "(보충)", 못 읽은 곳 "(읽기 어려움)".
+- 저장 `S.study.notes`[{id,sub,title,at,src,...}] — 사진 원본은 저장 안 함. 같은 과목+단원이면 기존 노트를 함께 보내 합침. '고치기'는 글 형식(## 소제목 / - 내용 / [꼭 외울 것] 용어 : 뜻 / [백지 복습] Q: | A:)으로 왕복(`toText/fromText`).
+- 과목별 '필승노트'(꼭 외울 것+헷갈리는 것 모음)·'백지 복습'(문제 모음, 답 보기). 공부 시간표 블록을 누르면 그 과목 노트 버튼(필승노트·백지 복습 블록이면 그 화면으로). 대화 프롬프트에 최근 노트 핵심을 넘겨 레나가 퀴즈 가능.
+- 클래스 이름은 앱 전역 것과 겹치면 안 됨(v56에 `.chip`→`.sj`, `.fx`→`.pfx`로 고침: `.fx`는 전체 효과층이라 학원 줄이 안 보였음). 글 잘림 점검은 scratchpad의 clip.js 방식(잘림·넘침·겹침·안내 글 길이).
+
 ## 단축어 연결 (`box.js` + 서버 `box-worker.js`)
 - 새 Cloudflare Worker `lena-box`(KV 바인딩 `BOX`)를 사용자가 직접 배포해야 함. 앱 0번 설정 > 단축어에서 주소 입력. 열쇠 `S.boxTok`.
 - 서버 `https://lena-box.vecar0473.workers.dev` 배포·KV 연결 확인됨(v42 점검: 알람 올리기·받기·/in·/inbox 모두 정상). 단축어 화면 맨 위 '연결 상태'(마지막 알람 올림 `S.boxOk/boxN`, 받은 메모 `S.boxIn/boxInN`, 오류 `S.boxErr`)와 '전체 점검'(5단계, 점검 메모는 src=check라 할 일로 안 붙음, 점검 중엔 inbox 폴링 멈춤).
