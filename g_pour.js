@@ -85,7 +85,7 @@ function make(W, H, rnd = Math.random) {
     const sub = 3, h = dt / sub;
     for (let s = 0; s < sub; s++) for (const b of G.balls) {
       if (b.dead) continue; b.x += b.vx * h; b.y += b.vy * h; if (b.cd > 0) b.cd -= h;
-      if (b.x < b.r) { b.x = b.r; b.vx = Math.abs(b.vx); } if (b.x > W - b.r) { b.x = W - b.r; b.vx = -Math.abs(b.vx); } if (b.y < top - 10 + b.r) { b.y = top - 10 + b.r; b.vy = Math.abs(b.vy); }
+      if (b.x < b.r + 8) { b.x = b.r + 8; b.vx = Math.abs(b.vx); if (!b.mini && G.fx.length < 140) G.fx.push({ k: 'rip', x: 8, y: b.y, l: .55 }); } if (b.x > W - b.r - 8) { b.x = W - b.r - 8; b.vx = -Math.abs(b.vx); if (!b.mini && G.fx.length < 140) G.fx.push({ k: 'rip', x: W - 8, y: b.y, l: .55 }); } if (b.y < top - 10 + b.r) { b.y = top - 10 + b.r; b.vy = Math.abs(b.vy); }
       if (b.y > floor && b.vy > 0) { b.dead = 1; if (!b.mini) G.stock.push(b.k); continue; }
       const pierce = b.k === 'ghost' || b.k === 'curse';
       for (const e of G.en) { if (e.hp <= 0) continue; const cx = Math.max(e.x, Math.min(b.x, e.x + e.w)), cy = Math.max(e.y, Math.min(b.y, e.y + e.h)), dx = b.x - cx, dy = b.y - cy;
@@ -148,12 +148,12 @@ const meta = () => (S.pour = S.pour || { best: 0, wins: 0, runs: 0 });
 const IMG = n => { const i = new Image(); i.src = 'assets/lena/' + n; return i; }; const cat = IMG('cat.jpg'), bgI = IMG('poster.jpg'), PAP = { sk: IMG('paper_white.webp'), arm: IMG('paper_teal.webp'), fast: IMG('paper_yellow.webp'), gun: IMG('paper_pink.webp'), split: IMG('paper_yellow.webp'), boss: IMG('paper_pink.webp') }, tape = IMG('tape_white.webp'), tapeP = IMG('tape_pink1.webp'); const sk = new Image(); sk.src = 'assets/lena/st_skull.webp';
 function lobby() {
   frame(NAME, B => {
-    const M = meta(), nm = el('div', 'bp-name'); nm.innerHTML = `${NAME}<small>공을 튕겨 해골 벽돌 부수기</small>`; B.appendChild(nm);
-    talk(B, 'sk', '(해골 벽돌이 줄지어 내려온다) …바닥에 닿게 두면 안 돼요. 레나가 그랬어요.');
+    const M = meta(), nm = el('div', 'bp-name'); nm.style.setProperty('--pc', '#bff5ea'); nm.innerHTML = `${NAME}<small>유리에 붙는 독촉장을 빗방울로 떼어 내요</small>`; B.appendChild(nm);
+    talk(B, 'sk', '(해골이 독촉장을 유리에 한 장씩 붙인다) …바닥 선까지 내려오게 두면 안 돼요.');
     const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, '하는 법'));
-    P.appendChild(el('div', 'hint', '공은 저절로 가장 아래 해골을 향해 날아가요. 손가락으로 끌어 좌우로 움직여 각도를 바꾸고, 빨간 탄은 피해요. 해골이 바닥 선에 닿으면 체력 −1. 레벨이 오르면 새 공·강화 중 하나. 같은 짝의 공 둘이 3레벨이 되면 합쳐서 ★공으로 진화. 밤 3번(각 2분 20초 + 해골 사장)을 버티면 끝.'));
+    P.appendChild(el('div', 'hint', '공은 저절로 가장 아래 해골을 향해 날아가요. 손가락으로 끌어 좌우로 움직여 각도를 바꾸고, 빨간 탄은 피해요. 독촉장이 바닥 선에 닿으면 체력 −1. 레벨이 오르면 새 공·강화 중 하나. 같은 짝의 공 둘이 3레벨이 되면 합쳐서 ★공으로 진화. 밤 3번(각 2분 20초 + 해골 사장)을 버티면 끝.'));
     B.appendChild(P);
-    const r = el('div', 'bp-row'), g = el('button', 'bp-go'); g.innerHTML = `시작<small>게임 동전 ${COST} · 최고 ${M.best}번째 밤 · 클리어 ${M.wins}번</small>`; g.onclick = () => { if (gc() < COST) { toast(`게임 동전이 모자라요. (${COST}개)`); return; } gcAdd(-COST); coinSound(); play(); }; r.appendChild(g); B.appendChild(r);
+    const r = el('div', 'bp-row'), g = el('button', 'bp-go'); g.innerHTML = `시작<small>게임 동전 ${COST}개 — 최고 ${M.best}번째 밤, 클리어 ${M.wins}번</small>`; g.onclick = () => { if (gc() < COST) { toast(`게임 동전이 모자라요. (${COST}개)`); return; } gcAdd(-COST); coinSound(); play(); }; r.appendChild(g); B.appendChild(r);
   }, true);
 }
 function play() {
@@ -165,6 +165,7 @@ function play() {
   const sb = el('div', 'dps'); sb.append(el('i'), el('span')); W.appendChild(sb); let sbT = 0; const say = t => { sb.lastChild.textContent = t; sb.classList.add('on'); clearTimeout(sbT); sbT = setTimeout(() => sb.classList.remove('on'), 2600); };
   say(pick(['전단지가 바닥에 닿으면 안 돼요!', '비 많이 오네요. 공 잘 튕겨요.', '저 여기서 보고 있을게요.']));
   let bossSaid = 0;
+  const drops = Array.from({ length: 14 }, () => ({ x: 12 + Math.random() * (vw - 24), y: Math.random() * vh, v: 6 + Math.random() * 20, r: 1.5 + Math.random() * 2.5 }));
   let inX = null, raf = 0, last = performance.now(), rain = Array.from({ length: 60 }, () => [Math.random(), Math.random()]), lastHp = G.hp, kills = 0;
   const mv = e => { const r = cv.getBoundingClientRect(); inX = e.clientX - r.left; };
   cv.addEventListener('pointerdown', e => { mv(e); cv.setPointerCapture(e.pointerId); }); cv.addEventListener('pointermove', e => { if (e.buttons || e.pointerType === 'touch') mv(e); });
@@ -201,6 +202,10 @@ function play() {
     x.fillStyle = 'rgba(6,8,13,.87)'; x.fillRect(-10, -10, vw + 20, vh + 20);
     let g = x.createLinearGradient(0, G.floor - 160, 0, vh); g.addColorStop(0, 'rgba(255,61,154,0)'); g.addColorStop(1, 'rgba(255,61,154,.22)'); x.fillStyle = g; x.fillRect(0, G.floor - 160, vw, vh);
     x.strokeStyle = 'rgba(190,225,255,.22)'; x.lineWidth = 1; x.beginPath(); rain.forEach(d => { d[1] += .014; if (d[1] > 1) { d[1] = 0; d[0] = Math.random(); } x.moveTo(d[0] * vw, d[1] * vh); x.lineTo(d[0] * vw - 2.5, d[1] * vh + 14); }); x.stroke();
+    // 부스 유리: 흘러내리는 물방울 + 금속 틀
+    drops.forEach(d => { d.y += d.v * .016 * (Math.random() < .02 ? 8 : 1); if (d.y > vh) { d.y = -10; d.x = 12 + Math.random() * (vw - 24); } x.strokeStyle = 'rgba(200,240,255,.12)'; x.lineWidth = d.r; x.beginPath(); x.moveTo(d.x, d.y - 26); x.lineTo(d.x, d.y); x.stroke(); x.fillStyle = 'rgba(220,250,255,.45)'; x.beginPath(); x.arc(d.x, d.y, d.r, 0, 7); x.fill(); });
+    g = x.createLinearGradient(0, 0, 8, 0); g.addColorStop(0, '#05070a'); g.addColorStop(.5, '#3a3f47'); g.addColorStop(1, '#14171c'); x.fillStyle = g; x.fillRect(0, 0, 8, vh); x.save(); x.translate(vw, 0); x.scale(-1, 1); x.fillStyle = g; x.fillRect(0, 0, 8, vh); x.restore();
+    x.fillStyle = 'rgba(58,63,71,.35)'; x.fillRect(8, G.top - 16, vw - 16, 3);
     // 유리 바닥 선(네온)
     x.shadowColor = '#ff3d9a'; x.shadowBlur = 12; x.strokeStyle = '#ff3d9a'; x.lineWidth = 2.5; x.beginPath(); x.moveTo(0, G.floor); x.lineTo(vw, G.floor); x.stroke(); x.shadowBlur = 0;
     // 적 = 유리에 붙은 빚 독촉 전단지
@@ -228,13 +233,15 @@ function play() {
       else if (f.k === 'boom') { x.globalAlpha = f.l / .3 * .6; x.fillStyle = f.c; x.shadowColor = f.c; x.shadowBlur = 20; x.beginPath(); x.arc(f.x, f.y, f.r * (1.2 - f.l / .3 * .4), 0, 7); x.fill(); x.shadowBlur = 0; x.globalAlpha = 1; }
       else if (f.k === 'z') { x.strokeStyle = '#fff36b'; x.shadowColor = '#f2ea3a'; x.shadowBlur = 10; x.lineWidth = 2; x.beginPath(); x.moveTo(f.x, f.y); x.lineTo((f.x + f.x2) / 2 + 8, (f.y + f.y2) / 2 - 6); x.lineTo(f.x2, f.y2); x.stroke(); x.shadowBlur = 0; }
       else if (f.k === 'shred') { const u = .7 - f.l; f.p.forEach(q => { x.save(); x.translate(f.x + q[0] * u, f.y + q[1] * u); x.rotate(q[2] + u * 8); x.globalAlpha = Math.min(1, f.l * 2); x.fillStyle = f.c === 'gun' ? '#ffb3cf' : f.c === 'arm' ? '#bff5ea' : f.c === 'fast' || f.c === 'split' ? '#fff6a8' : '#f3efe6'; x.fillRect(-q[3] / 2, -q[3] / 3, q[3], q[3] * .66); x.strokeStyle = 'rgba(0,0,0,.5)'; x.lineWidth = 1; x.strokeRect(-q[3] / 2, -q[3] / 3, q[3], q[3] * .66); x.restore(); }); x.globalAlpha = 1; }
+      else if (f.k === 'rip') { const u = 1 - f.l / .55; x.strokeStyle = `rgba(159,245,228,${.7 * (1 - u)})`; x.lineWidth = 2; for (let i = 0; i < 2; i++) { x.beginPath(); x.arc(f.x, f.y, Math.max(1, 6 + u * 34 - i * 10), -Math.PI / 2, Math.PI / 2, f.x > vw / 2); x.stroke(); } }
       else if (f.k === 'pop') { x.strokeStyle = f.c; x.lineWidth = 3; x.globalAlpha = f.l / .4; x.beginPath(); x.arc(f.x, f.y, 26 * (1 - f.l / .4) + 6, 0, 7); x.stroke(); x.globalAlpha = 1; }
       else if (f.k === 'ban') { const a = Math.min(1, f.l * 2, (1.8 - f.l) * 4); x.globalAlpha = Math.max(0, a); x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, vh * .36, vw, 64); x.font = "34px 'Black Han Sans'"; x.textAlign = 'center'; x.fillStyle = f.t.includes('사장') ? '#ff2e6e' : '#9ff5e4'; x.strokeStyle = '#000'; x.lineWidth = 5; x.strokeText(f.t, vw / 2, vh * .36 + 44); x.fillText(f.t, vw / 2, vh * .36 + 44); x.globalAlpha = 1; } });
     // 고양이 + 분홍 우산
     const py = G.floor + 26; x.fillStyle = '#ff3d9a'; x.strokeStyle = '#000'; x.lineWidth = 2; x.beginPath(); x.arc(G.px, py - 16, 30, Math.PI, 0); x.closePath(); x.fill(); x.stroke();
     x.strokeStyle = 'rgba(0,0,0,.4)'; [-15, 0, 15].forEach(d => { x.beginPath(); x.moveTo(G.px, py - 46); x.lineTo(G.px + d, py - 16); x.stroke(); });
     x.save(); x.beginPath(); x.arc(G.px, py, 17, 0, 7); x.closePath(); x.clip(); if (cat.complete) x.drawImage(cat, G.px - 17, py - 17, 34, 34); x.restore(); x.strokeStyle = '#fff'; x.lineWidth = 2.5; x.beginPath(); x.arc(G.px, py, 17, 0, 7); x.stroke();
-    // HUD
+    // HUD (위쪽 어두운 띠)
+    g = x.createLinearGradient(0, 0, 0, 48); g.addColorStop(0, 'rgba(5,7,11,.95)'); g.addColorStop(1, 'rgba(5,7,11,.55)'); x.fillStyle = g; x.fillRect(0, 0, vw, 46);
     x.font = "16px 'Black Han Sans'"; x.textAlign = 'left'; x.fillStyle = '#fff'; x.strokeStyle = '#000'; x.lineWidth = 3; const ht = `${G.st + 1}번째 밤 · ${G.boss ? '해골 사장!' : `${Math.max(0, Math.ceil(140 - G.t))}초`}`; x.strokeText(ht, 12, 22); x.fillText(ht, 12, 22);
     for (let i = 0; i < G.maxHp; i++) { const hx = vw - 16 - i * 20; x.fillStyle = i < G.hp ? '#ff3d9a' : 'rgba(255,255,255,.15)'; x.beginPath(); x.moveTo(hx, 24); x.bezierCurveTo(hx - 9, 16, hx - 7, 8, hx, 13); x.bezierCurveTo(hx + 7, 8, hx + 9, 16, hx, 24); x.fill(); }
     x.fillStyle = 'rgba(0,0,0,.5)'; x.fillRect(12, 32, vw - 24, 7); g = x.createLinearGradient(12, 0, vw - 12, 0); g.addColorStop(0, '#2fe0c8'); g.addColorStop(1, '#9ff5e4'); x.fillStyle = g; x.fillRect(12, 32, (vw - 24) * Math.min(1, G.xp / G.need), 7);
