@@ -105,6 +105,6 @@ SH.box = { t: '단축어 연결', s: '앱을 안 열어도 레나에게', r: Bx 
   Bx.appendChild(row(btn('열쇠 새로 만들기', 'ghost wide', () => { if (!confirm('열쇠를 바꾸면 만들어 둔 단축어 주소도 다시 넣어야 해요. 바꿀까요?')) return; S.boxTok = rnd(16); save(); syncAlarms(true); refreshSheet(); })));
 } };
 const _s0 = SH[0].r; SH[0].r = Bx => { _s0(Bx); const bk = [...Bx.querySelectorAll('.lbl')].find(x => x.textContent === '백업') || null; const c = el('div', 'card'); c.append(row(btn(S.box ? '단축어 연결 설정 보기' : '단축어 연결하기 (알람·공유·잠금화면)', 'teal wide', () => openSheet('box')))); c.appendChild(el('div', 'hint', S.box ? '연결됨 · 진짜 알람 자동, 공유하기, 잠금화면 메모' : '앱을 안 열고도 레나에게 맡기고, 진짜 알람도 자동으로 맞춰요.')); Bx.insertBefore(lbl('단축어'), bk); Bx.insertBefore(c, bk); };
-// 7번 모닝콜 화면에도 안내
+// 6번 모닝콜(SH[7]) 화면에도 안내
 const _s7 = SH[7].r; SH[7].r = Bx => { _s7(Bx); const c = el('div', 'card'); c.append(row(btn(S.box ? '⏰ 진짜 알람 자동 설정 보기' : '⏰ 진짜 알람을 매일 자동으로', 'wide', () => openSheet('box')))); Bx.appendChild(lbl('자동 알람')); Bx.appendChild(c); };
 })();

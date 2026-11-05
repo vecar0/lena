@@ -145,7 +145,7 @@ function renderHome() {
   const late = S.items.filter(isLate);
   const K = $('knock'); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openBoard('today'); };
   // 열린 키패드 숫자 배지
-  const k9 = document.querySelector('.k[data-k="9"] em'); if (k9) { k9.textContent = M.length; k9.hidden = !M.length; }
+  const k9 = document.querySelector('.k[data-k="5"] em'); if (k9) { k9.textContent = M.length; k9.hidden = !M.length; }
   $('aMissN').textContent = M.length; $('aMissN').hidden = !M.length;
 }
 let knockAt = 0;
@@ -166,11 +166,15 @@ let tapN = 0, tapT = 0;
 $('lenaHit').onclick = () => { tapN++; clearTimeout(tapT); tapT = setTimeout(() => tapN = 0, 6000); if (tapN >= 5) { say('…그만. 이러다 정들겠어요.', 'pout', false); return; } const [t, m] = pick(TAPS); say(t, m, false); };
 
 // ---------------- sheets ----------------
-let curSheet = 0;
+let curSheet = 0, callTab = 'res';
+// 화면에 보이는 다이얼 번호(시트 id → 번호). 순서는 중요도: 1 전단지 2 캘린더 3 시간표 4 공부 5 전화 6 모닝콜 7 음성사서함 8 운세 9 자판기 * 오락실 0 설정
+const NUMOF = { 1: '1', cal: '2', tt: '3', 6: '4', call: '5', 7: '6', 5: '7', 2: '8', fort: '8', 3: '9', shop: '9', 8: '*', 0: '0', cl: '#', box: '⚡' };
 const SH = {};
 function openSheet(n) {
+  // 예전 번호(4 예약·9 부재중·* 기록)는 5번 '전화' 시트의 탭으로
+  if (n === 4 || n === 9 || n === '*' || n === 'call') { callTab = n === 9 ? 'miss' : n === '*' ? 'log' : n === 4 ? 'res' : (missed().length ? 'miss' : 'res'); n = 'call'; }
   closePad(); const s = SH[n]; if (!s) return; if (s.direct) { s.direct(); return; } curSheet = n;
-  $('shNum').textContent = /^[0-9*]$/.test(String(n)) ? n : ({ shop: '3', cl: '#', box: '⚡', fort: '2' })[n] || '•'; $('shT').textContent = s.t; $('shS').textContent = typeof s.s === 'function' ? s.s() : (s.s || '');
+  $('shNum').textContent = NUMOF[n] != null ? NUMOF[n] : '•'; $('shT').textContent = s.t; $('shS').textContent = typeof s.s === 'function' ? s.s() : (s.s || '');
   const B = $('shB'); B.innerHTML = ''; s.r(B); B.scrollTop = 0;
   $('sheet').classList.add('open'); app.classList.add('dim');
   if (s.open) s.open();
@@ -235,7 +239,7 @@ function boardRender(B) {
   else { const G = el('div', 'board'); L.forEach((t, i) => G.appendChild(paper(t, i))); B.appendChild(G); }
   if (boardTab === 'all') { const D = S.items.filter(t => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)); if (D.length) { B.appendChild(lbl(`떼어낸 것 ${D.length}`)); const G = el('div', 'board'); D.slice(0, 6).forEach((t, i) => G.appendChild(paper(t, i))); B.appendChild(G); const c = btn('떼어낸 것 정리', 'ghost wide', () => { S.items = S.items.filter(t => !t.done); save(); refreshSheet(); }); c.style.marginTop = '14px'; B.appendChild(row(c)); } }
 }
-// 다이얼 1 = 전단지(오늘·이번 주·할 일은 안의 탭), 2 = 오늘의 운세, 3 = 자판기(shop.js)
+// 다이얼 1 = 전단지(오늘·할 일 탭). 캘린더·시간표는 2·3번 따로(study.js·plan.js)
 SH[1] = { t: '전단지', s: () => `남은 것 ${openItems().length}개 · 떼면 동전 1개`, r: B => boardRender(B) };
 function openBoard(tab) { boardTab = tab || 'today'; openSheet(1); }
 
@@ -302,6 +306,12 @@ SH['*'] = { t: '통화 기록', s: () => `최근 ${Math.min(S.history.length, 60
   B.appendChild(row(btn('기록 지우기', 'ghost wide', () => { if (!confirm('통화 기록을 모두 지울까요?')) return; S.history = []; save(); refreshSheet(); })));
 } };
 
+// 5 전화 = 예약 전화 + 부재중 + 통화 기록 (탭)
+SH.call = { t: '전화', s: () => { const n = missed().length, c = S.calls.filter(x => !x.done && x.at > Date.now()).length; return `${n ? `부재중 ${n}통 · ` : ''}예약 ${c}개`; }, r: B => {
+  const T = el('div', 'tabs'), n = missed().length; [['res', '예약 전화'], ['miss', n ? `부재중 ${n}` : '부재중'], ['log', '통화 기록']].forEach(([v, l]) => { const b = el('button', callTab === v ? 'on' : '', l); b.onclick = () => { callTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
+  SH[{ res: 4, miss: 9, log: '*' }[callTab]].r(B);
+} };
+
 // 0 설정
 SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
   B.appendChild(lbl('호칭'));
@@ -348,23 +358,23 @@ $('aVid').onclick = toVideo;
 $('logTog').onclick = () => { const m = app.classList.toggle('lmin'); $('logTog').textContent = m ? '대화 펼치기' : '대화 접기'; const L = $('log'); setTimeout(() => L.scrollTop = L.scrollHeight, 300); };
 $('aPad').onclick = () => { dtmf(0); openPad(); };
 $('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
-$('aCall').onclick = () => { dtmf(4); openSheet(4); };
-$('aMiss').onclick = () => { dtmf(9); openSheet(9); };
+$('aCall').onclick = () => { dtmf(5); openSheet(4); };
+$('aMiss').onclick = () => { dtmf(5); openSheet(9); };
 $('aSet').onclick = () => { dtmf(0); openSheet(0); };
 
 // ---------------- dial pad ----------------
-const KEYS = [[1, '전단지'], [2, '오늘의 운세'], [3, '자판기'], [4, '예약 전화'], [5, '음성사서함'], [6, '공부'], [7, '모닝콜'], [8, '오락실'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
+const KEYS = [[1, '전단지', 1], [2, '캘린더', 'cal'], [3, '시간표', 'tt'], [4, '공부', 6], [5, '전화', 'call'], [6, '모닝콜', 7], [7, '음성사서함', 5], [8, '오늘의 운세', 'fort'], [9, '자판기', 'shop'], ['*', '오락실', 8], [0, '설정', 0], ['#', '닫기']];
 (function buildPad() {
   const K = $('keys');
-  KEYS.forEach(([k, l]) => { const b = el('button', 'k' + (k === 7 ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 9) { const e = el('em'); e.hidden = true; b.appendChild(e); }
-    b.onclick = () => { dtmf(k); $('lcd').textContent = `${k} · ${l}`; if (k === '#') { closePad(); return; } setTimeout(() => k === 1 ? openBoard('today') : openSheet(k), 140); }; K.appendChild(b); });
+  KEYS.forEach(([k, l, id]) => { const b = el('button', 'k' + (k === 6 ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 5) { const e = el('em'); e.hidden = true; b.appendChild(e); }
+    b.onclick = () => { dtmf(k); $('lcd').textContent = `${k} · ${l}`; if (k === '#') { closePad(); return; } setTimeout(() => k === 1 ? openBoard('today') : openSheet(id), 140); }; K.appendChild(b); });
 })();
 function openPad() { $('lcd').textContent = '번호를 누르세요_'; renderHome(); $('sPad').classList.add('open'); app.classList.add('dim'); }
 function closePad() { $('sPad').classList.remove('open'); if (!$('sheet').classList.contains('open')) app.classList.remove('dim'); }
 $('sPad').addEventListener('click', e => { if (e.target === $('sPad') || e.target.classList.contains('panel')) closePad(); });
 $('dialBtn').onclick = () => { dtmf(0); openPad(); };
 $('boardBtn').onclick = () => { dtmf(1); openBoard('today'); };
-$('missBtn').onclick = () => { dtmf(9); openSheet(9); };
+$('missBtn').onclick = () => { dtmf(5); openSheet(9); };
 
 // ---------------- toast ----------------
 let toastT = 0;
@@ -453,7 +463,7 @@ SH.fort = { t: '오늘의 운세', s: () => { const d = new Date(); return `${d.
   const past = Object.keys(S.fort || {}).filter(k => k !== day).sort().reverse().slice(0, 7);
   if (past.length) { B.appendChild(lbl('지난 운세')); const L = el('div', 'fpast'); past.forEach(k => { const x = S.fort[k], r = el('button', 'fprow'); r.append(el('span', 'fpd', k.slice(5).replace('-', '.')), el('span', 'fps', '★'.repeat(x.total) + '☆'.repeat(5 - x.total)), el('span', 'fpl', x.line)); r.onclick = () => { const o = r.nextElementSibling; if (o && o.classList.contains('fslip')) { o.remove(); return; } r.after(fortCard(x, false)); }; L.appendChild(r); }); B.appendChild(L); }
 } };
-SH[2] = SH.fort; // 다이얼 2번
+SH[2] = SH.fort; // 다이얼 8번(예전 2번 id 그대로)
 function fortCard(f, today) {
   const sl = el('div', 'fslip' + (today ? ' open' : ''));
   sl.appendChild(el('div', 'ftape'));

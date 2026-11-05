@@ -161,7 +161,7 @@ const _s0 = SH[0].r; SH[0].r = B => {
   const tg = (label, key) => { const r = el('div', 'row'); r.appendChild(el('div', 't', label)).style.flex = '1'; r.appendChild(pills([[true, '켜기'], [false, '끄기']], !!o[key], v => { o[key] = v; save(); pushSync(true); refreshSheet(); })); return r; };
   const tm = (label, key, def) => { const i = inp('time', '', o[key] || def); const r = row(el('div', 't', label), i, pills([[true, '켜기'], [false, '끄기']], !!o[key], v => { o[key] = v ? (i.value || def) : ''; save(); pushSync(true); refreshSheet(); })); r.firstChild.style.flex = '1'; i.onchange = () => { if (o[key]) { o[key] = i.value; save(); pushSync(true); } }; return r; };
   sec.append(tm('점심 체크', 'lunch', '12:30'), tm('밤 마무리', 'night', '22:00'), tg('일정 1시간 전', 'before'), tg('일정 끝나고 물어보기', 'after'), tg('밀린 일 재촉 (15시·21시)', 'nag'));
-  sec.appendChild(el('div', 'hint', '폰 알림이 켜져 있으면 앱을 닫아 둬도 레나가 먼저 연락해요. 아침은 7번 모닝콜에서 정해요.'));
+  sec.appendChild(el('div', 'hint', '폰 알림이 켜져 있으면 앱을 닫아 둬도 레나가 먼저 연락해요. 아침은 6번 모닝콜에서 정해요.'));
   const bk = [...B.querySelectorAll('.lbl')].find(x => x.textContent === '백업') || null;
   B.insertBefore(lbl('레나가 먼저 연락'), bk); B.insertBefore(sec, bk);
 };
