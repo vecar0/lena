@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v48). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v49). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512, 3.x는 thinkingLevel low. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -71,7 +71,7 @@
 ## 레나 자판기·호감도 (`shop.js`, 할 일 동전을 계속 쓰는 곳)
 - 열기: 음성통화 화면 이름 아래 "♥ 호감도" 배지, 영상통화 화면 동전 배지, 오락실 버튼 → `openSheet('shop')`.
 - 화면 이름은 **회선 등급**(v47, 예전 '호감도'·'단골 등급'), 아이콘은 하트 대신 초록 수화기 `st_phone.webp`. 레나 수첩 탭·비밀 이야기 열림은 v46에 없앰(`unlockNote`는 남아 있지만 안 부름). 선물 칸 글자 '회선 +N'. 3단계 이름 '밤의 단골' → '밤마다 거는 번호'.
-- 호감도 `S.aff`(pt, last, dday, gifts, notes): 단계 = floor(sqrt(pt/5)). 단계 이름 `TIER`/`tierOf`(화면 형식은 원래대로: 프사 + 막대): 잡음 섞인 회선 → 빗소리 너머의 회선 → 자정에 닿는 회선 → 네온이 번지는 회선 → 새벽 세 시의 회선 → 끊기지 않는 회선 → 단 하나의 회선(v48)(이후 숫자). 하루 지날 때마다 −6점. 기분(설렘/두근두근/보통/서운/삐침)은 마지막 선물부터 지난 날로(화면 이름 옆 기분 표시는 v41에 뺌, 설명 문장·대화 프롬프트에만 씀). 대화 프롬프트에 단계·기분을 넘김.
+- 호감도 `S.aff`(pt, last, dday, gifts, notes): 단계 = floor(sqrt(pt/5)). 단계 이름 `TIER`/`tierOf`(화면 형식은 원래대로: 프사 + 막대): 잡음 섞인 회선 → 빗소리 너머의 회선 → 자정에 닿는 회선 → 젖은 유리에 맺힌 회선 → 새벽 세 시의 회선 → 아침이 와도 이어진 회선 → 끝까지 남는 마지막 회선(v49)(이후 숫자). 하루 지날 때마다 −6점. 기분(설렘/두근두근/보통/서운/삐침)은 마지막 선물부터 지난 날로(화면 이름 옆 기분 표시는 v41에 뺌, 설명 문장·대화 프롬프트에만 씀). 대화 프롬프트에 단계·기분을 넘김.
 - 선물 9종(`assets/lena/s/g_*`), 날마다 "오늘의 주파수"(그 선물은 회선 점수 2배, 칸 표시 '주파수'; v48)과 가끔 반값. 단계가 오르면 레나 수첩에 비밀 이야기(12개 준비, 그 뒤는 Gemini가 새로 씀).
 - 오늘의 자판기 `S.shop`: 날짜로 정해지는 4칸(선물 2, 부스 장식 1, 쓸모 1: 게임 동전 5·리액션 스티커 뽑기·레나 손편지). 자정에 바뀜.
 - 리액션 스티커 9종(`d_bheart d_bdots d_bshout d_anger d_blush d_notes d_crown d_halo d_arrow`, DECOR의 `rx:1`, 원본 `art/new/icons/react2.png`): 레나 머리 둘레 기본 자리 `RXS`. 자판기 쓸모 칸 '리액션 스티커 뽑기'(할 일 동전 2, 예전 전화국 부스트 자리). 장식은 6개까지 붙임.
