@@ -49,12 +49,12 @@ function startFight(run) {
   run.me = { blk: 0, poi: 0, frz: 0 }; run.turn = 0; run.ph = 'fight'; myTurn(run);
 }
 function tickStart(side) { side.blk = 0; if (side.poi > 0) { side.hpLoss = side.poi; side.poi--; } else side.hpLoss = 0; }
-function myTurn(run) { run.turn++; tickStart(run.me); run.hp -= run.me.hpLoss; run.eq.forEach(e => { e.used = 0; }); run.hand = roll(run.R, run.dice, run.me.frz); run.me.frz = 0; if (run.hp <= 0) run.ph = 'over'; }
+function myTurn(run) { run.turn++; tickStart(run.me); run.hp -= run.me.hpLoss; run.eq.forEach(e => { e.used = 0; e.ld = 0; }); run.hand = roll(run.R, run.dice, run.me.frz); run.me.frz = 0; if (run.hp <= 0) run.ph = 'over'; }
 // 주사위 i를 장비 k에 끼우기
 function use(run, side, i, k) {
   const isMe = side === 'me', hand = isMe ? run.hand : run.foe.hand, eqs = isMe ? run.eq : run.foe.eq, s = eqs[k], E = EQ[s.id], d = hand[i];
   if (d == null || !s || s.used >= (E.u || 1) || !ok(E.c, d)) return null;
-  const r = E.f(d, s.up, run.R); s.used++; hand.splice(i, 1);
+  const r = E.f(d, s.up, run.R); s.used++; s.ld = d; hand.splice(i, 1);
   const me = isMe ? run.me : run.foe, foe = isMe ? run.foe : run.me;
   if (r.dmg) { const b = Math.min(foe.blk, r.dmg); foe.blk -= b; const dmg = r.dmg - b; if (isMe) run.foe.hp -= dmg; else run.hp -= dmg; r.real = dmg; }
   if (r.blk) me.blk += r.blk;
@@ -77,7 +77,7 @@ function best(run, side) {
 }
 function foeTurn(run) {
   const f = run.foe; tickStart(f); f.hp -= f.hpLoss; if (f.hp <= 0) { win(run); return []; }
-  f.eq.forEach(e => { e.used = 0; }); f.hand = roll(run.R, f.dice, f.frz); f.frz = 0;
+  f.eq.forEach(e => { e.used = 0; e.ld = 0; }); f.hand = roll(run.R, f.dice, f.frz); f.frz = 0;
   const acts = []; let g = 0, b; while ((b = best(run, 'foe')) && g++ < 12) { const d = f.hand[b.i], s = f.eq[b.k].id, r = use(run, 'foe', b.i, b.k); acts.push({ d, s, r }); if (run.ph !== 'fight') break; }
   return acts;
 }
@@ -92,30 +92,44 @@ if (typeof window === 'undefined' || !window.ARC) return;
 const { frame, talk, gcAdd, gc } = window.ARC;
 const NAME = 'SNAKE EYES', COST = 3;
 const css = `
-.se-foe{display:flex;align-items:center;gap:12px;padding:12px;border:2px solid #000;border-radius:6px;background:linear-gradient(160deg,#2a1420,#14090f);box-shadow:4px 4px 0 var(--hot)}
-.se-foe img{width:64px;height:64px;flex:none;filter:drop-shadow(2px 3px 0 #000)}.se-foe.hit img{animation:sehit .3s}@keyframes sehit{30%{transform:translateX(-6px) rotate(-6deg);filter:brightness(2)}}
-.se-foe .t{flex:1;min-width:0}.se-foe b{font-family:'Black Han Sans';font-weight:400;font-size:19px}
-.se-bar{position:relative;height:16px;margin-top:5px;border:2px solid #000;border-radius:8px;background:#111;overflow:hidden}.se-bar u{display:block;height:100%;background:var(--hot);transition:width .3s}.se-bar.me u{background:var(--teal)}
-.se-bar span{position:absolute;inset:0;font:700 11px 'Space Mono',monospace;color:#fff;text-align:center;line-height:13px;text-shadow:1px 1px 0 #000}
-.se-st{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;font-size:12px;font-weight:800}.se-st i{font-style:normal;padding:1px 7px;border-radius:9px;border:1.5px solid #000;background:#fff;color:#111}.se-st .p{background:#8cff5a}.se-st .b{background:#bfe8ff}.se-st .f{background:#e0f4ff}
-.se-feq{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.se-feq span{font-size:11px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2)}
-.se-hand{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;min-height:64px;padding:8px;border-radius:10px;background:rgba(0,0,0,.4);border:1px dashed var(--line)}
-.se-d{width:54px;height:54px;border-radius:12px;border:3px solid #000;background:#f3efe6;box-shadow:0 4px 0 #000;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:7px;gap:2px;animation:seroll .45s cubic-bezier(.2,1.5,.4,1) backwards}
-.se-d i{border-radius:50%;background:transparent}.se-d i.on{background:#111}.se-d.six i.on,.se-d.one i.on{background:var(--hot)}
-.se-d.sel{transform:translateY(-8px);box-shadow:0 10px 0 var(--pink);border-color:var(--pink)}
-@keyframes seroll{0%{transform:rotate(-200deg) scale(.3);opacity:0}}
-.se-eq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.se-e{position:relative;min-height:86px;padding:9px 9px 8px;border:2px solid #000;border-radius:6px;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;color:#111;text-align:left;box-shadow:3px 3px 0 var(--teal)}
-.se-e b{display:block;font-size:14px}.se-e small{display:block;font-size:12px;opacity:.8;word-break:keep-all}.se-e .slotb{position:absolute;right:8px;bottom:8px;width:30px;height:30px;border:2.5px dashed #555;border-radius:8px;display:grid;place-items:center;font:700 10px 'Space Mono',monospace;color:#555}
-.se-e em{font-style:normal;display:inline-block;margin-top:3px;font-size:11px;font-weight:800;padding:0 6px;border-radius:7px;background:#111;color:#fff}
-.se-e.can{box-shadow:3px 3px 0 var(--pink);outline:3px solid var(--yel)}.se-e.done{opacity:.45;filter:grayscale(.8)}
-.se-e.up{background-image:url(assets/lena/paper_yellow.webp)}
-.se-log{min-height:40px;font-size:13px;line-height:1.5;color:#cfd8dc;text-align:center}
-.se-pop{position:fixed;z-index:60;left:50%;top:30%;transform:translateX(-50%);font-family:'Black Han Sans';font-size:44px;color:#fff36b;-webkit-text-stroke:2px #000;text-shadow:4px 4px 0 #000;pointer-events:none;animation:sepop .8s forwards}.se-pop.r{color:#ff2e6e}.se-pop.b{color:#bfe8ff}
-@keyframes sepop{0%{transform:translate(-50%,10px) scale(.4)}25%{transform:translate(-50%,0) scale(1.2)}45%{transform:translate(-50%,0) scale(1)}100%{transform:translate(-50%,-30px);opacity:0}}
-.se-map{display:flex;justify-content:space-between;gap:4px}.se-map i{flex:1;height:10px;border-radius:5px;border:2px solid #000;background:#2a2d33}.se-map i.on{background:var(--teal)}.se-map i.now{background:var(--yel)}.se-map i.boss{background:#5a1030}
+.abody.se-bg{background:linear-gradient(rgba(6,8,13,.84),rgba(6,8,13,.9)),url(assets/lena/poster.jpg) center/cover}
+.se-foe{position:relative;display:flex;align-items:center;gap:12px;padding:14px 12px 12px;border:2px solid #000;border-radius:3px;background:url(assets/lena/paper_pink.webp) center/cover,#ffb3cf;color:#111;box-shadow:5px 5px 0 #000;transform:rotate(-.8deg);margin-top:8px}
+.se-foe::before{content:"";position:absolute;left:50%;top:-10px;width:70px;height:18px;margin-left:-35px;background:url(assets/lena/tape_white.webp) center/100% 100%}
+.se-foe::after{content:"독촉";position:absolute;right:10px;top:8px;padding:0 6px;border:2.5px solid #c4004f;border-radius:4px;color:#c4004f;font:400 15px 'Black Han Sans';transform:rotate(8deg);opacity:.8}
+.se-foe.boss::after{content:"최종 독촉"}
+.se-foe img{width:66px;height:66px;flex:none;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.5))}.se-foe.hit img{animation:sehit .3s}@keyframes sehit{30%{transform:translateX(-6px) rotate(-8deg);filter:brightness(2)}}
+.se-foe.hit{animation:seshk .3s}@keyframes seshk{30%{transform:rotate(-.8deg) translateX(5px)}60%{transform:rotate(-.8deg) translateX(-4px)}}
+.se-foe .t{flex:1;min-width:0}.se-foe b{font-family:'Black Han Sans';font-weight:400;font-size:20px}
+.se-bar{position:relative;height:18px;margin-top:5px;border:2px solid #000;border-radius:9px;background:#2a1018;overflow:hidden}.se-bar u{display:block;height:100%;background:repeating-linear-gradient(-45deg,#ff2e6e 0 6px,#ff5a8a 6px 12px);transition:width .35s}.se-bar.me u{background:repeating-linear-gradient(-45deg,#2fe0c8 0 6px,#5ff2d8 6px 12px)}
+.se-bar span{position:absolute;inset:0;font:700 11px 'Space Mono',monospace;color:#fff;text-align:center;line-height:14px;text-shadow:1px 1px 0 #000}
+.se-st{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;font-size:11.5px;font-weight:800}.se-st i{font-style:normal;padding:1px 7px;border-radius:9px;border:1.5px solid #000;background:#fff;color:#111}.se-st .p{background:#8cff5a}.se-st .b{background:#bfe8ff}.se-st .f{background:#e0f4ff}
+.se-feq{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}.se-feq span{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:5px;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.25);line-height:1.3}
+.se-me{display:flex;align-items:center;gap:10px}.se-me>i{flex:none;width:44px;height:44px;border-radius:50%;background:url(assets/lena/face.jpg) 50% 30%/cover;border:2px solid #000;box-shadow:2px 2px 0 var(--teal)}.app.outside .se-me>i{background-image:url(assets/lena/cat.jpg)}.se-me>div{flex:1;min-width:0}
+.se-hand{position:relative;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;min-height:72px;padding:10px;border-radius:14px;background:radial-gradient(ellipse at 50% 120%,rgba(47,224,200,.25),transparent 70%),#0b0e12;border:2px solid #000;box-shadow:inset 0 0 0 2px rgba(47,224,200,.25),inset 0 6px 14px rgba(0,0,0,.6)}
+.se-d{width:56px;height:56px;border-radius:13px;border:3px solid #000;background:linear-gradient(145deg,#fff,#e9e4d8);box-shadow:0 5px 0 #000,inset -3px -4px 0 rgba(0,0,0,.08);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:8px;gap:2px;animation:seroll .55s cubic-bezier(.2,1.5,.4,1) backwards;cursor:pointer}
+.se-d i{border-radius:50%}.se-d i.on{background:#111}.se-d.six i.on{background:var(--hot)}.se-d.six{box-shadow:0 5px 0 #000,0 0 14px rgba(255,61,154,.7)}.se-d.one i.on{background:#c4004f}
+.se-d.sel{transform:translateY(-10px) rotate(-6deg);box-shadow:0 12px 0 var(--pink),0 0 18px rgba(255,61,154,.8);border-color:var(--pink)}
+@keyframes seroll{0%{transform:translateY(-60px) rotate(-260deg) scale(.4);opacity:0}70%{transform:translateY(4px) rotate(10deg)}}
+.se-eq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding-top:6px}
+.se-e{position:relative;min-height:92px;padding:12px 10px 8px;border:2px solid #000;border-radius:3px;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;color:#111;text-align:left;box-shadow:3px 4px 0 #000;transition:transform .15s}
+.se-e:nth-child(odd){transform:rotate(-.7deg)}.se-e:nth-child(even){transform:rotate(.6deg)}
+.se-e::before{content:"";position:absolute;left:14px;top:-7px;width:40px;height:14px;background:url(assets/lena/tape_teal1.webp) center/100% 100%;transform:rotate(-5deg)}
+.se-e.atk{background-image:url(assets/lena/paper_pink.webp)}.se-e.atk::before{background-image:url(assets/lena/tape_white.webp)}.se-e.def{background-image:url(assets/lena/paper_teal.webp)}.se-e.util{background-image:url(assets/lena/paper_yellow.webp)}.se-e.util::before{background-image:url(assets/lena/tape_pink1.webp)}
+.se-e b{display:block;font-family:'Black Han Sans';font-weight:400;font-size:15.5px;padding-right:38px}.se-e small{display:block;font-size:12px;font-weight:600;opacity:.82;word-break:keep-all;padding-right:38px}
+.se-e .slotb{position:absolute;right:8px;bottom:8px;width:34px;height:34px;border:2.5px dashed rgba(0,0,0,.55);border-radius:9px;display:grid;place-items:center;font:700 11px 'Space Mono',monospace;color:#333;background:rgba(0,0,0,.06)}
+.se-e .slotb.fill{border:3px solid #000;background:#fff;font:400 20px 'Black Han Sans';color:#111;animation:sestamp .35s cubic-bezier(.2,1.6,.4,1)}@keyframes sestamp{0%{transform:scale(2) rotate(-20deg);opacity:0}}
+.se-e em{font-style:normal;display:inline-block;margin-top:4px;font-size:11px;font-weight:800;padding:0 7px;border-radius:7px;background:#111;color:#fff}
+.se-e.can{transform:translateY(-3px) rotate(0);box-shadow:3px 7px 0 var(--pink);outline:3px solid var(--yel)}.se-e.can .slotb{border-color:var(--hot);background:rgba(255,61,154,.15);animation:sepul .8s infinite}@keyframes sepul{50%{transform:scale(1.1)}}
+.se-e.done{opacity:.55;filter:grayscale(.6)}
+.se-e.up b::after{content:" ★";color:#c4004f}
+.se-log{display:flex;align-items:center;gap:8px;min-height:44px;padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.55);border:1px solid var(--line);font-size:13px;font-weight:700;line-height:1.4;color:#e6fffa}.se-log i{flex:none;width:28px;height:28px;border-radius:50%;background:url(assets/lena/face.jpg) 50% 30%/cover;border:2px solid #000}.app.outside .se-log i{background-image:url(assets/lena/cat.jpg)}.se-log.foe i{background:#151515 url(assets/lena/st_skull.webp) center/80% no-repeat}
+.se-pop{position:fixed;z-index:60;left:50%;top:26%;transform:translateX(-50%);font-family:'Black Han Sans';font-size:48px;color:#fff36b;-webkit-text-stroke:2px #000;text-shadow:4px 4px 0 #000;pointer-events:none;animation:sepop .8s forwards}.se-pop.r{color:#ff2e6e;top:62%}.se-pop.b{color:#bfe8ff}
+@keyframes sepop{0%{transform:translate(-50%,10px) scale(.4)}25%{transform:translate(-50%,0) scale(1.25)}45%{transform:translate(-50%,0) scale(1)}100%{transform:translate(-50%,-30px);opacity:0}}
+.se-hurt{position:fixed;inset:0;z-index:58;pointer-events:none;background:radial-gradient(circle,transparent 40%,rgba(255,46,110,.5));animation:sehurt .5s forwards}@keyframes sehurt{to{opacity:0}}
+.se-map{display:flex;justify-content:space-between;gap:6px;padding:10px;border:2px solid #000;border-radius:4px;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6}.se-map i{flex:1;height:30px;border-radius:6px;border:2px solid #000;background:#ddd;display:grid;place-items:center;font:400 14px 'Black Han Sans';font-style:normal;color:#555}.se-map i.on{background:var(--teal);color:#111}.se-map i.now{background:var(--yel);color:#111;transform:translateY(-3px);box-shadow:0 3px 0 #000}.se-map i.boss{background:#5a1030;color:#fff}
 `;
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
+const kindOf = id => { const r = EQ[id].f(3, 0, () => .5); return r.dmg ? 'atk' : r.blk || r.heal ? 'def' : 'util'; };
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 function die(v) { const d = el('div', 'se-d' + (v === 6 ? ' six' : v === 1 ? ' one' : '')); for (let i = 0; i < 9; i++) d.appendChild(el('i', PIPS[v].includes(i) ? 'on' : '')); return d; }
 const meta = () => (S.dice = S.dice || { best: 0, wins: 0 });
@@ -139,21 +153,21 @@ function draw() {
   if (run.ph === 'reward') return rewardUI();
   if (run.ph === 'over' || run.ph === 'win') return endUI();
   frame(NAME, B => {
-    const f = run.foe, F = el('div', 'se-foe'), im = el('img'); im.src = 'assets/lena/st_skull.webp'; im.alt = ''; if (f.boss) im.style.filter = 'drop-shadow(0 0 8px #ff3d9a) drop-shadow(2px 3px 0 #000)'; F.id = 'sefoe';
+    B.classList.add('se-bg'); const f = run.foe, F = el('div', 'se-foe' + (f.boss ? ' boss' : '')), im = el('img'); im.src = 'assets/lena/st_skull.webp'; im.alt = ''; if (f.boss) im.style.filter = 'drop-shadow(0 0 8px #ff3d9a) drop-shadow(2px 3px 0 #000)'; F.id = 'sefoe';
     const t = el('div', 't'); t.append(el('b', null, `${f.n}${f.boss ? ' 👑' : ''}`)); const bar = el('div', 'se-bar'), u = el('u'); u.style.width = Math.max(0, f.hp / f.max * 100) + '%'; bar.append(u, el('span', null, `${Math.max(0, f.hp)}/${f.max}`)); t.appendChild(bar);
     const st = el('div', 'se-st'); if (f.blk) st.appendChild(el('i', 'b', `막기 ${f.blk}`)); if (f.poi) st.appendChild(el('i', 'p', `독 ${f.poi}`)); if (f.frz) st.appendChild(el('i', 'f', `얼음 ${f.frz}`)); st.appendChild(el('i', null, `주사위 ${f.dice}`)); t.appendChild(st);
     const fe = el('div', 'se-feq'); f.eq.forEach(s => fe.appendChild(el('span', null, `${EQ[s.id].n}${condTxt(EQ[s.id].c) ? '·' + condTxt(EQ[s.id].c) : ''}: ${EQ[s.id].d}`))); t.appendChild(fe);
     F.append(im, t); B.appendChild(F);
-    B.appendChild(el('div', 'se-log', msg || `${run.fl + 1}층 · ${run.turn}번째 차례 — 주사위를 누르고 장비를 눌러요`));
+    { const lg = el('div', 'se-log' + (busy ? ' foe' : '')); lg.append(el('i'), el('span', null, msg || (sel != null ? `[${run.hand[sel]}] 어디에 끼울까요? 빛나는 칸을 눌러요` : `${run.fl + 1}층 · ${run.turn}번째 차례 — 주사위를 골라요`))); B.appendChild(lg); }
     // 내 상태
-    const me = el('div'); const mb = el('div', 'se-bar me'), mu = el('u'); mu.style.width = Math.max(0, run.hp / run.max * 100) + '%'; mb.append(mu, el('span', null, `송휘님 ${run.hp}/${run.max}`)); me.appendChild(mb);
-    const ms = el('div', 'se-st'); if (run.me.blk) ms.appendChild(el('i', 'b', `막기 ${run.me.blk}`)); if (run.me.poi) ms.appendChild(el('i', 'p', `독 ${run.me.poi}`)); me.appendChild(ms); B.appendChild(me);
+    const me = el('div', 'se-me'); me.appendChild(el('i')); const mw = el('div'); me.appendChild(mw); const mb = el('div', 'se-bar me'), mu = el('u'); mu.style.width = Math.max(0, run.hp / run.max * 100) + '%'; mb.append(mu, el('span', null, `송휘님 ${run.hp}/${run.max}`)); mw.appendChild(mb);
+    const ms = el('div', 'se-st'); if (run.me.blk) ms.appendChild(el('i', 'b', `막기 ${run.me.blk}`)); if (run.me.poi) ms.appendChild(el('i', 'p', `독 ${run.me.poi}`)); ms.appendChild(el('i', null, `주사위 ${run.dice} · 레벨 ${run.lv}`)); mw.appendChild(ms); B.appendChild(me);
     const H = el('div', 'se-hand'); run.hand.forEach((v, i) => { const d = die(v); if (sel === i) d.classList.add('sel'); d.style.animationDelay = i * .05 + 's'; d.onclick = () => { if (busy) return; sel = sel === i ? null : i; dtmf(v); draw(); }; H.appendChild(d); });
     if (!run.hand.length) H.appendChild(el('div', 'hint', '주사위를 다 썼어요'));
     B.appendChild(H);
-    const E = el('div', 'se-eq'); run.eq.forEach((s, k) => { const q = EQ[s.id], c = el('button', 'se-e' + (s.up ? ' up' : '')), left = (q.u || 1) - s.used; const can = sel != null && left > 0 && ok(q.c, run.hand[sel]);
+    const E = el('div', 'se-eq'); run.eq.forEach((s, k) => { const q = EQ[s.id], c = el('button', 'se-e ' + kindOf(s.id) + (s.up ? ' up' : '')), left = (q.u || 1) - s.used; const can = sel != null && left > 0 && ok(q.c, run.hand[sel]);
       if (can) c.classList.add('can'); if (left <= 0) c.classList.add('done');
-      c.append(el('b', null, q.n + (s.up ? ' +'.repeat(s.up) : '')), el('small', null, q.d + (s.up ? ` (+${s.up} 강화)` : ''))); if (condTxt(q.c)) c.appendChild(el('em', null, condTxt(q.c))); c.appendChild(el('span', 'slotb', (q.u || 1) > 1 ? `×${left}` : '□'));
+      c.append(el('b', null, q.n + (s.up ? ' +'.repeat(s.up) : '')), el('small', null, q.d + (s.up ? ` (+${s.up} 강화)` : ''))); if (condTxt(q.c)) c.appendChild(el('em', null, condTxt(q.c))); c.appendChild(el('span', 'slotb' + (s.ld ? ' fill' : ''), s.ld && left <= 0 ? String(s.ld) : (q.u || 1) > 1 ? `×${left}` : '□'));
       c.onclick = () => { if (busy || sel == null) { if (sel == null) toast('먼저 아래 주사위를 눌러요.'); return; } const d = run.hand[sel]; const r = use(run, 'me', sel, k); if (!r) { toast(`이 칸은 ${condTxt(q.c) || '지금 못 써요'}`); return; } sel = null; fxOf(r, d); persist(); draw(); }; E.appendChild(c); });
     B.appendChild(E);
     const r = el('div', 'bp-row'), end = el('button', 'bp-go t', '차례 끝'); end.onclick = () => endTurn(); r.appendChild(end); B.appendChild(r);
@@ -171,14 +185,14 @@ function fxOf(r, d) {
 async function endTurn() {
   if (busy || run.ph !== 'fight') return; busy = true; sel = null;
   const acts = foeTurn(run); msg = `${run.foe.n}의 차례…`; draw();
-  for (const a of acts) { await new Promise(r => setTimeout(r, 650)); msg = `${run.foe.n}: [${a.d}] → ${EQ[a.s].n}${a.r.real != null ? ` · 피해 ${a.r.real}` : a.r.blk ? ` · 막기 ${a.r.blk}` : a.r.poi ? ` · 독 ${a.r.poi}` : a.r.frz ? ' · 얼림' : ''}`; if (a.r.real) { pop(`-${a.r.real}`, 'r'); tone([150], .12, .08, 'sawtooth'); } draw(); }
+  for (const a of acts) { await new Promise(r => setTimeout(r, 650)); msg = `${run.foe.n}: [${a.d}] → ${EQ[a.s].n}${a.r.real != null ? ` · 피해 ${a.r.real}` : a.r.blk ? ` · 막기 ${a.r.blk}` : a.r.poi ? ` · 독 ${a.r.poi}` : a.r.frz ? ' · 얼림' : ''}`; if (a.r.real) { pop(`-${a.r.real}`, 'r'); tone([150], .12, .08, 'sawtooth'); const h = el('div', 'se-hurt'); document.body.appendChild(h); setTimeout(() => h.remove(), 520); } draw(); }
   await new Promise(r => setTimeout(r, acts.length ? 700 : 300));
   if (run.ph === 'fight') { myTurn(run); msg = run.me.hpLoss ? `독 피해 ${run.me.hpLoss}` : ''; [0, 80, 160].forEach(t => setTimeout(() => tone([700 + Math.random() * 400], .03, .04, 'square'), t)); }
   busy = false; persist(); draw();
 }
 function mapUI() {
   frame(NAME, B => {
-    const m = el('div', 'se-map'); FOES.forEach((f, i) => m.appendChild(el('i', i < run.fl ? 'on' : i === run.fl ? 'now' : f[0].boss ? 'boss' : ''))); B.appendChild(m);
+    const m = el('div', 'se-map'); FOES.forEach((f, i) => m.appendChild(el('i', i < run.fl ? 'on' : i === run.fl ? 'now' : f[0].boss ? 'boss' : '', f[0].boss ? '☠' : String(i + 1)))); B.appendChild(m);
     talk(B, run.fl === 5 ? 'sk' : 'l', run.fl === 5 ? '(해골 사장이 빚 장부를 펼친다)' : pick([`${run.fl + 1}층이에요. 계단 밑에서 뼈 소리 나요.`, '조심해요. 송휘님 다치면 저 화낼 거예요.', '주사위 운도 실력이에요.']));
     const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, `송휘님 · 체력 ${run.hp}/${run.max} · 레벨 ${run.lv} · 주사위 ${run.dice}개`)); P.appendChild(el('div', 'hint', run.eq.map(s => EQ[s.id].n + (s.up ? '+' + s.up : '')).join(' · '))); B.appendChild(P);
     const r = el('div', 'bp-row'), g = el('button', 'bp-go'); g.innerHTML = `${run.fl + 1}층 내려가기<small>${run.fl === 5 ? '해골 사장' : '해골이 기다려요'}</small>`; g.onclick = () => { startFight(run); msg = ''; persist(); draw(); }; r.appendChild(g); B.appendChild(r);
