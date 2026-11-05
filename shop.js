@@ -85,7 +85,7 @@ const DECOR = [
   { id: 'crown', n: '작은 왕관', p: 3, i: 'd_crown', rx: 1 }, { id: 'halo', n: '천사 링', p: 3, i: 'd_halo', rx: 1 }, { id: 'arrow', n: '여기 봐 화살표', p: 2, i: 'd_arrow', rx: 1 }
 ];
 const UTIL = [
-  { id: 'fortune', n: '오늘의 운세 전화', d: '레나가 오늘 운세를 봐 줘요', p: 1, i: 'assets/lena/st_star.webp', buy: () => fortuneCall() },
+  { id: 'fortune', n: '오늘의 운세', d: '운세 쪽지를 펴 봐요', p: 1, i: 'assets/lena/st_star.webp', buy: () => fortuneCall() },
   { id: 'gc', n: '게임 동전 5개', d: '오락실에서 쓰는 동전', p: 1, i: CUR('gc'), buy: () => { S.gc = Math.min(999, (S.gc || 0) + 5); save(); toast('게임 동전 +5'); return true; } },
   { id: 'rpick', n: '리액션 스티커 뽑기', d: '레나 옆에 붙이는 말풍선·반응 스티커 하나', p: 2, i: 'assets/lena/s/d_bheart.webp', buy: () => { const L = DECOR.filter(d => d.rx && !D().own.includes(d.id)); if (!L.length) { toast('리액션 스티커를 다 모았어요!'); return false; } const d = pick(L); D().own.push(d.id); if (D().on.length < 6) D().on.push(d.id); save(); renderDecor(); toast(`${d.n} 스티커가 나왔어요! 부스 꾸미기에서 붙여요.`); return true; } },
   { id: 'letter', n: '레나의 손편지', d: '음성사서함에 남는 짧은 편지', p: 2, i: 'assets/lena/st_tape.webp', buy: () => letter() }
@@ -283,7 +283,7 @@ SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 �
     s.slots.forEach((sl, i) => {
       if (sl.t === 'g') { const g = GIFT.find(x => x.id === sl.id); G.appendChild(card(SI(g.i), g.n, `호감도 +${g.h * (sl.want ? 2 : 1)}`, priceOf(g), () => give(g), sl.want ? '원하는 것' : s.sale === g.id ? '반값' : '')); }
       else if (sl.t === 'd') { const d = DECOR.find(x => x.id === sl.id), own = D().own.includes(d.id); G.appendChild(card(SI(d.i), d.n, '부스 유리에 붙이는 장식', d.p, () => { if (!pay(d.p)) return; D().own.push(d.id); if (D().on.length < 4) D().on.push(d.id); save(); fx(SI(d.i)); renderDecor(); refreshSheet(); toast(`${d.n}을(를) 부스에 붙였어요. 영상통화에서 보여요.`); }, '희귀', own)); }
-      else { const u = UTIL.find(x => x.id === sl.id), sold = s.sold.includes(i); G.appendChild(card(u.i, u.n, u.d, u.p, async () => { if (u.id === 'fortune' && S.fortDay === dk(new Date())) { toast('오늘 운세는 이미 들었어요.'); return; } if (u.id !== 'fortune' && !pay(u.p)) return; if (u.id === 'fortune') { closeSheet(); fortuneCall(); s.sold.push(i); save(); return; } const ok = await u.buy(); if (ok === false) { S.coins += u.p; } else { s.sold.push(i); } save(); refreshSheet(); }, '오늘만', sold)); }
+      else { const u = UTIL.find(x => x.id === sl.id), sold = s.sold.includes(i); G.appendChild(card(u.i, u.n, u.d, u.p, async () => { if (u.id === 'fortune') { openSheet('fort'); return; } if (!pay(u.p)) return; const ok = await u.buy(); if (ok === false) { S.coins += u.p; } else { s.sold.push(i); } save(); refreshSheet(); }, '오늘만', sold)); }
     });
     V.appendChild(G); B.appendChild(V);
     B.appendChild(el('div', 'hint', '전단지를 떼면 할 일 동전 1개. 선물은 몇 번이고 줄 수 있어요. 레나가 갖고 싶은 건 날마다 바뀌어요.'));

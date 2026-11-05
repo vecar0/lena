@@ -170,7 +170,7 @@ let curSheet = 0;
 const SH = {};
 function openSheet(n) {
   closePad(); const s = SH[n]; if (!s) return; if (s.direct) { s.direct(); return; } curSheet = n;
-  $('shNum').textContent = /^[0-9*]$/.test(String(n)) ? n : ({ shop: '♥', cl: '#', box: '⚡' })[n] || '•'; $('shT').textContent = s.t; $('shS').textContent = typeof s.s === 'function' ? s.s() : (s.s || '');
+  $('shNum').textContent = /^[0-9*]$/.test(String(n)) ? n : ({ shop: '♥', cl: '#', box: '⚡', fort: '★' })[n] || '•'; $('shT').textContent = s.t; $('shS').textContent = typeof s.s === 'function' ? s.s() : (s.s || '');
   const B = $('shB'); B.innerHTML = ''; s.r(B); B.scrollTop = 0;
   $('sheet').classList.add('open'); app.classList.add('dim');
   if (s.open) s.open();
@@ -427,17 +427,53 @@ $('micBtn').onclick = () => {
   try { rec.start(); $('micBtn').classList.add('rec'); tone([880], .08, .05); } catch (e) { recStop(); }
 };
 
-// ---------------- 오늘의 운세 전화 (할 일 동전 1개, 하루 한 번) ----------------
-const FORT = { all: ['오늘은 미뤄 둔 걸 하나 끝내면 운이 확 풀려요.', '말 한마디가 행운을 불러요. 먼저 연락해 봐요.', '조금 느려도 괜찮은 날. 대신 끝까지는 가요.', '뜻밖의 칭찬을 듣는 날이에요. 표정 관리해요.', '돈 쓸 일이 생겨요. 지갑은 반만 열어요.', '오후부터 기운이 올라와요. 중요한 건 그때.'], color: ['핑크', '민트', '검정', '은색', '청록', '노랑', '흰색'], warn: ['늦잠', '충동구매', '야식', '답장 미루기', '우산 깜빡하기', '괜한 걱정'] };
-function fortuneCall() {
-  if (S.fortDay === dk(new Date())) { toast('오늘 운세는 이미 들었어요. 내일 또 와요.'); return false; }
-  if ((S.coins || 0) < 1) { toast('할 일 동전이 없어요. 전단지 하나 떼고 와요.'); return false; }
-  S.coins--; S.fortDay = dk(new Date()); save(); coinSound();
-  if (!app.classList.contains('calling')) openCall();
-  if (S.key) { setTimeout(() => sendText('(동전 1개를 넣었어. 오늘의 운세 알려 줘)', true), 450); return true; }
-  const r = n => pick(n), num = 1 + Math.random() * 9 | 0;
-  setTimeout(() => addHer(`${nmc()}오늘의 운세예요. ${r(FORT.all)}\n행운의 숫자 ${num}, 행운의 색 ${r(FORT.color)}. 오늘 조심할 건 ${r(FORT.warn)}.\n…그리고 저랑 통화하면 운이 두 배예요. 진짜로.`, true), 450);
-  return true;
+// ---------------- 오늘의 운세 (전용 페이지, 할 일 동전 1개로 하루 한 번 뽑기) ----------------
+const FORT = { all: ['오늘은 미뤄 둔 걸 하나 끝내면 운이 확 풀려요.', '말 한마디가 행운을 불러요. 먼저 연락해 봐요.', '조금 느려도 괜찮은 날. 대신 끝까지는 가요.', '뜻밖의 칭찬을 듣는 날이에요. 표정 관리해요.', '돈 쓸 일이 생겨요. 지갑은 반만 열어요.', '오후부터 기운이 올라와요. 중요한 건 그때.', '작은 실수가 오히려 좋은 인연을 데려와요.', '쉬는 것도 실력인 날. 무리하지 마요.'],
+  color: [['핑크', '#ff3d9a'], ['민트', '#9ff5e4'], ['검정', '#16181c'], ['은색', '#c9ced6'], ['청록', '#2fe0c8'], ['노랑', '#f2ea3a'], ['흰색', '#f3efe6'], ['보라', '#9b7bff']],
+  item: ['우산', '이어폰', '립밤', '편의점 커피', '손수건', '동전 하나', '좋아하는 노래', '따뜻한 물'],
+  warn: ['늦잠', '충동구매', '야식', '답장 미루기', '우산 깜빡하기', '괜한 걱정', '과속', '밤샘'],
+  say: ['오늘은 제가 행운 담당이에요. 필요하면 전화해요.', '운이 별로여도 괜찮아요. 제가 있잖아요.', '좋은 일 생기면 제일 먼저 저한테 말해 줘요.', '…사실 운세보다 송휘님 하기 나름이에요. 알죠?'] };
+function fortLocal(day) { // 키가 없거나 연결이 안 될 때: 날짜·이름으로 정해지는 운세(같은 날은 같은 결과)
+  let h = 7; for (const c of day + (S.name || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0; const r = () => (h = (h * 1664525 + 1013904223) >>> 0) / 4294967296, pk = a => a[Math.floor(r() * a.length)];
+  const st = () => 2 + Math.floor(r() * 4), col = pk(FORT.color);
+  return { total: st(), love: st(), work: st(), money: st(), line: pk(FORT.all), number: 1 + Math.floor(r() * 99), color: col[0], hex: col[1], item: pk(FORT.item), warn: pk(FORT.warn), advice: pk(FORT.say) };
+}
+async function fortMake(day) {
+  if (!S.key) return fortLocal(day);
+  const todo = openItems().slice(0, 6).map(t => t.text + (t.due ? ` (${t.due.slice(5, 16).replace('T', ' ')})` : '')).join(', ') || '없음';
+  const sys = `너는 "레나". 장난스럽고 다정한 존댓말, 상대는 "${S.name || '당신'}님". 오늘(${day}) 운세를 만든다. 참고: 남은 일정·할 일 ${todo} / 기억 ${JSON.stringify(S.memory.slice(-8))}.
+JSON만 출력: {"total":1~5,"love":1~5,"work":1~5,"money":1~5,"line":"오늘 총운 한 문장(25자 안팎)","number":1~99,"color":"행운의 색 이름","hex":"#rrggbb","item":"행운의 물건","warn":"오늘 조심할 것(짧게)","advice":"레나의 한마디 1~2문장, 오늘 일정과 연결되면 좋음"}`;
+  try { const j = await gemini(sys, [{ role: 'user', parts: [{ text: '오늘 운세 뽑아 줘' }] }]); if (j && j.line && j.total) { const L = fortLocal(day); return Object.assign(L, j, { total: Math.max(1, Math.min(5, +j.total || L.total)), love: Math.max(1, Math.min(5, +j.love || L.love)), work: Math.max(1, Math.min(5, +j.work || L.work)), money: Math.max(1, Math.min(5, +j.money || L.money)), hex: /^#[0-9a-f]{6}$/i.test(j.hex || '') ? j.hex : L.hex }); } } catch (e) {}
+  return fortLocal(day);
+}
+function fortuneCall() { openSheet('fort'); return true; } // 예전 호출(빠른 버튼·자판기)은 운세 페이지로
+let fortBusy = false;
+SH.fort = { t: '오늘의 운세', s: () => { const d = new Date(); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`; }, r: B => {
+  S.fort = S.fort || {}; const day = dk(new Date()), f = S.fort[day];
+  if (!f) {
+    const sl = el('div', 'fslip sealed'), seal = el('img', 'fseal'); seal.src = 'assets/lena/st_heart.webp'; seal.alt = '';
+    sl.append(el('div', 'ftape'), seal, el('b', null, '오늘의 운세 쪽지'), el('p', null, fortBusy ? '레나가 쪽지를 펴는 중…' : '접혀 있어요. 동전 하나 넣으면 레나가 펴 줘요.')); B.appendChild(sl);
+    const go = el('button', 'btn wide'); go.innerHTML = `${ci('todo')}할 일 동전 1개 넣고 펴기`; go.disabled = fortBusy;
+    go.onclick = async () => { if ((S.coins || 0) < 1) { toast('할 일 동전이 없어요. 전단지 하나 떼고 와요.'); return; } S.coins--; save(); coinSound(); fortBusy = true; refreshSheet(); const data = await fortMake(day); S.fort[day] = data; S.fortDay = day; const ks = Object.keys(S.fort).sort(); while (ks.length > 14) delete S.fort[ks.shift()]; fortBusy = false; save(); tearSound(); refreshSheet(); renderHome(); };
+    B.appendChild(row(go)); B.appendChild(el('div', 'hint', `가진 할 일 동전 ${S.coins || 0}개 · 하루에 한 번, 오늘 안에는 몇 번이든 다시 볼 수 있어요.`));
+  } else B.appendChild(fortCard(f, true));
+  const past = Object.keys(S.fort || {}).filter(k => k !== day).sort().reverse().slice(0, 7);
+  if (past.length) { B.appendChild(lbl('지난 운세')); const L = el('div', 'fpast'); past.forEach(k => { const x = S.fort[k], r = el('button', 'fprow'); r.append(el('span', 'fpd', k.slice(5).replace('-', '.')), el('span', 'fps', '★'.repeat(x.total) + '☆'.repeat(5 - x.total)), el('span', 'fpl', x.line)); r.onclick = () => { const o = r.nextElementSibling; if (o && o.classList.contains('fslip')) { o.remove(); return; } r.after(fortCard(x, false)); }; L.appendChild(r); }); B.appendChild(L); }
+} };
+function fortCard(f, today) {
+  const sl = el('div', 'fslip' + (today ? ' open' : ''));
+  sl.appendChild(el('div', 'ftape'));
+  const top = el('div', 'ftop'); top.append(el('span', 'fstar', '★'.repeat(f.total) + '☆'.repeat(5 - f.total)), el('span', 'fk', '총운')); sl.appendChild(top);
+  sl.appendChild(el('p', 'fline', f.line));
+  const M = el('div', 'fmeters'); [['사랑', f.love], ['일', f.work], ['돈', f.money]].forEach(([n, v]) => { const r = el('div', 'fm'); r.appendChild(el('span', null, n)); const d = el('i'); for (let i = 0; i < 5; i++) d.appendChild(el('b', i < v ? 'on' : '')); r.appendChild(d); M.appendChild(r); }); sl.appendChild(M);
+  const L = el('div', 'flucky');
+  const n = el('div'); n.append(el('small', null, '행운의 숫자'), el('strong', 'fnum', String(f.number)));
+  const c = el('div'), sw = el('i', 'fsw'); sw.style.background = f.hex; c.append(el('small', null, '행운의 색'), sw, el('span', null, f.color));
+  const it = el('div'); it.append(el('small', null, '행운의 물건'), el('span', 'fit', f.item)); L.append(n, c, it); sl.appendChild(L);
+  const w = el('div', 'fwarn'); w.append(el('small', null, '조심할 것'), el('span', null, f.warn)); sl.appendChild(w);
+  const t = el('div', 'fsay'), fc = el('i', app.classList.contains('outside') ? 'cat' : ''); t.append(fc, el('span', null, f.advice)); sl.appendChild(t);
+  if (today) sl.appendChild(row(btn('레나랑 이 운세 얘기하기', 'wide', () => { closeSheet(); if (!app.classList.contains('calling')) openCall(); setTimeout(() => sendText(`오늘 운세가 "${f.line}" (총운 ${f.total}/5, 조심할 것: ${f.warn})래. 어떻게 생각해?`), 350); })));
+  return sl;
 }
 
 // ---------------- Gemini ----------------
