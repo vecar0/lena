@@ -261,13 +261,13 @@ function decorEdit() {
 function renderAff() {
   const hd = document.querySelector('.ahead .hd'); if (!hd) return; let b = $('affB');
   if (!b) { b = el('button', 'affb'); b.id = 'affB'; b.onclick = () => { dtmf(8); openSheet('shop'); }; hd.appendChild(b); }
-  const a = A(), [m] = mood(); b.innerHTML = `${ci('heart')}<u>${tierOf(lv(a.pt)).name}</u> · ${m}`;
+  const a = A(), [m] = mood(); b.innerHTML = `${ci('heart')}<u>${tierOf(lv(a.pt)).name}</u>`;
 }
 // 자판기 시트
 let tab = 'today';
 SH.shop = { t: '자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매일 자정에 바뀌어요`, r: B => {
   decay(); const a = A(), n = lv(a.pt), [m, mt] = mood(), s = today();
-  const c = el('div', 'card'), top = el('div', 'affc'), av = el('div', 'ava2'), tx = el('div'); tx.append(el('b', null, `${tierOf(n).name} · ${m}`), el('small', null, mt + ' 하루 지날 때마다 호감도가 조금씩 내려가요.'));
+  const c = el('div', 'card'), top = el('div', 'affc'), av = el('div', 'ava2'), tx = el('div'); tx.append(el('b', null, tierOf(n).name), el('small', null, mt + ' 하루 지날 때마다 호감도가 조금씩 내려가요.'));
   top.append(av, tx); c.appendChild(top);
   const hb = el('div', 'hbar'), hi = el('i'); hi.style.width = Math.min(100, (a.pt - need(n)) / Math.max(1, need(n + 1) - need(n)) * 100) + '%'; hb.appendChild(hi); c.appendChild(hb);
   c.appendChild(el('div', 'hint', `「${tierOf(n + 1).name}」까지 ${need(n + 1) - a.pt}점 · 오르면 레나 수첩에 비밀 이야기가 하나씩 열려요`));
