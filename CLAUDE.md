@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v60). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v61). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 속도(v60): 생각 최소 — 3.x는 thinkingLevel `minimal`, 2.5 Flash는 thinkingBudget 0, `-latest`는 thinkingBudget 0(모델이 400으로 거절하면 `TH[m]`에 기억하고 3.x→low, 2.5→512, latest→설정 빼고 같은 모델로 한 번 더). 모델 '자동'은 후보 셋(가장 새 Flash·flash-latest·2.5-flash) 중 첫 글자까지 걸린 시간 평균 `S.mlat`이 가장 짧은 것부터(처음엔 각각 한 번씩 재 봄), 직접 고르면 그 모델 먼저. 첫 글자 12초 안 오면 다음 모델. 통화를 열 때 Gemini 서버 연결을 미리 열어 둠(`warmAt`, index.html preconnect). 노트 정리(`notes.js`)는 품질 위해 생각 low/1024 그대로. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -91,6 +91,7 @@
 - 새 Cloudflare Worker `lena-box`(KV 바인딩 `BOX`)를 사용자가 직접 배포해야 함. 앱 0번 설정 > 단축어에서 주소 입력. 열쇠 `S.boxTok`.
 - 서버 `https://lena-box.vecar0473.workers.dev` 배포·KV 연결 확인됨(v42 점검: 알람 올리기·받기·/in·/inbox 모두 정상). 단축어 화면 맨 위 '연결 상태'(마지막 알람 올림 `S.boxOk/boxN`, 받은 메모 `S.boxIn/boxInN`, 오류 `S.boxErr`)와 '전체 점검'(5단계, 점검 메모는 src=check라 할 일로 안 붙음, 점검 중엔 inbox 폴링 멈춤).
 - 단축어로 글을 보낼 땐 꼭 **URL 인코딩** 동작을 거쳐야 함(안 하면 &·#·줄바꿈에서 잘림 — 시험에서 '& 약국'이 사라졌음). 안내문 C3·C4에 넣음. v43: 안내를 '[검색어] → 동작 이름 (영어 이름)' 형식으로, 알람은 '레나 알람 받기' 단축어 + 자동화에서 '단축어 실행'으로 나눠 직접 실행해 시험 가능하게. v45: 단축어 맨 앞에 '알람 찾기(레이블에 레나 포함) → 알람 삭제'(iOS 16.4+)로 지난 레나 알람을 지운 뒤 새로 만듦, 설정 > 단축어 > 고급 > 확인 없이 삭제 허용.
+- 공유하기로 파일 보내기(v61, 서버 `box-worker.js` v2 필요 — `/`가 'lena-box ok v2'를 돌려줌): 단축어 'URL의 콘텐츠 가져오기'를 `/in?t=..&src=share`로 **방법 POST·요청 본문 파일·파일=단축어 입력**(URL 인코딩 동작 필요 없음). 서버는 본문이 글이면 메모, 사진·PDF면 KV `f:t:id`에 14일 보관(15MB까지)하고 우편함에 `{file,type,name}`. 앱 `inbox()`가 `/file?id`로 받아 가면 서버에서 지움, 사진은 `shrink`로 줄임, `gotFiles` → 통화에 레나 쪽지 '레나한테 보여주기'(`window.pendFiles`로 sendText에 inline_data 붙임)/'노트로 정리'(`lenaNotes.prefill` + `lenaStudy.tab('note')`)/'버리기'. 단축어 화면은 서버가 v2가 아니면 경고 + '새 서버 코드 복사'(앱 폴더의 box-worker.js를 복사). 예전 `text=` 방식도 그대로 됨. 사용자는 Cloudflare에서 lena-box 코드를 새로 붙여 넣고 배포해야 함(v61 시점 실서버는 아직 v1).
 - B2: 앱이 `/alarms`에 모닝콜·⏰ 표시 전단지 시간을 올리고, 밤 10시 단축어 자동화가 받아 시계 알람 생성. C3 공유 시트 단축어·C4 잠금화면/제어센터 단축어가 `/in`으로 보내면 앱이 `/inbox`를 가져와 통화로 정리.
 - 영상 화면 점무늬는 `.dots` 층, 레나+수화기·전화선·벽 전화기를 오려 낸 `assets/lena/dotmask.png`(rembg isnet-anime + 초록색 골라내기로 만든 가림판)로 그 위에만 안 깔림. 오락실의 레나 말풍선 사진은 음성통화일 때 고양이, 영상통화일 때 레나 얼굴(`.talkr i.face`).
 - 화면 높이: `.app{position:fixed;inset:0}`, 홈 화면 앱(standalone)에서는 `full()`이 `screen.height`로 높이를 직접 채움(아이폰이 상태바만큼 작게 알려 줘서 아래가 검게 비었음). visualViewport로 높이를 맞추는 건 키보드가 올라와 있을 때만(아이폰 홈 화면 앱은 평소 높이를 상태바만큼 작게 알려 줘서 아래가 비었었음).
