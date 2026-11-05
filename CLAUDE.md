@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v52). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v53). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512, 3.x는 thinkingLevel low. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -65,7 +65,9 @@
 - 시간표 탭: 전단지 시트 탭이 오늘/이번 주/**시간표**/할 일(`boardTabs` 덮어씀). `S.reps`를 월~일 격자로(끝 시간 `r.end`, 없으면 +1시간), 칸 누르면 지우기, 아래 '시간표에 넣기'(이름·요일·시작~끝). Gemini repeat에도 `end`. 오늘 탭 위에 '오늘 브리핑'·'레나가 시간표 짜기' 버튼. 시트 번호 표시 ☎.
 ## 공부 (`study.js`, 다이얼 6, v52 — 블로그 방식 '시험 3주 전부터 회독'으로 단순하게)
 - 데이터 `S.study`: `mats`[{id,sub,title,kind 'book'|'hw',due,units[{id,name,n,mins,prog,done}]}], `exams`[{id,name,date,subs[과목],ranges[{mat,from,to}](선택)}], `log[날짜]`, `rev`(끝낸 회독 키), `fix[오늘]`(손으로 고친 오늘 블록), `pref`{wdS 17:00, weS 10:00, end 23:00, wdMax/weMax(프리셋), block 50, preset light|normal|exam, wdSubs 2, weSubs 4}.
-- 프리셋 `PRESET`: 가볍게 1.5h·3h / 보통 2.5h·5h / 시험 모드 4h·8h (평일·주말 하루 최대).
+- 공부량 카드(v53, 전화카드 모양 `.pcard`, IC칩): `S.study.presets`[{id,name,c 색,wd,we 하루 분,wdS,weS,end,wdSub,weSub}] 기본 가볍게/보통/시험 모드, 최대 6장. 누르면 `usePre`로 pref에 복사해 다시 짬. 쓰는 카드를 한 번 더 누르거나 '✎ 고치기' → 편집(이름·색·하루 시간 ±30분·시작/끝·과목 수, 새 카드, 버리기).
+- 간격 복습(v53, 검색 근거): 교재 단원을 끝내면 `S.study.revq`에 1·3·7일 뒤 복습(15·10·10분, `soft` = 마감 경고 안 띄움).
+- 화면 디자인(v53): 위 D-day 띠(`.dstrip`, Black Han Sans 핑크 D-숫자 + 꼬인 전화선 `.cord`로 3주 전→전날 단계) → 공부량 카드 줄 → 종이 시간표(`.sheetp`, 종이색·테이프 2개·분홍 여백선, 과목은 형광펜 밑줄, 끝내면 빨간 '끝' 도장). 블록 조정 버튼은 종이 위 검은 버튼(`.ptools`). 시험 탭 주차별 계획은 세로 전화선(`.wkl`).
 - 블로그 주차별 계획 `STEPS`(시험 과목마다): 3주 전(D-21~15) 교과서·프린트 1회독, 2회독·개념 / 2주 전(D-14~8) 3회독·나만의 시험지 / 1주 전 4회독 백지(D-7~5), 5회독 백지·기출(D-4~2) / 전날 필승노트·오답 체크. 문제집 범위는 시험 1주 전까지(이미 너무 가까우면 이틀 전). 숙제는 학원 전날까지. 하루 과목 수 평일 2·주말 4(블로그). `phaseOf(남은 날)`.
 - 계산 `simulate`/`splan`: 빈 시간 = 공부 시간대 − (시간 있는 전단지 + 시간표 + 앞뒤 10분), 마감별 비율로 고르게, 50분 블록+10분 쉬기, 교재는 앞 단원부터, 자투리로 안 쪼갬. 못 맞추면 제한 풀고 다시(`strained`).
 - 화면 SH[6]: 위 탭 3개 오늘/시험/과목·교재. 오늘 = 단계 카드(D-day·이번 주 할 것) + 프리셋 + 블록 목록(사이에 잡힌 일정 얇게). 블록을 누르면 −10분/+10분/↑앞으로/↓뒤로/과목 바꾸기/빼기, '+ 블록', 고치면 오늘이 `fix`로 굳고 '레나가 다시 짜기'로 풀림. ✓ = 진도·동전+1. 시험 = 목록 + 가장 가까운 시험의 주차별 날짜 계획, 넣기 폼은 버튼 눌러야 열림(과목 여러 개 고르기 + 문제집 범위 선택). 과목·교재 = 한 줄 목록(누르면 단원), 넣기 폼은 접혀 있음(과목 프리셋 칩).
