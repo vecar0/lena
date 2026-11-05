@@ -285,7 +285,7 @@ SH.shop = { t: '자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매�
       else { const u = UTIL.find(x => x.id === sl.id), sold = s.sold.includes(i); G.appendChild(card(u.i, u.n, u.d, u.p, async () => { if (u.id === 'fortune') { openSheet('fort'); return; } if (!pay(u.p)) return; const ok = await u.buy(); if (ok === false) { S.coins += u.p; } else { s.sold.push(i); } save(); refreshSheet(); }, '오늘만', sold)); }
     });
     V.appendChild(G); B.appendChild(V);
-    B.appendChild(el('div', 'hint', '전단지를 떼면 할 일 동전 1개. 선물은 몇 번이고 줄 수 있어요. 오늘의 주파수는 날마다 바뀌어요.'));
+    B.appendChild(el('div', 'hint', '할 일 동전은 4번 공부 블록을 끝내면 1개씩 받아요. 선물은 몇 번이고 줄 수 있어요. 오늘의 주파수는 날마다 바뀌어요.'));
   } else if (tab === 'gift') {
     const G = el('div', 'gl'); GIFT.forEach(g => G.appendChild(card(SI(g.i), g.n, `+${g.h * (s.want === g.id ? 2 : 1)}`, priceOf(g), () => give(g), s.want === g.id ? '주파수' : s.sale === g.id ? '반값' : ''))); B.appendChild(G);
     const cnt = a.gifts || {}; const tot = Object.values(cnt).reduce((x, y) => x + y, 0); B.appendChild(el('div', 'hint', `지금까지 준 선물 ${tot}개`));

@@ -87,8 +87,9 @@ function addItem(text, due) { const t = { id: uid('t'), text: String(text).slice
 function setDone(t, v, srcEl) {
   if (t.done === v) return; t.done = v; t.doneAt = v ? Date.now() : 0;
   const k = dk(new Date());
-  if (v) { S.coins++; S.coinDays[k] = (S.coinDays[k] || 0) + 1; coinPop(srcEl); }
-  else { S.coins = Math.max(0, S.coins - 1); if (S.coinDays[k]) S.coinDays[k]--; }
+  // 전단지는 떼도 동전 없음(v63: 만들고 바로 떼면 계속 얻을 수 있어서). 그날 뗀 개수만 기록.
+  if (v) S.coinDays[k] = (S.coinDays[k] || 0) + 1;
+  else if (S.coinDays[k]) S.coinDays[k]--;
   save(); renderHome();
   if (v) { const left = openItems().length; say(left ? pick(['하나 떼어냈네요. …잘했어요.', '착하다. 동전 하나 드릴게요.', '역시. 제가 반한 이유가 있죠.', '오, 생각보다 빠른데요?']) : `${nmc()}오늘 전단지 다 떼어냈어요. …오늘은 제가 칭찬 많이 해 드릴게요.`, 'happy', false); }
 }
@@ -158,7 +159,7 @@ let knockAt = 0;
 // 해골 손·눈 자리(배경 그림 1050×1872 좌표) → 지금 화면 좌표. 배경은 cover + 위 가운데 정렬.
 const KN = { hand: [620, 333], eyes: [[207, 382], [317, 320]] };
 function placeKnock() { const bg = $('bg'), W = bg.clientWidth, H = bg.clientHeight; if (!W) return; const s = Math.max(W / 1050, H / 1872), x0 = (W - 1050 * s) / 2, P = ([u, v]) => [x0 + u * s, v * s];
-  const [hx, hy] = P(KN.hand), K = $('knock'); K.style.left = hx + 'px'; K.style.top = hy + 'px';
+  let [hx, hy] = P(KN.hand); const K = $('knock'), tb = document.querySelector('.home .top'); if (tb) { const b = tb.getBoundingClientRect().bottom; if (hy < b + 30) hy = b + 30; } /* 위 버튼 줄과 안 겹치게 */ K.style.left = hx + 'px'; K.style.top = hy + 'px';
   [...$('kEyes').children].forEach((e, i) => { const [x, y] = P(KN.eyes[i]); e.style.left = x + 'px'; e.style.top = y + 'px'; }); }
 addEventListener('resize', placeKnock);
 function knockNow() { const K = $('knock'); placeKnock(); if (!K.classList.contains('on') || Date.now() - knockAt < 30 * 60e3) return; knockAt = Date.now(); K.classList.remove('tap'); void K.offsetWidth; K.classList.add('tap'); const E = $('kEyes'); E.classList.remove('tap'); void E.offsetWidth; E.classList.add('tap'); setTimeout(() => { K.classList.remove('tap'); E.classList.remove('tap'); }, 2000); tone([180], .06, .15, 'square'); tone([160], .06, .15, 'square', .2); }
@@ -256,7 +257,7 @@ function boardRender(B) {
   if (boardTab === 'all') { const D = S.items.filter(t => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)); if (D.length) { B.appendChild(lbl(`떼어낸 것 ${D.length}`)); const G = el('div', 'board'); D.slice(0, 6).forEach((t, i) => G.appendChild(paper(t, i))); B.appendChild(G); const c = btn('떼어낸 것 정리', 'ghost wide', () => { S.items = S.items.filter(t => !t.done); save(); refreshSheet(); }); c.style.marginTop = '14px'; B.appendChild(row(c)); } }
 }
 // 다이얼 1 = 전단지(오늘·할 일 탭). 캘린더·시간표는 2·3번 따로(study.js·plan.js)
-SH[1] = { t: '전단지', s: () => `남은 것 ${openItems().filter(t => !t.rid).length}개 · 떼면 동전 1개`, r: B => boardRender(B) };
+SH[1] = { t: '전단지', s: () => `남은 것 ${openItems().filter(t => !t.rid).length}개 · 다 하면 떼요`, r: B => boardRender(B) };
 function openBoard(tab) { boardTab = tab || 'today'; openSheet(1); }
 
 // 4 예약 전화
