@@ -84,6 +84,7 @@ const _br = boardRender; boardRender = function (B) {
 function busyToday() {
   const d = new Date(), L = [];
   S.items.forEach(t => { if (t.done || !t.due || !onDate(t, d)) return; const s = toM(t.due.slice(11, 16)); L.push([s, s + durOf(t), t.text]); });
+  if (window.studyBusy) L.push(...window.studyBusy());
   return L.sort((a, b) => a[0] - b[0]);
 }
 function slotPlan(todos) {
