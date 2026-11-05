@@ -106,7 +106,7 @@ const SECRET = [
 const lv = p => Math.floor(Math.sqrt((p || 0) / 5));
 const need = n => 5 * n * n;
 // 회선 등급 이름
-const TIER = [['잡음 섞인 회선', 0], ['빗소리 너머의 회선', 1], ['자정에 닿는 회선', 2], ['네온이 번지는 회선', 3], ['새벽 세 시의 회선', 4], ['끊기지 않는 회선', 5], ['단 하나의 회선', 6]];
+const TIER = [['잡음 섞인 회선', 0], ['빗소리 너머의 회선', 1], ['자정에 닿는 회선', 2], ['젖은 유리에 맺힌 회선', 3], ['새벽 세 시의 회선', 4], ['아침이 와도 이어진 회선', 5], ['끝까지 남는 마지막 회선', 6]];
 const tierOf = n => { const t = TIER[Math.min(n, TIER.length - 1)]; return { name: t[0] + (n >= TIER.length ? ` ${n - TIER.length + 2}` : ''), cls: 't' + t[1] }; };
 const A = () => { if (!S.aff) S.aff = { pt: 0, last: dk(new Date()), dday: dk(new Date()), notes: [] }; S.aff.notes = S.aff.notes || []; return S.aff; };
 const daysSince = d => Math.max(0, Math.round((new Date(dk(new Date()) + 'T00:00') - new Date(d + 'T00:00')) / DAY));
