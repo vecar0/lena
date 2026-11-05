@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v49). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v50). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512, 3.x는 thinkingLevel low. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -59,6 +59,10 @@
 - 후속 질문: Gemini 답의 `follow:[{at,q}]`(전단지로 안 붙인 앞일·걱정거리, 끝날 즈음 시각) → `S.follow`[{id,at,q,asked}]. 대화에 "내일 HH:MM쯤 '…' 물어볼게요" 쪽지(되돌리기). 그 시각에 폰 알림(`fu…`), 시각이 지난 뒤 앱을 열면 레나가 먼저 물어봄(`askFirst`, 한 번만, 대화 기록에도 남김). 프롬프트에 기다리는 질문·방금 물어본 질문을 넘김. 설정 `S.pro.follow`.
 - 날씨: Open-Meteo(키 없음), 위치는 처음 켤 때 한 번(`S.wx` on/lat/lon/data, 2시간마다 새로). 비·눈·33°↑·−5°↓면 전날 21:30 알림(`wx_e_`), 비 60%↑·눈이면 아침 7:30(`wx_m_`). 하루 첫 열기에 눈에 띄는 날씨만 레나가 먼저 말함(`S.wx.said`). 프롬프트에 오늘·내일 날씨.
 - 설정 0번 > '레나가 챙길 것'(후속 질문·날씨 켜기/끄기). 점검용 `window.lenaFollow`.
+## 비서 기능 (`plan.js`, v50, follow.js 뒤)
+- 아침 브리핑 `SH.brief`: 그날 앱을 처음 열면 자동(`S.briefDay`, 설정 `S.pro.brief`, 걸려오는 전화·다른 시트가 열려 있으면 미룸). 인사+요약, 날씨(`S.wx`), 오늘 일정, '레나가 고른 오늘 꼭 할 3가지'(`top3`: 밀린 것 → 오늘 남은 일정(반복 일정 제외) → 시간 없는 할 일), 운세 한 줄, '시간표 짜 주기'.
+- 오늘 시간표 짜기 `SH.plan`: 시간 없는 할 일(최대 8)을 오늘 빈 시간(9~23시, 지금+15분부터, 일정 앞뒤 10분 여유, 15분 단위)에 배치(`slotPlan`). 키 있으면 Gemini가 순서·걸리는 분(`t.mins`)을 정함. 줄마다 빼기/넣기, 'N개 전단지로 붙이기'로 due 설정.
+- 시간표 탭: 전단지 시트 탭이 오늘/이번 주/**시간표**/할 일(`boardTabs` 덮어씀). `S.reps`를 월~일 격자로(끝 시간 `r.end`, 없으면 +1시간), 칸 누르면 지우기, 아래 '시간표에 넣기'(이름·요일·시작~끝). Gemini repeat에도 `end`. 오늘 탭 위에 '오늘 브리핑'·'레나가 시간표 짜기' 버튼. 시트 번호 표시 ☎.
 ## 단축어 연결 (`box.js` + 서버 `box-worker.js`)
 - 새 Cloudflare Worker `lena-box`(KV 바인딩 `BOX`)를 사용자가 직접 배포해야 함. 앱 0번 설정 > 단축어에서 주소 입력. 열쇠 `S.boxTok`.
 - 서버 `https://lena-box.vecar0473.workers.dev` 배포·KV 연결 확인됨(v42 점검: 알람 올리기·받기·/in·/inbox 모두 정상). 단축어 화면 맨 위 '연결 상태'(마지막 알람 올림 `S.boxOk/boxN`, 받은 메모 `S.boxIn/boxInN`, 오류 `S.boxErr`)와 '전체 점검'(5단계, 점검 메모는 src=check라 할 일로 안 붙음, 점검 중엔 inbox 폴링 멈춤).

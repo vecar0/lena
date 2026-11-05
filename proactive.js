@@ -34,7 +34,7 @@ function materialize() {
   const lim = dk(dayAdd(-3)); for (const k in S.repSkip) if (k.slice(-10) < lim) delete S.repSkip[k];
   if (n) save();
 }
-window.materialize = materialize;
+window.materialize = materialize; window.addRep = (...a) => addRep(...a); window.delRep = r => delRep(r); window.daysTxt = d => daysTxt(d);
 const daysTxt = d => !d.length || d.length === 7 ? '매일' : d.length === 5 && [1, 2, 3, 4, 5].every(x => d.includes(x)) ? '평일' : d.length === 2 && d.includes(0) && d.includes(6) ? '주말' : [...d].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map(x => WD[x]).join('·');
 function addRep(text, time, days) { const r = { id: uid('r'), text: String(text).slice(0, 60), time, days: days.filter(v => Number.isInteger(v) && v >= 0 && v < 7) }; S.reps.push(r); materialize(); save(); return r; }
 function delRep(r) { S.reps = S.reps.filter(x => x !== r); S.items = S.items.filter(t => !(t.rid === r.id && !t.done && new Date(t.due) > new Date())); save(); }
@@ -120,7 +120,7 @@ const _br = boardRender; boardRender = function (B) {
 // ---------- Gemini: 반복 일정·알람 ----------
 const _sys = sysPrompt; sysPrompt = function (sp) {
   let s = _sys(sp);
-  s = s.replace('JSON만 출력:', `- 매주 같은 요일·시간에 하는 일(학원, 운동, 수업 등)은 repeat에 {"text","time":"HH:mm","days":[요일 번호 0=일…6=토, 매일이면 []]}. 한 번뿐인 일은 add.
+  s = s.replace('JSON만 출력:', `- 매주 같은 요일·시간에 하는 일(학원, 운동, 수업 등)은 repeat에 {"text","time":"HH:mm","end":"HH:mm"(끝나는 시각, 모르면 생략),"days":[요일 번호 0=일…6=토, 매일이면 []]}. 한 번뿐인 일은 add.
 - "알람 맞춰 줘", "꼭 깨워 줘"처럼 진짜 알람이 필요한 일정이면 add 항목에 "alarm":true.
 반복 일정: ${JSON.stringify(S.reps.map(r => `${daysTxt(r.days)} ${r.time} ${r.text}`))}
 JSON만 출력:`);
@@ -128,7 +128,7 @@ JSON만 출력:`);
 };
 const _apply = apply; apply = function (r) {
   const extra = [];
-  (r.repeat || []).forEach(x => { if (x && x.text && /^\d\d:\d\d$/.test(x.time || '')) { addRep(x.text, x.time, Array.isArray(x.days) ? x.days : []); extra.push(`반복 '${x.text}' ${daysTxt(x.days || [])} ${x.time}`); } });
+  (r.repeat || []).forEach(x => { if (x && x.text && /^\d\d:\d\d$/.test(x.time || '')) { const rr = addRep(x.text, x.time, Array.isArray(x.days) ? x.days : []); if (/^\d\d:\d\d$/.test(x.end || '') && x.end > x.time) { rr.end = x.end; save(); } extra.push(`반복 '${x.text}' ${daysTxt(x.days || [])} ${x.time}`); } });
   const before = new Set(S.items.map(t => t.id));
   const res = _apply(r);
   (r.add || []).forEach(a => { if (a && a.alarm) { const t = S.items.find(x => !before.has(x.id) && x.text === String(a.text).slice(0, 80)); if (t) { t.alarm = true; extra.push(`'${t.text}' 알람`); } } });
