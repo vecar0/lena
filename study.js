@@ -18,59 +18,50 @@ const css = `
 .dlist .r{display:flex;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.07);font-size:14px}
 .dlist .r b{flex:none;width:46px;font-family:'Space Mono',monospace;font-size:12px;color:var(--yel)}
 .chip{display:inline-block;flex:none;font-size:11.5px;font-weight:800;color:#111;border-radius:6px;padding:1px 7px;border:1.5px solid #000;vertical-align:1px}
-/* 6 공부: 부스 유리에 테이프로 붙여 둔 공부 시간표 */
-.dstrip{position:relative;padding:12px 14px 14px;border-radius:16px;background:#0d1014;border:1px solid var(--line);margin-bottom:12px;overflow:hidden}
-.dstrip::before{content:"";position:absolute;inset:0;background:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.3px) 0 0/6px 6px;pointer-events:none}
-.dstrip .top{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
-.dstrip .nm{font-size:13px;font-weight:700;color:var(--mint);line-height:1.3}.dstrip .nm b{display:block;font-size:16px;color:#fff;font-weight:800;margin-top:1px}
-.dstrip .dd{flex:none;padding-right:4px;font-family:'Black Han Sans';font-size:40px;line-height:.9;color:var(--pink);text-shadow:3px 3px 0 #000;letter-spacing:-1px}
-.cord{position:relative;display:grid;grid-template-columns:repeat(4,1fr);margin:16px 2px 4px}
-.cord::before,.cord i.on{content:"";position:absolute;left:6%;right:6%;top:5px;height:6px;border-radius:3px;background:repeating-linear-gradient(115deg,#3a4048 0 3px,#22262c 3px 6px)}
-.cord i.on{right:auto;background:repeating-linear-gradient(115deg,var(--teal) 0 3px,#11806f 3px 6px);box-shadow:0 0 10px rgba(47,224,200,.45)}
-.cord span{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--mute)}
-.cord span::before{content:"";width:16px;height:16px;border-radius:50%;background:#22262c;border:2px solid #000}
-.cord span.past{color:#cfe9e4}.cord span.past::before{background:var(--teal)}
-.cord span.cur{color:#fff}.cord span.cur::before{background:var(--pink);box-shadow:0 0 0 3px rgba(255,61,154,.35),0 0 14px var(--pink)}
-.dstrip p{position:relative;font-size:13.5px;line-height:1.5;color:#dfe7ea;margin-top:8px;word-break:keep-all}
-.cards{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin:0 -2px;scrollbar-width:none}.cards::-webkit-scrollbar{display:none}
-.pcard{flex:none;position:relative;width:122px;height:76px;padding:9px 10px;border-radius:9px;border:2px solid #000;background:var(--c);color:#111;text-align:left;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%);box-shadow:inset 0 -18px 0 rgba(0,0,0,.12)}
-.pcard .ic{position:absolute;right:10px;bottom:9px;width:20px;height:15px;border-radius:3px;background:linear-gradient(135deg,#f7e08a,#b8923a);border:1px solid rgba(0,0,0,.5)}
-.pcard .ic::before{content:"";position:absolute;inset:3px 6px;border-left:1px solid rgba(0,0,0,.35);border-right:1px solid rgba(0,0,0,.35)}
-.pcard b{display:block;font-size:14px;font-weight:900;line-height:1.2}
-.pcard small{display:block;font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;margin-top:4px;opacity:.75;line-height:1.35}
-.pcard.on{outline:3px solid #fff;outline-offset:-1px}
-.pcard:not(.on):not(.edit){opacity:.72}
-.pcard.on::after{content:"✓";position:absolute;right:9px;top:24px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;color:#fff;background:#000}
-.pcard.edit{background:transparent;border:1.5px dashed rgba(255,255,255,.35);color:#cdd6da;box-shadow:none;display:grid;place-items:center;font-size:13.5px;font-weight:700;width:86px}
-.sheetp{position:relative;margin:12px 2px 6px;padding:20px 14px 10px;background:var(--paper);color:#17181a;border-radius:3px;box-shadow:4px 5px 0 #000;transform:rotate(-.4deg)}
-.sheetp::before{content:"";position:absolute;top:0;bottom:0;left:62px;border-left:1.5px solid rgba(255,61,154,.35)}
-.sheetp>.tape{position:absolute;top:-10px;left:22px;width:74px;height:20px;background:url(assets/lena/tape_teal1.webp) 0 0/100% 100%;transform:rotate(-5deg)}
-.sheetp>.tape.r{left:auto;right:18px;background-image:url(assets/lena/tape_pink1.webp);transform:rotate(6deg)}
+/* 6 공부: 부스 유리에 붙은 전단지 + 레나 쪽지 + 구겨진 종이 시간표 (앱의 .fly/.ask/.fslip 말투 그대로) */
+.dfly{position:relative;margin:14px 6px 16px;padding:18px 16px 14px;color:#fff;background:url(assets/lena/paper_pink.webp) center/100% 100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.6));transform:rotate(.8deg)}
+.dfly .tp{position:absolute;left:50%;top:-10px;width:78px;height:20px;margin-left:-39px;background:url(assets/lena/tape_white.webp) 0 0/100% 100%;transform:rotate(-4deg)}
+.dfly .dtop{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.dfly small{display:block;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;opacity:.9}
+.dfly .dnm{font-size:17px;font-weight:900;line-height:1.3;margin-top:2px;word-break:keep-all}
+.dfly .ddn{flex:none;font-family:'Black Han Sans';font-size:42px;line-height:.9;color:#fff;text-shadow:3px 3px 0 #000;padding-right:2px}
+.dfly .stg{display:flex;gap:5px;margin-top:12px}
+.dfly .stg span{flex:1;height:30px;display:grid;place-items:center;border-radius:7px;font-size:12px;font-weight:800;background:rgba(0,0,0,.22);color:rgba(255,255,255,.75)}
+.dfly .stg span.past{background:rgba(0,0,0,.4);color:rgba(255,255,255,.45);text-decoration:line-through}
+.dfly .stg span.cur{background:#fff;color:#111;border:2px solid #000;box-shadow:2px 2px 0 #000}
+.dfly p{font-size:13.5px;font-weight:700;line-height:1.45;margin-top:10px;word-break:keep-all}
+.dfly.none{background-image:url(assets/lena/paper_teal.webp);color:#111;padding-bottom:44px}.dfly.none .ddn{color:var(--yel);font-size:30px}
+.lena{margin:0 2px 14px}
+.lena .row .btn{flex:1 1 auto}
+.lena .lsub{display:block;font-size:12px;font-weight:600;opacity:.6;margin-top:6px}
+.sheetp{position:relative;margin:16px 4px 8px;padding:22px 14px 12px;color:#17181a;background:#f3efe6 url(assets/lena/paper_white.webp) center/cover;border-radius:3px;box-shadow:4px 5px 0 rgba(0,0,0,.55);transform:rotate(-.5deg)}
+.sheetp>.tape{position:absolute;top:-11px;left:24px;width:80px;height:22px;background:url(assets/lena/tape_teal1.webp) 0 0/100% 100%;transform:rotate(-5deg)}
+.sheetp>.tape.r{left:auto;right:20px;background-image:url(assets/lena/tape_yellow.webp);transform:rotate(5deg)}
 .sheetp .hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:0 2px 8px;border-bottom:2px solid #17181a}
-.sheetp .hd b{font-family:'Black Han Sans';font-weight:400;font-size:20px}
+.sheetp .hd b{font-family:'Black Han Sans';font-weight:400;font-size:21px}
 .sheetp .hd span{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;background:linear-gradient(transparent 50%,rgba(242,234,58,.9) 50%);padding:0 3px}
-.pr{position:relative;display:flex;align-items:center;gap:8px;min-height:56px;border-bottom:1px dashed rgba(0,0,0,.18)}
+.pr{position:relative;display:flex;align-items:center;gap:8px;min-height:58px;border-bottom:1.5px dashed rgba(0,0,0,.2)}
 .pr .t{flex:none;width:48px;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;line-height:1.25}.pr .t small{display:block;font-size:10.5px;opacity:.55}
 .pr .w{flex:1;min-width:0;min-height:48px;text-align:left;font-size:15px;font-weight:700;line-height:1.4;color:inherit;padding:4px 2px;word-break:keep-all}
 .pr .w i{font-style:normal;font-weight:900;margin-right:6px;padding:0 2px;background:linear-gradient(transparent 52%,var(--c) 52%)}
-.pr .st{flex:none;width:46px;height:46px;border-radius:50%;border:2px solid rgba(0,0,0,.55);display:grid;place-items:center}
-.pr.done .w{color:rgba(0,0,0,.5);text-decoration:line-through;text-decoration-color:rgba(0,0,0,.35)}
-.pr.done .st{border:2.5px solid #d8283f;color:#d8283f;font-family:'Black Han Sans';font-size:17px;transform:rotate(-14deg);opacity:.85;box-shadow:inset 0 0 0 2px rgba(216,40,63,.25)}
+.pr .st{flex:none;width:46px;height:46px;border-radius:50%;border:2px solid #000;background:#fff;box-shadow:2px 2px 0 #000;display:grid;place-items:center}
+.pr .st img{width:40px;height:40px}
+.pr.done .w{color:rgba(0,0,0,.45);text-decoration:line-through;text-decoration-color:rgba(0,0,0,.35)}
+.pr.done .st{border:0;background:none;box-shadow:none;transform:rotate(-12deg)}
 .pr.fx{min-height:36px;color:rgba(0,0,0,.45);font-size:13px}.pr.fx .w{min-height:0;font-size:13px;font-weight:600}
-.pr.ed{background:rgba(47,224,200,.16);margin:0 -8px;padding:0 8px;border-radius:8px}
-.ptools{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 10px;border-bottom:1px dashed rgba(0,0,0,.18)}
-.ptools button{flex:1 0 auto;min-width:62px;height:44px;padding:0 10px;border-radius:10px;background:#17181a;color:var(--paper);font-size:13.5px;font-weight:700}
-.ptools button.del{background:transparent;color:#d8283f;border:1.5px solid #d8283f}
+.pr.ed{background:rgba(47,224,200,.22);margin:0 -8px;padding:0 8px;border-radius:6px}
+.ptools{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 10px;border-bottom:1.5px dashed rgba(0,0,0,.2)}
+.ptools button{flex:1 0 auto;min-width:62px;height:44px;padding:0 10px;border-radius:10px;background:#fff;color:#111;border:2px solid #000;box-shadow:2px 2px 0 #000;font-size:13.5px;font-weight:800}
+.ptools button.del{background:var(--hot);color:#fff}
 .ptools .q{flex-basis:100%;font-size:12.5px;color:rgba(0,0,0,.6)}
-.ptools .pills button{background:#17181a;color:var(--paper);border:0}
-.padd{display:block;width:100%;height:48px;text-align:left;padding-left:56px;font-size:14px;font-weight:700;color:rgba(0,0,0,.5)}
+.ptools .pills{flex-basis:100%}.ptools .pills button{flex:none;min-width:0;height:40px}
+.padd{display:block;width:100%;height:48px;text-align:left;padding-left:56px;font-size:14px;font-weight:800;color:rgba(0,0,0,.5)}
 .pfoot{font-size:12px;color:rgba(0,0,0,.5);padding:6px 2px 2px;line-height:1.5;word-break:keep-all}
-.pempty{padding:18px 4px;font-size:14px;color:rgba(0,0,0,.55);line-height:1.6}
-.pedit{display:flex;flex-direction:column;gap:2px}
-.pedit .r{display:flex;align-items:center;gap:8px;min-height:50px;border-bottom:1px solid var(--line)}
+.pempty{padding:18px 4px;font-size:14px;color:rgba(0,0,0,.6);line-height:1.6;white-space:pre-line}
+.pedit .r{display:flex;align-items:center;gap:8px;min-height:52px;border-bottom:1px solid var(--line)}
 .pedit .r>span{flex:1;font-size:14px}
-.step{display:flex;align-items:center;gap:4px}.step button{width:44px;height:40px;border-radius:10px;border:1px solid var(--line);font-size:18px;color:#fff}
-.step b{min-width:88px;text-align:center;font-family:'Space Mono',monospace;font-size:13.5px}
+.step{display:flex;align-items:center;gap:4px}.step .btn{width:44px;height:40px;padding:0;font-size:18px}
+.step b{min-width:84px;text-align:center;font-family:'Space Mono',monospace;font-size:13px}
 .pedit input.in{max-width:130px}
 .warn{padding:9px 12px;border-radius:12px;background:rgba(255,46,110,.13);border:1px solid rgba(255,46,110,.5);font-size:13px;line-height:1.5;margin-bottom:10px;word-break:keep-all}
 .mat{padding:10px 12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);margin-bottom:8px}
@@ -80,25 +71,21 @@ const css = `
 .mat .us button{height:32px;padding:0 10px;border-radius:16px;border:1px solid var(--line);font-size:12.5px;color:#cdd6da}
 .mat .us button.d{background:var(--teal);color:#000;border-color:var(--teal)}
 .frm{display:flex;flex-direction:column;gap:8px}
-.wkl{position:relative;display:flex;flex-direction:column;gap:12px;margin:12px 0 2px;padding-left:20px}
-.wkl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:4px;border-radius:2px;background:repeating-linear-gradient(25deg,#3a4048 0 3px,#22262c 3px 6px)}
-.wkl div{position:relative;font-size:13px;line-height:1.5;color:#d7dee1;word-break:keep-all}
-.wkl div::before{content:"";position:absolute;left:-19px;top:4px;width:12px;height:12px;border-radius:50%;background:#22262c;border:2px solid #000}
-.wkl div.now::before{background:var(--pink);box-shadow:0 0 10px var(--pink)}
-.wkl b{display:block;font-weight:800;color:var(--mint)}.wkl div.now b{color:var(--pink)}
+.wkl{display:flex;flex-direction:column;gap:10px;margin:14px 0 2px}
+.wkl div{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5;color:#d7dee1;word-break:keep-all}
+.wkl b{flex:none;width:92px;padding:3px 0;text-align:center;border-radius:7px;background:#0b0d10;border:1px solid var(--line);font-size:12px;font-weight:800;color:var(--mint)}
+.wkl div.now b{background:var(--pink);color:#fff;border:2px solid #000;box-shadow:2px 2px 0 #000}
 `;
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 
 // ---------- 데이터 ----------
-const PRESETS = () => [
-  { id: 'light', name: '가볍게', c: '#9ff5e4', wd: 90, we: 180, wdS: '18:00', weS: '13:00', end: '22:30', wdSub: 2, weSub: 3 },
-  { id: 'normal', name: '보통', c: '#f2ea3a', wd: 150, we: 300, wdS: '17:00', weS: '10:00', end: '23:00', wdSub: 2, weSub: 4 },
-  { id: 'exam', name: '시험 모드', c: '#ff8fc4', wd: 240, we: 480, wdS: '16:30', weS: '09:00', end: '23:30', wdSub: 3, weSub: 4 }];
-const CARDC = ['#9ff5e4', '#f2ea3a', '#ff8fc4', '#b89cff', '#ffb27a', '#7fb6ff'];
-const ST = () => { if (!S.study) S.study = {}; const s = S.study; s.mats = s.mats || []; s.exams = s.exams || []; s.log = s.log || {}; s.rev = s.rev || {}; s.fix = s.fix || {}; s.revq = s.revq || []; s.pref = Object.assign({ wdS: '17:00', weS: '10:00', end: '23:00', wdMax: 150, weMax: 300, block: 50, preset: 'normal', wdSubs: 2, weSubs: 4 }, s.pref || {}); if (!s.presets) s.presets = PRESETS(); return s; };
-const curPre = () => { const st = ST(); return st.presets.find(p => p.id === st.pref.preset) || st.presets[0]; };
-// 고른 카드의 값을 계산에 쓰는 설정(pref)으로 옮긴다
-const usePre = p => { Object.assign(ST().pref, { preset: p.id, wdMax: p.wd, weMax: p.we, wdS: p.wdS, weS: p.weS, end: p.end, wdSubs: p.wdSub, weSubs: p.weSub }); };
+const ST = () => { if (!S.study) S.study = {}; const s = S.study; s.mats = s.mats || []; s.exams = s.exams || []; s.log = s.log || {}; s.rev = s.rev || {}; s.fix = s.fix || {}; s.revq = s.revq || []; s.pl = s.pl || {};
+  if (s.pref && s.pref.preset) { delete s.pref.preset; s.pref.wdMax = 0; s.pref.weMax = 0; delete s.presets; } // v54: 카드(프리셋) 없앰 → 자동
+  s.pref = Object.assign({ wdS: '17:00', weS: '10:00', end: '23:00', wdMax: 0, weMax: 0, block: 50, wdSubs: 2, weSubs: 4, focus: null }, s.pref || {}); return s; };
+// 하루 최대(자동): 그날 빈 시간의 75%, 평일 4시간·주말 7시간까지. 직접 정하면(wdMax/weMax) 그 값.
+const AUTO_CAP = [240, 420];
+// 최근 7일 계획 대비 실제로 한 비율(최근에 덜 했으면 평소 양을 줄인다)
+function keepRate() { const st = ST(); let P = 0, D = 0; for (let i = 1; i <= 7; i++) { const k = dkey(dAdd(new Date(), -i)); if (!st.pl[k]) continue; P += st.pl[k]; D += (st.log[k] || []).reduce((a, b) => a + b.mins, 0); } return P >= 60 ? Math.min(1, D / P) : null; }
 const toM = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + (m || 0); };
 const toT = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.round(m % 60)).padStart(2, '0')}`;
 const dAdd = (d, n) => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() + n); return x; };
@@ -178,7 +165,9 @@ function tasks() {
 }
 function simulate(nDays, capMode) {
   const st = ST(), P = st.pref, T = tasks().map(t => ({ ...t })), days = [], today = new Date(); today.setHours(0, 0, 0, 0);
-  const dmax = x => (x.getDay() === 0 || x.getDay() === 6) ? P.weMax : P.wdMax;
+  const fm = new Map(), freeMin = x => { const kk = dkey(x); if (!fm.has(kk)) fm.set(kk, freeIv(x, false).reduce((a, [p1, p2]) => a + p2 - p1, 0)); return fm.get(kk); };
+  const dmax = x => { const we = x.getDay() === 0 || x.getDay() === 6, u = we ? P.weMax : P.wdMax; return u || Math.min(AUTO_CAP[we ? 1 : 0], Math.floor(freeMin(x) * .75 / 10) * 10); };
+  const kr = keepRate(), habit = we => Math.round((we ? 120 : 90) * (kr == null ? 1 : Math.max(.6, kr + .15)) / 10) * 10, adj = st.adj && st.adj.d === dkey(today) ? st.adj.mul : 1, focus = P.focus && P.focus.until >= dkey(today) ? P.focus.sub : '';
   for (let di = 0; di < nDays; di++) {
     const d = dAdd(today, di), k = dkey(d), we = d.getDay() === 0 || d.getDay() === 6;
     if (di === 0 && st.fix[k]) { // 손으로 고친 오늘은 그대로
@@ -189,7 +178,8 @@ function simulate(nDays, capMode) {
     let f = 0; const live = T.filter(t => t.rem > 0 && t.due);
     [...new Set(live.map(t => t.due))].forEach(dl => { const W = live.filter(t => t.due <= dl).reduce((a, t) => a + t.rem, 0); let C = 0; for (let j = 0; dkey(dAdd(d, j)) <= dl && j < 90; j++) C += dmax(dAdd(d, j)); if (C <= 0) C = dmax(d); f = Math.max(f, W / C); });
     let cap = capMode === 'max' ? 24 * 60 : Math.min(dmax(d), Math.ceil(dmax(d) * Math.min(1, f * 1.1) / 10) * 10);
-    if (capMode !== 'max' && T.some(t => t.rem > 0 && !t.due)) cap = Math.max(cap, Math.round(dmax(d) * .5));
+    if (capMode !== 'max' && T.some(t => t.rem > 0 && !t.due)) cap = Math.max(cap, Math.min(dmax(d), habit(we)));
+    if (di === 0 && capMode !== 'max') cap = Math.round(cap * adj / 10) * 10;
     if (di === 0) cap = Math.max(0, cap - ((st.log[k] || []).reduce((a, b) => a + b.mins, 0)));
     // 블로그: 평일 2과목, 주말 3~4과목
     const lim = capMode === 'max' ? 99 : (we ? P.weSubs : P.wdSubs), daySubs = new Set((di === 0 ? st.log[k] || [] : []).map(l => l.sub));
@@ -201,11 +191,11 @@ function simulate(nDays, capMode) {
         const parts = []; let left = len, bsub = '';
         while (left >= 10) {
           const head = new Map(); for (const o of T) if (o.seq && o.rem > 0 && (!head.has(o.m) || o.i < head.get(o.m))) head.set(o.m, o.i);
-          const elig = T.filter(t => t.rem > 0 && (!t.from || t.from <= k) && (!t.seq || head.get(t.m) === t.i) && (daySubs.has(t.sub) || daySubs.size < lim));
+          const elig = T.filter(t => t.rem > 0 && (!t.from || t.from <= k) && (!t.seq || head.get(t.m) === t.i) && (daySubs.has(t.sub) || daySubs.size < lim || t.sub === focus));
           if (!elig.length) break;
           elig.sort((x, y) => (x.due || '9999') < (y.due || '9999') ? -1 : (x.due || '9999') > (y.due || '9999') ? 1 : (x.mi || 0) - (y.mi || 0));
           const minDue = elig[0].due || '9999', near = elig.filter(t => (t.due || '9999') <= dkey(dAdd(pDate(minDue === '9999' ? '2099-01-01' : minDue), 2)) || minDue === '9999');
-          const pick = bsub ? (near.find(t => t.sub === bsub) || elig.find(t => t.sub === bsub) || null) : (near.find(t => t.sub !== last) || near[0]);
+          const pick = bsub ? (near.find(t => t.sub === bsub) || elig.find(t => t.sub === bsub) || null) : (near.find(t => t.sub === focus && t.sub !== last) || near.find(t => t.sub !== last) || near[0]);
           if (!pick) break;
           if (parts.length && pick.rem > left) break; // 자투리로 쪼개지 않음
           const use = Math.min(pick.rem, left); pick.rem -= use; left -= use; bsub = pick.sub; daySubs.add(pick.sub);
@@ -231,7 +221,9 @@ function splan() {
   if (cache && cache.sig === sig) return cache;
   const n = horizon(); let r = simulate(n), strained = false;
   if (r.late.length) { const r2 = simulate(n, 'max'); if (r2.late.length < r.late.length) { r = r2; strained = true; } }
-  cache = { sig, ...r, strained }; return cache;
+  cache = { sig, ...r, strained };
+  try { const k = todayK(), D = r.days[0], tot = (D ? D.mins : 0) + (ST().log[k] || []).reduce((a, b) => a + b.mins, 0); if (tot > (ST().pl[k] || 0)) { ST().pl[k] = tot; const ks = Object.keys(ST().pl).sort(); while (ks.length > 14) delete ST().pl[ks.shift()]; } } catch (e) {}
+  return cache;
 }
 const dirty = () => { cache = null; };
 window.studyBusy = () => { try { return (splan().days[0] || { blocks: [] }).blocks.map(b => [b.s, b.e, '공부']); } catch (e) { return []; } };
@@ -319,60 +311,52 @@ function renderCal(B) {
 }
 
 // ---------- 6 공부 ----------
-let sub = 'today', ed = -1, edMode = '', addOpen = false, formOpen = false, openMat = null, preEd = null;
+let sub = 'today', ed = -1, edMode = '', addOpen = false, formOpen = false, openMat = null, timeOpen = false;
 SH[6] = {
   t: '공부',
-  s: () => { const e = nextExam(); if (!e) return `${curPre().name} 카드로 짜는 중`; const dd = dTo(e.date); return `${e.name} ${dd ? 'D-' + dd : 'D-DAY'} · ${phaseOf(dd)[0]}`; },
+  s: () => { const e = nextExam(); if (!e) return '빈 시간에 맞춰 레나가 짜요'; const dd = dTo(e.date); return `${e.name} ${dd ? 'D-' + dd : 'D-DAY'} · ${phaseOf(dd)[0]}`; },
   r: B => {
-    const T = el('div', 'tabs'); [['today', '오늘'], ['exam', '시험'], ['mat', '과목·교재']].forEach(([v, l]) => { const b = el('button', sub === v ? 'on' : '', l); b.onclick = () => { sub = v; ed = -1; addOpen = formOpen = false; preEd = null; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
+    const T = el('div', 'tabs'); [['today', '오늘'], ['exam', '시험'], ['mat', '과목·교재']].forEach(([v, l]) => { const b = el('button', sub === v ? 'on' : '', l); b.onclick = () => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
     ({ today: stToday, exam: stExam, mat: stMat })[sub](B);
   }
 };
-// D-day 띠: 시험까지 남은 날 + 단계를 전화선으로
-function dStrip(B) {
-  const e = nextExam(), w = el('div', 'dstrip'), top = el('div', 'top');
-  if (!e) { const nm = el('div', 'nm'); nm.append(document.createTextNode('다가오는 시험'), el('b', null, '아직 없어요')); top.append(nm, btn('시험 넣기', 'teal', () => { sub = 'exam'; formOpen = true; refreshSheet(); })); w.append(top, el('p', null, '시험을 넣으면 3주 전부터 회독 단계로 나눠 넣어요. 지금은 교재 진도만 고르게 짜요.')); B.appendChild(w); return; }
-  const dd = dTo(e.date), nm = el('div', 'nm'); nm.append(document.createTextNode(`${e.date.slice(5).replace('-', '/')} 시험까지`), el('b', null, e.name));
-  top.append(nm, el('div', 'dd', dd ? `D-${dd}` : 'D-DAY')); w.appendChild(top);
-  const C = el('div', 'cord'), stages = [['3주 전', 21], ['2주 전', 14], ['1주 전', 7], ['전날', 1]], cur = stages.findIndex(([, n], k) => dd <= n && (k === 3 || dd > stages[k + 1][1]));
-  const on = el('i', 'on'); on.style.width = cur < 0 ? '0' : `${Math.min(88, 6 + cur * 29.3)}%`; C.appendChild(on);
-  stages.forEach(([n], k) => C.appendChild(el('span', k < cur ? 'past' : k === cur ? 'cur' : '', n)));
-  w.append(C, el('p', null, phaseOf(dd)[1])); B.appendChild(w);
+// 유리에 붙은 분홍 전단지: 시험까지 남은 날과 이번 주 할 것
+function dFlyer(B) {
+  const e = nextExam(), f = el('div', 'dfly' + (e ? '' : ' none')); f.appendChild(el('i', 'tp'));
+  const top = el('div', 'dtop'), L = el('div');
+  if (!e) { L.append(el('small', null, '다가오는 시험'), el('div', 'dnm', '아직 없어요')); top.append(L, el('div', 'ddn', '평소')); f.append(top, el('p', null, '교재 진도를 날마다 조금씩. 시험을 넣으면 3주 전부터 회독으로 바꿔 짜요.')); B.appendChild(f); return; }
+  const dd = dTo(e.date); L.append(el('small', null, `${e.date.slice(5).replace('-', '/')} 시험까지`), el('div', 'dnm', e.name)); top.append(L, el('div', 'ddn', dd ? `D-${dd}` : 'D-DAY')); f.appendChild(top);
+  const G = el('div', 'stg'), stages = [['3주 전', 21], ['2주 전', 14], ['1주 전', 7], ['전날', 1]], cur = stages.findIndex(([, n], k) => dd <= n && (k === 3 || dd > stages[k + 1][1]));
+  stages.forEach(([n], k) => G.appendChild(el('span', cur >= 0 && k < cur ? 'past' : k === cur ? 'cur' : '', n)));
+  f.append(G, el('p', null, phaseOf(dd)[1])); B.appendChild(f);
 }
-// 공부량 카드(전화카드 모양): 누르면 바로 쓰고, 고치기로 내용 바꾸기
-function cardRow(B) {
-  const st = ST(), R = el('div', 'cards');
-  st.presets.forEach(p => { const c = el('button', 'pcard' + (p.id === st.pref.preset ? ' on' : '')); c.style.setProperty('--c', p.c); c.append(el('b', null, p.name), el('small', null, `평일 ${hm(p.wd)}\n주말 ${hm(p.we)}`), el('i', 'ic')); c.querySelector('small').style.whiteSpace = 'pre-line';
-    c.onclick = () => { if (p.id === st.pref.preset) { preEd = preEd === p.id ? null : p.id; refreshSheet(); return; } usePre(p); delete st.fix[todayK()]; ed = -1; preEd = null; save(); dirty(); pushSync(true); refreshSheet(); toast(`${p.name} 카드로 다시 짰어요.`); }; R.appendChild(c); });
-  const E = el('button', 'pcard edit', preEd ? '닫기' : '✎ 고치기'); E.onclick = () => { preEd = preEd ? null : st.pref.preset; refreshSheet(); }; R.appendChild(E);
-  B.appendChild(R);
-  if (preEd) preEditor(B, st.presets.find(p => p.id === preEd));
-}
-function preEditor(B, p) {
-  if (!p) { preEd = null; return; }
-  const st = ST(), c = el('div', 'card pedit'), apply2 = () => { if (p.id === st.pref.preset) { usePre(p); delete st.fix[todayK()]; } save(); dirty(); pushSync(true); refreshSheet(); };
-  const step = (lab, key, d, lo, hi, fmt) => { const r = el('div', 'r'), S3 = el('div', 'step'), v = el('b', null, fmt(p[key])); S3.append(btn('−', 'ghost', () => { p[key] = Math.max(lo, p[key] - d); apply2(); }), v, btn('+', 'ghost', () => { p[key] = Math.min(hi, p[key] + d); apply2(); })); r.append(el('span', null, lab), S3); return r; };
-  const time = (lab, key) => { const r = el('div', 'r'), i2 = inp('time', '', p[key]); i2.onchange = () => { if (i2.value) { p[key] = i2.value; apply2(); } }; r.append(el('span', null, lab), i2); return r; };
-  const nm = inp('text', '카드 이름', p.name); nm.onchange = () => { p.name = nm.value.trim().slice(0, 8) || p.name; apply2(); };
-  const sw = el('div', 'pills'); CARDC.forEach(col => { const b = el('button', p.c === col ? 'on' : ''); b.style.cssText = `width:36px;padding:0;background:${col};border:2px solid ${p.c === col ? '#fff' : '#000'}`; b.setAttribute('aria-label', '카드 색'); b.onclick = () => { p.c = col; apply2(); }; sw.appendChild(b); });
-  const r0 = el('div', 'r'); r0.append(nm, sw); nm.style.maxWidth = '140px';
-  c.append(r0, step('평일 하루 공부', 'wd', 30, 30, 600, hm), step('주말 하루 공부', 'we', 30, 30, 720, hm), time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), step('평일 과목 수', 'wdSub', 1, 1, 6, n => `${n}과목`), step('주말 과목 수', 'weSub', 1, 1, 6, n => `${n}과목`));
-  const acts = [btn('새 카드 만들기', 'ghost wide', () => { if (st.presets.length >= 6) { toast('카드는 6장까지예요.'); return; } const n = { ...p, id: uid('p'), name: '내 카드', c: CARDC.find(x => !st.presets.some(q => q.c === x)) || p.c }; st.presets.push(n); preEd = n.id; save(); refreshSheet(); })];
-  if (st.presets.length > 1) acts.unshift(btn('이 카드 버리기', 'ghost', () => { if (!confirm(`'${p.name}' 카드를 버릴까요?`)) return; st.presets = st.presets.filter(x => x !== p); if (st.pref.preset === p.id) usePre(st.presets[0]); preEd = null; save(); dirty(); pushSync(true); refreshSheet(); }));
-  c.append(row(...acts), el('div', 'hint', '바꾸면 바로 다시 짜요. 학교·학원 시간은 1번 전단지 > 시간표에 넣으면 피해서 짜요.'));
-  B.appendChild(c);
+// 레나 쪽지: 오늘 양을 왜 이렇게 잡았는지 + 오늘만 바꾸기 + 말로 바꾸기
+function lenaNote(B, D, lg) {
+  const st = ST(), P = st.pref, k = todayK(), tot = D.mins + lg.reduce((a, b) => a + b.mins, 0), e = nextExam(), kr = keepRate(), adj = st.adj && st.adj.d === k ? st.adj.mul : 1;
+  let say;
+  if (adj === 0) say = '오늘은 쉬는 날로 했어요. 내일 제가 조금씩 나눠서 메워 둘게요.';
+  else if (!tot) say = '오늘은 빈 시간이 없거나 할 게 다 끝났어요. 푹 쉬어요.';
+  else if (e && dTo(e.date) <= 7) say = `시험 주간이에요. 오늘 ${hm(tot)}, 남은 범위를 날짜로 나눠서 딱 필요한 만큼만 넣었어요.`;
+  else if (adj < 1) say = `알았어요, 오늘은 ${hm(tot)}만. 나머지는 뒤로 고르게 밀어 뒀어요.`;
+  else if (adj > 1) say = `의욕 좋네요. 오늘 ${hm(tot)}로 늘렸어요.`;
+  else say = `오늘은 ${hm(tot)}. 남은 양을 마감까지 고르게 나눠서 잡았어요.${kr != null && kr < .7 ? ' 요즘 좀 밀려서 양을 살짝 줄였어요.' : ''}`;
+  const c = el('div', 'ask lena'); c.append(el('span', 'who', '레나'), document.createTextNode(say));
+  const lim = (we, u) => u ? hm(u) : `자동(최대 ${hm(AUTO_CAP[we])})`;
+  c.appendChild(el('span', 'lsub', `평일 ${P.wdS}~ ${lim(0, P.wdMax)} · 주말 ${P.weS}~ ${lim(1, P.weMax)} · ${P.end}까지${P.focus && P.focus.until >= k ? ` · ${P.focus.sub} 먼저` : ''}`));
+  const set = mul => { st.adj = { d: k, mul }; delete st.fix[k]; ed = -1; save(); dirty(); pushSync(true); refreshSheet(); };
+  const R = row(...(adj === 1 ? [btn('오늘은 조금만', 'ghost', () => set(.5)), btn('오늘 쉴래', 'ghost', () => set(0)), btn('더 할래', 'ghost', () => set(1.4))] : [btn('원래대로', 'ghost', () => set(1))]), btn('레나랑 얘기', 'teal', () => { closeSheet(); openCall(); setTimeout(() => sendText('공부 계획 얘기하자'), 400); }));
+  c.appendChild(R); B.appendChild(c);
 }
 function stToday(B) {
   const st = ST(), P = splan(), D = P.days[0] || { blocks: [], mins: 0 }, k = todayK(), lg = st.log[k] || [], now = new Date();
+  dFlyer(B);
   if (!subs().length) {
-    dStrip(B);
-    const sp = el('div', 'sheetp'); sp.append(el('i', 'tape'), el('div', 'pempty', '아직 빈 시간표예요.\n시험이나 교재를 하나 넣으면 레나가 빈 시간에 맞춰 날마다 채워요. 통화로 "기말 12월 10일, 수학 쎈 1~8단원"처럼 말해도 돼요.')); sp.lastChild.style.whiteSpace = 'pre-line'; B.appendChild(sp);
-    B.appendChild(row(btn('교재 넣기', 'teal wide', () => { sub = 'mat'; formOpen = true; refreshSheet(); })));
+    const sp = el('div', 'sheetp'); sp.append(el('i', 'tape'), el('div', 'pempty', '아직 빈 시간표예요.\n교재나 시험을 하나 넣으면 제가 빈 시간에 맞춰 날마다 채워요.\n통화로 "기말 12월 10일, 수학 쎈 1~8단원"이라고 해도 돼요.')); B.appendChild(sp);
+    B.appendChild(row(btn('교재 넣기', 'teal wide', () => { sub = 'mat'; formOpen = true; refreshSheet(); }), btn('시험 넣기', 'wide', () => { sub = 'exam'; formOpen = true; refreshSheet(); })));
     return;
   }
-  dStrip(B); cardRow(B);
-  if (P.late.length) B.appendChild(el('div', 'warn', `시간이 모자라요: ${[...new Set(P.late.map(t => t.sub))].join(', ')}. 더 큰 카드를 고르거나 카드를 고쳐서 하루 시간을 늘려요.`));
-  // 종이 시간표
+  lenaNote(B, D, lg);
+  if (P.late.length) B.appendChild(el('div', 'warn', `시간이 모자라요: ${[...new Set(P.late.map(t => t.sub))].join(', ')}. "레나랑 얘기"에서 하루 시간을 늘려 달라고 하거나, 아래 시간 설정에서 늘려요.`));
   const sp = el('div', 'sheetp'), tot = D.mins + lg.reduce((a, b) => a + b.mins, 0);
   sp.append(el('i', 'tape'), el('i', 'tape r'));
   const hd = el('div', 'hd'); hd.append(el('b', null, `${now.getMonth() + 1}월 ${now.getDate()}일 ${WD[now.getDay()]}요일`), el('span', null, tot ? hm(tot) : '쉬는 날')); sp.appendChild(hd);
@@ -382,19 +366,30 @@ function stToday(B) {
   const subWord = (sb, txt) => { const w = el('span'), i2 = el('i', null, sb); i2.style.setProperty('--c', colOf(sb)); w.append(i2, document.createTextNode(txt)); return w; };
   list.forEach(x => {
     if (x.fx) { const r = el('div', 'pr fx'); r.append(el('span', 't', toT(x.fx[0])), el('span', 'w', `${x.fx[2] || '일정'} ~${toT(x.fx[1])}`)); sp.appendChild(r); return; }
-    if (x.lg) { const r = el('div', 'pr done'), t = el('span', 't'); t.append(document.createTextNode(toT(x.lg.s)), el('small', null, `${x.lg.mins}분`)); const w = el('span', 'w'); w.appendChild(subWord(x.lg.sub, x.lg.label)); r.append(t, w, el('span', 'st', '끝')); sp.appendChild(r); return; }
+    if (x.lg) { const r = el('div', 'pr done'), t = el('span', 't'); t.append(document.createTextNode(toT(x.lg.s)), el('small', null, `${x.lg.mins}분`)); const w = el('span', 'w'); w.appendChild(subWord(x.lg.sub, x.lg.label)); const st2 = el('span', 'st'), im = el('img'); im.src = CUR('todo'); im.alt = '끝냄'; st2.appendChild(im); r.append(t, w, st2); sp.appendChild(r); return; }
     const b = x.b, i = x.i, r = el('div', 'pr' + (ed === i ? ' ed' : '')), t = el('span', 't'); t.append(document.createTextNode(toT(b.s)), el('small', null, `${b.e - b.s}분`));
     const w = el('button', 'w'); w.appendChild(subWord(b.sub, b.parts.map(p => p.t.label).join(' + '))); w.onclick = () => { ed = ed === i ? -1 : i; edMode = ''; addOpen = false; refreshSheet(); };
     const ok = el('button', 'st'); ok.setAttribute('aria-label', '끝냄'); ok.onclick = () => { finishBlock(b); ed = -1; refreshSheet(); toast('한 블록 끝! 동전 +1'); };
     r.append(t, w, ok); sp.appendChild(r);
     if (ed === i) sp.appendChild(editRow(i));
   });
-  if (!list.length) sp.appendChild(el('div', 'pempty', '오늘은 남은 공부가 없어요. 빈 시간이 없거나 다 끝냈어요.'));
+  if (!list.length) sp.appendChild(el('div', 'pempty', '오늘은 남은 공부가 없어요.'));
   if (addOpen) { const w = el('div', 'ptools'); w.appendChild(el('div', 'q', '어떤 과목 블록을 더 넣을까요?')); w.appendChild(pills(subs().map(x => [x, x]), '', sb => { const F = freeze(), P2 = st.pref, n = new Date(), nowM = Math.ceil((n.getHours() * 60 + n.getMinutes()) / 10) * 10, we = n.getDay() === 0 || n.getDay() === 6, s0 = Math.max(nowM, toM(we ? P2.weS : P2.wdS), F.length ? F[F.length - 1].e + 10 : 0); F.push({ s: s0, e: s0 + P2.block, sub: sb, parts: nextOf(sb, P2.block) }); addOpen = false; commit(); })); sp.appendChild(w); }
   sp.appendChild(Object.assign(el('button', 'padd', addOpen ? '닫기' : '+ 블록 더 넣기'), { onclick: () => { addOpen = !addOpen; ed = -1; refreshSheet(); } }));
-  sp.appendChild(el('div', 'pfoot', st.fix[k] ? '직접 고친 시간표예요.' : `줄을 누르면 시간·순서·과목을 바꿔요. 50분 공부하고 10분 쉬어요.`));
+  sp.appendChild(el('div', 'pfoot', st.fix[k] ? '직접 고친 시간표예요.' : '줄을 누르면 시간·순서·과목을 바꿔요. 50분 공부하고 10분 쉬어요.'));
   B.appendChild(sp);
   if (st.fix[k]) B.appendChild(row(btn('레나가 다시 짜기', 'ghost wide', () => { delete st.fix[k]; ed = -1; save(); dirty(); pushSync(true); refreshSheet(); })));
+  const tg = btn(timeOpen ? '닫기' : '시간 직접 바꾸기', 'ghost wide', () => { timeOpen = !timeOpen; refreshSheet(); }); tg.style.marginTop = '10px'; B.appendChild(tg);
+  if (timeOpen) timeEditor(B);
+}
+function timeEditor(B) {
+  const st = ST(), P = st.pref, c = el('div', 'card pedit'), k = todayK(), up = () => { delete st.fix[k]; save(); dirty(); pushSync(true); refreshSheet(); };
+  const time = (lab, key) => { const r = el('div', 'r'), i2 = inp('time', '', P[key]); i2.onchange = () => { if (i2.value) { P[key] = i2.value; up(); } }; r.append(el('span', null, lab), i2); return r; };
+  const cap = (lab, key, we) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = P[key] ? (P[key] - 30 < 30 ? 0 : P[key] - 30) : 0; up(); }), el('b', null, P[key] ? hm(P[key]) : '자동'), btn('+', 'ghost', () => { P[key] = Math.min(we ? 720 : 600, (P[key] || AUTO_CAP[we ? 1 : 0]) + 30); up(); })); r.append(el('span', null, lab), S3); return r; };
+  const cnt = (lab, key) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = Math.max(1, P[key] - 1); up(); }), el('b', null, `${P[key]}과목`), btn('+', 'ghost', () => { P[key] = Math.min(6, P[key] + 1); up(); })); r.append(el('span', null, lab), S3); return r; };
+  c.append(time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), cap('평일 하루 최대', 'wdMax', 0), cap('주말 하루 최대', 'weMax', 1), cnt('평일 과목 수', 'wdSubs'), cnt('주말 과목 수', 'weSubs'));
+  c.appendChild(el('div', 'hint', '하루 최대를 0까지 내리면 "자동"이에요. 자동은 그날 빈 시간과 마감까지 남은 양으로 레나가 정해요. 통화로 "주말엔 9시부터" "수학 먼저 해 줘"처럼 말해도 바꿔요.'));
+  B.appendChild(c);
 }
 function editRow(i) {
   const w = el('div', 'ptools'), go = fn => () => { const F = freeze(); if (!F[i]) return; fn(F, F[i]); commit(); };
@@ -419,7 +414,7 @@ function stExam(B) {
     e.ranges.forEach(r => { const m = matOf(r.mat); if (m) c.appendChild(el('div', 'hint', `${m.title} ${m.units[r.from] ? m.units[r.from].name : ''}~${m.units[r.to] ? m.units[r.to].name : ''}`)); });
     if (n === 0) { // 블로그 주차별 계획을 날짜로
       const W = el('div', 'wkl'), d0 = pDate(e.date), md = x => `${x.getMonth() + 1}/${x.getDate()}`, cur = phaseOf(dd)[0];
-      [['3주 전', -21, -15, 21], ['2주 전', -14, -8, 14], ['1주 전', -7, -2, 7], ['시험 전날', -1, -1, 1]].forEach(([nm, a, b, pd]) => { if (dkey(dAdd(d0, b)) < today) return; const r = el('div', nm === cur || (nm === '시험 전날' && cur === '시험 전날') ? 'now' : ''); r.append(el('b', null, `${nm}  ${a === b ? md(dAdd(d0, a)) : `${md(dAdd(d0, a))}~${md(dAdd(d0, b))}`}`), document.createTextNode(phaseOf(pd)[1])); W.appendChild(r); });
+      [['3주 전', -21, -15, 21], ['2주 전', -14, -8, 14], ['1주 전', -7, -2, 7], ['시험 전날', -1, -1, 1]].forEach(([nm, a, b, pd]) => { if (dkey(dAdd(d0, b)) < today) return; const r = el('div', nm === cur || (nm === '시험 전날' && cur === '시험 전날') ? 'now' : ''); const lb = el('b'); lb.append(nm, el('br'), a === b ? md(dAdd(d0, a)) : `${md(dAdd(d0, a))}~${md(dAdd(d0, b))}`); r.append(lb, el('span', null, phaseOf(pd)[1])); W.appendChild(r); });
       c.appendChild(W);
     }
     B.appendChild(c);
@@ -486,8 +481,10 @@ const _plan = window.plan; window.plan = function () {
 const _sys = sysPrompt; sysPrompt = function (sp) {
   const s = _sys(sp), st = ST();
   return s.replace('JSON만 출력:', `- 공부: 교재·문제집(몇 단원/몇 쪽), 학원 숙제, 시험 날짜·과목·범위를 말하면 study에 넣는다. study={"mats":[{"sub":"과목","title":"교재 이름","kind":"book|hw","from":1,"to":12,"unit":"단원|쪽","chunk":쪽일 때 덩어리 쪽수,"mins":단원 하나 걸리는 분(모르면 40),"due":"YYYY-MM-DD 숙제면 다음 학원 날"}],"exams":[{"name":"시험 이름","date":"YYYY-MM-DD","subs":["과목"],"ranges":[{"sub":"과목","title":"교재 이름","from":시작 번호,"to":끝 번호}]}]}. 교재가 이미 있으면 mats에 다시 넣지 않는다. 계획은 앱이 시험 3주 전부터 회독 단계로 빈 시간에 짠다(6번 공부).
+- 공부 계획 고치기: 송휘님이 공부 시간·양·순서를 바꿔 달라고 하면 study.set에 바꿀 것만 넣는다. set={"wdS":"HH:MM 평일 시작","weS":"HH:MM 주말 시작","end":"HH:MM 끝","wdMax":평일 하루 최대 분(0=자동),"weMax":주말 하루 최대 분(0=자동),"wdSubs":평일 과목 수,"weSubs":주말 과목 수,"block":한 블록 분(30~90),"focus":"먼저 할 과목"(없애려면 ""),"focusDays":며칠 동안,"today":"less|off|more|normal"(오늘만 조금/쉬기/더/원래대로)}. 피곤하다·아프다면 today:"less"나 "off"를 권하고, 바꾼 뒤엔 reply에서 짧게 무엇을 바꿨는지 말한다.
+지금 공부 설정: ${JSON.stringify({ wdS: st.pref.wdS, weS: st.pref.weS, end: st.pref.end, wdMax: st.pref.wdMax || '자동', weMax: st.pref.weMax || '자동', wdSubs: st.pref.wdSubs, weSubs: st.pref.weSubs, block: st.pref.block, focus: st.pref.focus && st.pref.focus.sub || '' })} 오늘 계획: ${(() => { try { const D = splan().days[0]; return D.blocks.map(b => `${toT(b.s)} ${b.sub} ${b.parts.map(p => p.t.label).join('+')}`).join(', ') || '없음'; } catch (e) { return '?'; } })()}
 지금 공부 목록: ${JSON.stringify(st.mats.map(m => `${m.sub}/${m.title}(${m.kind === 'hw' ? '숙제' : m.units.length + '개'}, 남은 ${m.units.filter(u => !u.done).length})`).slice(0, 20))} 시험: ${JSON.stringify(st.exams.map(e => `${e.name} ${e.date} ${exSubs(e).join('·')}`))}
-JSON만 출력:`).replace(/"follow":\[\]\}/, '"follow":[],"study":{"mats":[],"exams":[]}}');
+JSON만 출력:`).replace(/"follow":\[\]\}/, '"follow":[],"study":{"mats":[],"exams":[],"set":{}}}');
 };
 const _ap = apply; apply = function (r) {
   const res = _ap(r), x = r && r.study, got = [];
@@ -495,10 +492,20 @@ const _ap = apply; apply = function (r) {
     (x.mats || []).forEach(o => { if (!o || !o.title) return; if (ST().mats.some(m => m.title === o.title && m.sub === (o.sub || m.sub) && m.kind === (o.kind === 'hw' ? 'hw' : 'book'))) return; const m = addMat({ ...o, unit: o.unit === '쪽' ? '쪽' : '단원' }); got.push(`${m.sub} ${m.title}`); });
     (x.exams || []).forEach(o => { if (!o || !o.name || !/^\d{4}-\d\d-\d\d$/.test(o.date || '')) return; const ranges = (o.ranges || []).map(rg => { if (!rg || !rg.title) return null; let m = ST().mats.find(mm => mm.kind === 'book' && mm.title === rg.title) || ST().mats.find(mm => mm.kind === 'book' && (mm.title.includes(rg.title) || rg.title.includes(mm.title))); if (!m) m = addMat({ sub: rg.sub, title: rg.title, kind: 'book', from: 1, to: +rg.to || 1 }); const fi = Math.max(0, m.units.findIndex(u => u.n === +rg.from)), ti = m.units.findIndex(u => u.n === +rg.to); return { mat: m.id, from: fi, to: ti < 0 ? m.units.length - 1 : ti }; }).filter(Boolean); addExam({ name: o.name, date: o.date, subs: [...(o.subs || []), ...(o.ranges || []).map(rg => rg && rg.sub).filter(Boolean)], ranges }); got.push(`시험 ${o.name}`); });
   }
+  if (x && x.set && typeof x.set === 'object') {
+    const P = ST().pref, o = x.set, tm = v => /^\d{1,2}:\d\d$/.test(v || '') ? v.padStart(5, '0') : null, ch = [];
+    [['wdS', '평일 시작'], ['weS', '주말 시작'], ['end', '끝']].forEach(([kk, n]) => { const v = tm(o[kk]); if (v && v !== P[kk]) { P[kk] = v; ch.push(`${n} ${v}`); } });
+    [['wdMax', '평일 최대', 600], ['weMax', '주말 최대', 720]].forEach(([kk, n, hi]) => { if (o[kk] == null || o[kk] === '') return; const v = Math.max(0, Math.min(hi, Math.round(+o[kk] / 10) * 10 || 0)); if (v !== P[kk]) { P[kk] = v; ch.push(`${n} ${v ? hm(v) : '자동'}`); } });
+    [['wdSubs', '평일'], ['weSubs', '주말']].forEach(([kk, n]) => { const v = Math.round(+o[kk]); if (v >= 1 && v <= 6 && v !== P[kk]) { P[kk] = v; ch.push(`${n} ${v}과목`); } });
+    if (+o.block >= 30 && +o.block <= 90) { P.block = Math.round(+o.block / 5) * 5; ch.push(`블록 ${P.block}분`); }
+    if (typeof o.focus === 'string') { if (o.focus.trim()) { P.focus = { sub: o.focus.trim().slice(0, 12), until: dkey(dAdd(new Date(), Math.max(1, Math.min(30, +o.focusDays || 7)) - 1)) }; ch.push(`${P.focus.sub} 먼저`); } else if (P.focus) { P.focus = null; ch.push('먼저 할 과목 없앰'); } }
+    const tmap = { less: .5, off: 0, more: 1.4, normal: 1 }; if (o.today in tmap) { ST().adj = { d: todayK(), mul: tmap[o.today] }; ch.push({ less: '오늘 조금만', off: '오늘 쉬기', more: '오늘 더', normal: '오늘 원래대로' }[o.today]); }
+    if (ch.length) { delete ST().fix[todayK()]; got.push('계획 바꿈(' + ch.join(', ') + ')'); }
+  }
   if (!got.length) return res;
   dirty(); save(); pushSync(true);
   const txt = `공부에 넣음: ${got.join(', ')} · 6번 공부에서 확인`;
   if (res) { res.querySelector('span').textContent += ' · ' + txt; return res; } return noteEl(txt);
 };
-window.lenaStudy = { usePre, plan: () => splan(), simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
+window.lenaStudy = { keepRate, plan: () => splan(), simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
 })();
