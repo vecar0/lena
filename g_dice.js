@@ -93,7 +93,7 @@ const { frame, talk, gcAdd, gc } = window.ARC;
 const NAME = 'SNAKE EYES', COST = 3;
 const css = `
 .abody.se-bg{background:linear-gradient(rgba(6,8,13,.84),rgba(6,8,13,.9)),url(assets/lena/poster.jpg) center/cover}
-.se-foe{position:relative;display:flex;align-items:center;gap:12px;padding:14px 12px 12px;border:2px solid #000;border-radius:3px;background:url(assets/lena/paper_pink.webp) center/cover,#ffb3cf;color:#111;box-shadow:5px 5px 0 #000;transform:rotate(-.8deg);margin-top:8px}
+.se-foe{position:relative;display:flex;align-items:center;gap:12px;padding:14px 12px 12px;border:2px solid #000;border-radius:3px;background:linear-gradient(rgba(255,240,246,.5),rgba(255,240,246,.5)),url(assets/lena/paper_pink.webp) center/cover,#ffb3cf;color:#111;box-shadow:5px 5px 0 #000;transform:rotate(-.8deg);margin-top:8px}
 .se-foe::before{content:"";position:absolute;left:50%;top:-10px;width:70px;height:18px;margin-left:-35px;background:url(assets/lena/tape_white.webp) center/100% 100%}
 .se-foe::after{content:"독촉";position:absolute;right:10px;top:8px;padding:0 6px;border:2.5px solid #c4004f;border-radius:4px;color:#c4004f;font:400 15px 'Black Han Sans';transform:rotate(8deg);opacity:.8}
 .se-foe.boss::after{content:"최종 독촉"}
@@ -114,7 +114,7 @@ const css = `
 .se-e{position:relative;min-height:92px;padding:12px 10px 8px;border:2px solid #000;border-radius:3px;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;color:#111;text-align:left;box-shadow:3px 4px 0 #000;transition:transform .15s}
 .se-e:nth-child(odd){transform:rotate(-.7deg)}.se-e:nth-child(even){transform:rotate(.6deg)}
 .se-e::before{content:"";position:absolute;left:14px;top:-7px;width:40px;height:14px;background:url(assets/lena/tape_teal1.webp) center/100% 100%;transform:rotate(-5deg)}
-.se-e.atk{background-image:url(assets/lena/paper_pink.webp)}.se-e.atk::before{background-image:url(assets/lena/tape_white.webp)}.se-e.def{background-image:url(assets/lena/paper_teal.webp)}.se-e.util{background-image:url(assets/lena/paper_yellow.webp)}.se-e.util::before{background-image:url(assets/lena/tape_pink1.webp)}
+.se-e{background-image:linear-gradient(rgba(255,255,255,.45),rgba(255,255,255,.45)),url(assets/lena/paper_white.webp)}.se-e.atk{background-image:linear-gradient(rgba(255,240,246,.5),rgba(255,240,246,.5)),url(assets/lena/paper_pink.webp)}.se-e.atk::before{background-image:url(assets/lena/tape_white.webp)}.se-e.def{background-image:linear-gradient(rgba(240,255,252,.5),rgba(240,255,252,.5)),url(assets/lena/paper_teal.webp)}.se-e.util{background-image:linear-gradient(rgba(255,255,240,.45),rgba(255,255,240,.45)),url(assets/lena/paper_yellow.webp)}.se-e.util::before{background-image:url(assets/lena/tape_pink1.webp)}
 .se-e b{display:block;font-family:'Black Han Sans';font-weight:400;font-size:15.5px;padding-right:38px}.se-e small{display:block;font-size:12px;font-weight:600;opacity:.82;word-break:keep-all;padding-right:38px}
 .se-e .slotb{position:absolute;right:8px;bottom:8px;width:34px;height:34px;border:2.5px dashed rgba(0,0,0,.55);border-radius:9px;display:grid;place-items:center;font:700 11px 'Space Mono',monospace;color:#333;background:rgba(0,0,0,.06)}
 .se-e .slotb.fill{border:3px solid #000;background:#fff;font:400 20px 'Black Han Sans';color:#111;animation:sestamp .35s cubic-bezier(.2,1.6,.4,1)}@keyframes sestamp{0%{transform:scale(2) rotate(-20deg);opacity:0}}
@@ -126,6 +126,8 @@ const css = `
 .se-pop{position:fixed;z-index:60;left:50%;top:26%;transform:translateX(-50%);font-family:'Black Han Sans';font-size:48px;color:#fff36b;-webkit-text-stroke:2px #000;text-shadow:4px 4px 0 #000;pointer-events:none;animation:sepop .8s forwards}.se-pop.r{color:#ff2e6e;top:62%}.se-pop.b{color:#bfe8ff}
 @keyframes sepop{0%{transform:translate(-50%,10px) scale(.4)}25%{transform:translate(-50%,0) scale(1.25)}45%{transform:translate(-50%,0) scale(1)}100%{transform:translate(-50%,-30px);opacity:0}}
 .se-hurt{position:fixed;inset:0;z-index:58;pointer-events:none;background:radial-gradient(circle,transparent 40%,rgba(255,46,110,.5));animation:sehurt .5s forwards}@keyframes sehurt{to{opacity:0}}
+.se-hook{display:flex;align-items:center;gap:12px;width:100%;min-height:58px;padding:8px 14px;border:3px solid #000;border-radius:14px;background:linear-gradient(#3a3f47,#1c1f24);color:#fff;text-align:left;box-shadow:0 5px 0 #000,inset 0 2px 0 rgba(255,255,255,.12)}.se-hook:active{transform:translateY(4px);box-shadow:0 1px 0 #000}
+.se-hook i{flex:none;width:46px;height:20px;border-radius:10px 10px 4px 4px;background:linear-gradient(#5ff2d8,#1d9e8a);border:2px solid #000;box-shadow:0 0 10px rgba(47,224,200,.6)}.se-hook span{font:400 17px 'Black Han Sans'}.se-hook small{display:block;font:700 12px Pretendard;opacity:.7}
 .se-map{display:flex;justify-content:space-between;gap:6px;padding:10px;border:2px solid #000;border-radius:4px;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6}.se-map i{flex:1;height:30px;border-radius:6px;border:2px solid #000;background:#ddd;display:grid;place-items:center;font:400 14px 'Black Han Sans';font-style:normal;color:#555}.se-map i.on{background:var(--teal);color:#111}.se-map i.now{background:var(--yel);color:#111;transform:translateY(-3px);box-shadow:0 3px 0 #000}.se-map i.boss{background:#5a1030;color:#fff}
 `;
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
@@ -137,13 +139,13 @@ let run = null, sel = null, busy = false, msg = '';
 function pop(t, c) { const p = el('div', 'se-pop' + (c ? ' ' + c : ''), t); document.body.appendChild(p); setTimeout(() => p.remove(), 820); }
 function lobby() {
   frame(NAME, B => {
-    const M = meta(), nm = el('div', 'bp-name'); nm.innerHTML = `${NAME}<small>주사위 끼워 해골과 싸우기</small>`; B.appendChild(nm);
+    const M = meta(), nm = el('div', 'bp-name'); nm.style.setProperty('--pc', '#ffc9de'); nm.style.setProperty('--pk', '#2fe0c8'); nm.innerHTML = `${NAME}<small>주사위를 끼워 독촉 해골을 이겨요</small>`; B.appendChild(nm);
     talk(B, 'l', '주사위는 제가 굴려 줄게요. 어디에 끼울지는 송휘님 몫. …6 나오면 저 보고 웃어요.');
     const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, '하는 법'));
     P.appendChild(el('div', 'hint', '내 차례마다 주사위를 굴려요. 주사위를 누르고 → 장비 칸을 누르면 끼워져요(칸마다 조건: 짝수만·4 이상 등). 다 쓰면 "차례 끝". 해골도 주사위와 장비가 보여요. 6층을 내려가 해골 사장을 이기면 끝. 이길 때마다 새 장비·강화·쉬기 중 하나.'));
     B.appendChild(P);
     if (S.dice2 && S.dice2.ph !== 'over' && S.dice2.ph !== 'win') { const c = el('div', 'bp-row'); c.appendChild(btn(`이어하기 (${S.dice2.fl + 1}층)`, 'teal wide', () => { run = { ...S.dice2, R: Math.random }; draw(); })); B.appendChild(c); }
-    const r = el('div', 'bp-row'), g = el('button', 'bp-go'); g.innerHTML = `새로 시작<small>게임 동전 ${COST} · 최고 ${M.best}층 · 클리어 ${M.wins}번</small>`;
+    const r = el('div', 'bp-row'), g = el('button', 'bp-go'); g.innerHTML = `새로 시작<small>게임 동전 ${COST}개 — 최고 ${M.best}층, 클리어 ${M.wins}번</small>`;
     g.onclick = () => { if (gc() < COST) { toast(`게임 동전이 모자라요. (${COST}개)`); return; } gcAdd(-COST); coinSound(); run = newRun(); persist(); draw(); }; r.appendChild(g); B.appendChild(r);
   }, true);
 }
@@ -170,7 +172,7 @@ function draw() {
       c.append(el('b', null, q.n + (s.up ? ' +'.repeat(s.up) : '')), el('small', null, q.d + (s.up ? ` (+${s.up} 강화)` : ''))); if (condTxt(q.c)) c.appendChild(el('em', null, condTxt(q.c))); c.appendChild(el('span', 'slotb' + (s.ld ? ' fill' : ''), s.ld && left <= 0 ? String(s.ld) : (q.u || 1) > 1 ? `×${left}` : '□'));
       c.onclick = () => { if (busy || sel == null) { if (sel == null) toast('먼저 아래 주사위를 눌러요.'); return; } const d = run.hand[sel]; const r = use(run, 'me', sel, k); if (!r) { toast(`이 칸은 ${condTxt(q.c) || '지금 못 써요'}`); return; } sel = null; fxOf(r, d); persist(); draw(); }; E.appendChild(c); });
     B.appendChild(E);
-    const r = el('div', 'bp-row'), end = el('button', 'bp-go t', '차례 끝'); end.onclick = () => endTurn(); r.appendChild(end); B.appendChild(r);
+    const r = el('div', 'bp-row'), end = el('button', 'se-hook'); end.innerHTML = '<i></i><span>수화기 내려놓기<small>차례 끝 — 해골 차례로</small></span>'; end.onclick = () => endTurn(); r.appendChild(end); B.appendChild(r);
   }, true);
 }
 function fxOf(r, d) {

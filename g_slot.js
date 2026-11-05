@@ -221,8 +221,9 @@ const css = `
 .bp-dl{display:flex;align-items:center;gap:8px;font-family:'Black Han Sans';font-size:17px;color:#fff;text-shadow:2px 2px 0 #000}
 .bp-dl i{display:flex;gap:4px;margin-left:auto}.bp-dl i u{width:12px;height:12px;border-radius:50%;border:2px solid #000;background:#2a2d33}.bp-dl i u.on{background:var(--pink)}.bp-dl i u.now{background:var(--yel)}
 .bp-dl em{font-style:normal;font-family:'Space Mono',monospace;font-size:11.5px;color:#ff8fb6;text-shadow:none}
-.bp-name{text-align:center;font-family:'Black Han Sans';font-size:clamp(28px,9.5vw,44px);line-height:1;color:var(--yel);text-shadow:3px 3px 0 var(--pink),6px 6px 0 #000;letter-spacing:2px;margin:6px 0 0}
-.bp-name small{display:block;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:6px;color:var(--teal);text-shadow:none;margin-top:6px}
+.bp-name{position:relative;margin:14px 6px 4px;padding:22px 14px 16px;border:2px solid #000;border-radius:2px;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;background-color:var(--pc,#f3efe6);background-blend-mode:multiply;color:#111;text-align:center;box-shadow:6px 7px 0 rgba(0,0,0,.55);transform:rotate(-1.4deg);font-family:'Black Han Sans';font-size:clamp(34px,11.5vw,50px);line-height:.95;letter-spacing:-.5px;text-shadow:3px 3px 0 var(--pk,#ff3d9a)}
+.bp-name::before,.bp-name::after{content:"";position:absolute;top:-10px;width:58px;height:20px;background:url(assets/lena/tape_white.webp) center/100% 100%;opacity:.95}.bp-name::before{left:10px;transform:rotate(-14deg)}.bp-name::after{right:10px;transform:rotate(11deg)}
+.bp-name small{display:block;margin-top:10px;font-family:Pretendard;font-size:14px;font-weight:800;letter-spacing:0;text-shadow:none;opacity:.78}
 .bp-panel{position:relative;padding:12px;border-radius:4px;border:2px solid #000;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;color:#111;box-shadow:4px 4px 0 var(--teal)}
 .bp-panel::before{content:"";position:absolute;left:50%;top:-9px;width:54px;height:16px;margin-left:-27px;background:url(assets/lena/tape_pink1.webp) center/100% 100%}
 .bp-panel h4{font-family:'Black Han Sans';font-weight:400;font-size:17px;margin:0 0 8px}
@@ -293,7 +294,7 @@ function enter() { delete S.slotRun; R = S.slot2 || null; tk0 = R ? R.cards : nu
 function lobby() {
   frame(NAME, B => {
     const M = meta();
-    const nm = el('div', 'bp-name'); nm.innerHTML = `${NAME}<small>빚 갚기 슬롯</small>`; B.appendChild(nm);
+    const nm = el('div', 'bp-name'); nm.style.setProperty('--pc', '#fff2a8'); nm.innerHTML = `${NAME}<small>빚 갚기 슬롯 — 마감 9번을 넘겨요</small>`; B.appendChild(nm);
     talk(B, 'sk', '(해골이 빚 장부를 펼친다) 마감 9번. 다 갚으면 놓아준대요. …못 갚으면? 몰라요, 저도.');
     const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, '빚 갚기 슬롯'));
     P.appendChild(el('div', 'hint', '라운드 3번이 마감 하나. 레버를 당겨 칩을 벌고, ATM에 넣어 두면 라운드마다 이자 7%. 가운데 해골 셋이 뜨면 「통화 끊김」 — 손에 든 칩은 날아가요. 마감마다 레나가 전화해서 하나를 골라 줘요. 티켓으로 부적(7칸)을 사서 판을 키워요.'));
@@ -301,7 +302,7 @@ function lobby() {
     const today = dk(new Date()), dd = M.daily[today];
     const r = el('div', 'bp-row');
     const go = (seed, daily) => { if (gc() < 3) { toast('게임 동전이 모자라요. (3개 필요)'); return; } gcAdd(-3); coinSound(); R = newRun(seed, { unl: M.unl }); tk0 = R.cards; R.daily = daily ? today : ''; ach('a_first'); if (daily) { M.daily = { [today]: { best: dd ? dd.best : 0 } }; ach('a_daily'); } persist(); draw(); };
-    const a = el('button', 'bp-go'); a.innerHTML = `새 판 시작<small>게임 동전 3</small>`; a.onclick = () => go((Date.now() * 9301) ^ (Math.random() * 1e9), 0);
+    const a = el('button', 'bp-go'); a.innerHTML = `새 판 시작<small>게임 동전 3개</small>`; a.onclick = () => go((Date.now() * 9301) ^ (Math.random() * 1e9), 0);
     const b = el('button', 'bp-go t'); b.innerHTML = `오늘의 판<small>${dd ? `오늘 최고 마감 ${dd.best}` : '오늘 모두 같은 판'}</small>`; b.onclick = () => go([...today].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619), 2166136261), 1);
     r.append(a, b); B.appendChild(r);
     const st = el('div', 'bp-panel'); st.appendChild(el('h4', null, `기록 · 최고 마감 ${M.best} · 클리어 ${M.wins}번 · 부적 도감 ${Object.keys(M.seen).length}/${CH.filter(c => !c.hide).length}`));
