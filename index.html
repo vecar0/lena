@@ -43,7 +43,7 @@ body{position:fixed;inset:0;overflow:hidden}
 .miss{display:flex;align-items:center;gap:7px;height:36px;padding:0 13px 0 10px;border-radius:18px;background:var(--hot);color:#fff;font-weight:800;font-size:14px;box-shadow:3px 3px 0 #000;transform:rotate(-3deg);transition:transform .2s}
 .miss:active{transform:rotate(-3deg) scale(.95)}
 .miss svg{width:16px;height:16px;fill:#fff}
-.miss.zero{background:rgba(0,0,0,.55);box-shadow:none;transform:none;border:1px solid var(--line);font-weight:600;color:#cfd8dc}
+.miss.zero{visibility:hidden} /* 부재중이 없으면 자리만 지키고 숨김 */
 .clock{text-align:right;line-height:1.05;text-shadow:2px 2px 0 #000}
 .clock b{display:block;font-family:'Space Mono',monospace;font-size:30px;color:var(--mint);letter-spacing:-1px}
 .clock span{font-family:'Space Mono',monospace;font-size:11.5px;letter-spacing:1px;opacity:.9}
@@ -113,7 +113,8 @@ img{object-fit:contain} /* 그림이 찌그러지지 않게: 따로 cover를 준
 .note button{text-decoration:underline;font-weight:800;white-space:nowrap;flex:none}
 .dots{display:inline-flex;gap:5px;vertical-align:middle}.dots i{width:7px;height:7px;border-radius:50%;background:#fff;animation:d 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
 @keyframes d{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
-.quick{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 10px;scrollbar-width:none}
+.quick{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 10px;scrollbar-width:none;-webkit-mask:linear-gradient(90deg,#000 82%,transparent);mask:linear-gradient(90deg,#000 82%,transparent)}
+.quick::after{content:"";flex:none;width:18%} /* 마지막 칩이 흐림에 묻히지 않게 */
 .quick::-webkit-scrollbar{display:none}
 .quick button{flex:none;height:34px;padding:0 13px;border-radius:17px;background:rgba(0,0,0,.6);border:1px solid rgba(47,224,200,.45);color:var(--mint);font-size:13.5px;font-weight:600}
 .inrow{display:flex;gap:9px;align-items:center;padding:0 14px calc(var(--sb) + 14px)}
@@ -287,6 +288,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .app.calling:not(.outside) .log{flex:none;height:min(28vh,236px);transition:height .25s;margin-top:auto;margin:auto 10px 6px;padding:12px 12px 8px;border-radius:18px;background:rgba(8,10,13,.62);-webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2);border:1px solid rgba(255,255,255,.1);-webkit-mask:linear-gradient(transparent,#000 14%);mask:linear-gradient(transparent,#000 14%);gap:9px}
 .app.calling:not(.outside) .log::before{display:none}
 .app.calling.lmin:not(.outside) .log{height:86px}
+.app.calling:not(.outside) .log>:first-child{margin-top:auto} /* 메시지가 적으면 아래부터 쌓임 */
 .ltog{height:36px;padding:0 12px;border-radius:18px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.5);color:#fff;font-size:13px;font-weight:700;margin-left:auto;margin-right:6px}
 .app.outside .ltog{display:none}
 .app.calling:not(.outside) .her{font-size:15px;line-height:1.5;text-shadow:none}

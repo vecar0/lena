@@ -49,7 +49,9 @@ const nmc = () => S.name ? S.name + '님, ' : '';
 
 // ---------------- sound ----------------
 let actx = null;
-function audio() { try { if (!actx) { const C = window.AudioContext || window.webkitAudioContext; if (C) actx = new C(); } if (actx && actx.state !== 'running') actx.resume(); } catch (e) {} return actx; }
+// 화면을 한 번이라도 누르기 전에는 소리 엔진을 켜지 않는다(브라우저가 막고 경고만 남김)
+let touched = false; ['pointerdown', 'touchend', 'keydown'].forEach(ev => addEventListener(ev, () => { touched = true; }, { capture: true, passive: true }));
+function audio() { if (!touched && !actx) return null; try { if (!actx) { const C = window.AudioContext || window.webkitAudioContext; if (C) actx = new C(); } if (actx && actx.state !== 'running') actx.resume(); } catch (e) {} return actx; }
 document.addEventListener('touchend', audio, { passive: true }); document.addEventListener('click', audio);
 function tone(freqs, dur, vol = .08, type = 'sine', at = 0) {
   const a = audio(); if (!a || a.state !== 'running') return;
@@ -128,18 +130,18 @@ function renderHome() {
   if (nx) {
     const f = el('button', 'fly f1'); f.append(el('div', 'tp'), el('small', null, when(nx.due).toUpperCase()), el('b', null, nx.text));
     f.querySelector('.tp').style.backgroundImage = 'url(assets/lena/tape_white.webp)';
-    if (up.length > 1) f.appendChild(el('small', null, `+${up.length - 1} MORE`));
+    if (up.length > 1) f.appendChild(el('small', null, `외 ${up.length - 1}개`));
     f.onclick = () => openSheet(1); F.appendChild(f);
   }
   const todo = openItems().filter(t => !t.due), doneToday = S.items.filter(t => t.done && t.doneAt && dk(new Date(t.doneAt)) === dk(now) && !t.due);
   if (todo.length || doneToday.length) {
-    const f = el('button', 'fly f2'); f.append(el('div', 'tp'), el('small', null, `TO DO · ${todo.length}`));
+    const f = el('button', 'fly f2'); f.append(el('div', 'tp'), el('small', null, `할 일 ${todo.length}`));
     f.querySelector('.tp').style.backgroundImage = 'url(assets/lena/tape_teal1.webp)';
     doneToday.slice(-1).forEach(t => f.appendChild(el('i', 'd', t.text)));
     todo.slice(0, 3).forEach(t => f.appendChild(el('i', null, t.text)));
     f.onclick = () => openSheet(2); F.appendChild(f);
   }
-  const c = el('button', 'coinb'); const ci = el('img'); ci.src = CUR('todo'); ci.alt = ''; c.append(ci, el('span', null, '× ' + S.coins)); c.onclick = () => openSheet(8); F.appendChild(c);
+  // 영상 화면엔 동전 개수를 띄우지 않는다(자판기는 음성 화면 ♥ 배지·오락실에서)
   const late = S.items.filter(isLate);
   const K = $('knock'); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openSheet(1); };
   // 열린 키패드 숫자 배지
