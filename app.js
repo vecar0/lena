@@ -8,7 +8,7 @@ const pick = a => a[Math.random() * a.length | 0];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const DAY = 864e5;
 const WD = '일월화수목금토';
-// 재화 그림: gc 게임 동전, todo 할 일 동전, chip 슬롯 칩, debt 빚, phone 전화국 동전, energy 에너지, heart 호감도, medal 등급, danger 위험도
+// 재화 그림: gc 게임 동전, todo 할 일 동전(v64에 없앰, 그림만 남음), chip 슬롯 칩, debt 빚, phone 전화국 동전, energy 에너지, heart 호감도, medal 등급, danger 위험도
 const CUR = n => `assets/lena/cur/${n}.webp`, ci = n => `<img class="ci" src="${CUR(n)}" alt="">`;
 function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 function hm(d) { return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
@@ -43,6 +43,8 @@ function load() {
     S.firstAt = Date.now(); S.ack = Date.now();
   }
   for (const k in DEF) if (S[k] == null) S[k] = Array.isArray(DEF[k]) ? [] : (typeof DEF[k] === 'object' && DEF[k]) ? {} : DEF[k];
+  // v64: 할 일 동전은 없앰 → 남아 있던 건 게임 동전으로 옮김(한 번만)
+  if (S.coins > 0) { S.gc = Math.min(999, (S.gc || 0) + S.coins); S.coins = 0; }
 }
 const nm = () => S.name ? S.name + '님' : '';
 const nmc = () => S.name ? S.name + '님, ' : '';
@@ -96,7 +98,7 @@ function setDone(t, v, srcEl) {
 function coinPop(srcEl) {
   coinSound();
   const r = (srcEl && srcEl.getBoundingClientRect && srcEl.getBoundingClientRect()) || { left: app.clientWidth / 2, top: app.clientHeight / 2, width: 0, height: 0 };
-  const ar = app.getBoundingClientRect(), i = el('img', 'coinfly'); i.src = CUR('todo');
+  const ar = app.getBoundingClientRect(), i = el('img', 'coinfly'); i.src = CUR('gc');
   i.style.left = (r.left - ar.left + r.width / 2 - 22) + 'px'; i.style.top = (r.top - ar.top + r.height / 2 - 22) + 'px';
   app.appendChild(i); setTimeout(() => i.remove(), 1100);
 }
@@ -545,7 +547,6 @@ function sysPrompt(special) {
 오늘 끝낸 것: ${S.items.filter(t => t.done && t.doneAt && dk(new Date(t.doneAt)) === dk(now)).map(t => t.text).join(', ') || '없음'}
 예약 전화: ${JSON.stringify(S.calls.filter(c => !c.done && c.at > Date.now()).map(c => ({ at: localISO(new Date(c.at)), text: c.text })))}
 음성사서함(기억): ${JSON.stringify(S.memory.slice(-40))}
-모은 동전: ${S.coins}
 규칙:
 - 이미 위 목록에 있는 일정·할 일·예약 전화·기억은 add/callback/remember에 다시 넣지 않는다(새로 생긴 것만).
 - 일정·할 일·약속을 말하면 add에 {"text","due"}. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.

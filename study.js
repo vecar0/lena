@@ -49,7 +49,7 @@ const css = `
 .pr .st{flex:none;width:46px;height:46px;border-radius:50%;border:2px solid #000;background:#fff;box-shadow:2px 2px 0 #000;display:grid;place-items:center}
 .pr .st img{width:40px;height:40px}
 .pr.done .w{color:rgba(0,0,0,.45);text-decoration:line-through;text-decoration-color:rgba(0,0,0,.35)}
-.pr.done .st{border:0;background:none;box-shadow:none;transform:rotate(-12deg)}
+.pr.done .st{background:var(--teal);color:#000;font-size:22px;font-weight:900;transform:rotate(-8deg)}
 .pr.pfx{min-height:36px;color:rgba(0,0,0,.45);font-size:13px}.pr.pfx .w{min-height:0;font-size:13px;font-weight:600}
 .pr.ed{background:rgba(47,224,200,.22);margin:0 -8px;padding:0 8px;border-radius:6px}
 .ptools{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 10px;border-bottom:1.5px dashed rgba(0,0,0,.2)}
@@ -271,7 +271,7 @@ function finishBlock(b) {
   (st.log[k] = st.log[k] || []).push({ s: b.s, e: b.e, sub: b.sub, label: b.parts.map(p => (p.t || p).label).join(' / '), mins: b.e - b.s });
   if (st.fix[k]) st.fix[k] = st.fix[k].filter(x => x.s !== b.s);
   const ks = Object.keys(st.log).sort(); while (ks.length > 60) delete st.log[ks.shift()];
-  S.coins = (S.coins || 0) + 1; save(); dirty(); pushSync(true); coinPop && coinPop(); renderHome();
+  save(); dirty(); pushSync(true); renderHome();
 }
 
 // ---------- 전단지 시트: 오늘 / 캘린더 / 시간표 / 할 일 ----------
@@ -391,10 +391,10 @@ function stToday(B) {
   const subWord = (sb, txt) => { const w = el('span'), i2 = el('i', null, sb); i2.style.setProperty('--c', colOf(sb)); w.append(i2, document.createTextNode(txt)); return w; };
   list.forEach(x => {
     if (x.fx) { const r = el('div', 'pr pfx'); r.append(el('span', 't', toT(x.fx[0])), el('span', 'w', `${x.fx[2] || '일정'} ~${toT(x.fx[1])}`)); sp.appendChild(r); return; }
-    if (x.lg) { const r = el('div', 'pr done'), t = el('span', 't'); t.append(document.createTextNode(toT(x.lg.s)), el('small', null, `${x.lg.mins}분`)); const w = el('span', 'w'); w.appendChild(subWord(x.lg.sub, x.lg.label)); const st2 = el('span', 'st'), im = el('img'); im.src = CUR('todo'); im.alt = '끝냄'; st2.appendChild(im); r.append(t, w, st2); sp.appendChild(r); return; }
+    if (x.lg) { const r = el('div', 'pr done'), t = el('span', 't'); t.append(document.createTextNode(toT(x.lg.s)), el('small', null, `${x.lg.mins}분`)); const w = el('span', 'w'); w.appendChild(subWord(x.lg.sub, x.lg.label)); const st2 = el('span', 'st', '✓'); st2.setAttribute('aria-label', '끝냄'); r.append(t, w, st2); sp.appendChild(r); return; }
     const b = x.b, i = x.i, r = el('div', 'pr' + (ed === i ? ' ed' : '')), t = el('span', 't'); t.append(document.createTextNode(toT(b.s)), el('small', null, `${b.e - b.s}분`));
     const w = el('button', 'w'); w.appendChild(subWord(b.sub, b.parts.map(p => p.t.label).join(' + '))); w.onclick = () => { ed = ed === i ? -1 : i; edMode = ''; addOpen = false; refreshSheet(); };
-    const ok = el('button', 'st'); ok.setAttribute('aria-label', '끝냄'); ok.onclick = () => { finishBlock(b); ed = -1; refreshSheet(); toast('한 블록 끝! 동전 +1'); };
+    const ok = el('button', 'st'); ok.setAttribute('aria-label', '끝냄'); ok.onclick = () => { finishBlock(b); ed = -1; refreshSheet(); toast('한 블록 끝! 수고했어요.'); };
     r.append(t, w, ok); sp.appendChild(r);
     if (ed === i) sp.appendChild(editRow(i));
   });

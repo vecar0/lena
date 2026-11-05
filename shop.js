@@ -1,5 +1,5 @@
 // 회선 등급(예전 호감도) + 매일 바뀌는 자판기 + 부스 꾸미기
-// 할 일 동전(S.coins)을 계속 쓰는 곳. app.js·arcade.js 뒤에 불러온다.
+// 자판기: 게임 동전(S.gc)으로 산다(v64, 할 일 동전은 없앰). app.js·arcade.js 뒤에 불러온다.
 'use strict';
 (() => {
 const css = `
@@ -85,7 +85,6 @@ const DECOR = [
   { id: 'crown', n: '작은 왕관', p: 3, i: 'd_crown', rx: 1 }, { id: 'halo', n: '천사 링', p: 3, i: 'd_halo', rx: 1 }, { id: 'arrow', n: '여기 봐 화살표', p: 2, i: 'd_arrow', rx: 1 }
 ];
 const UTIL = [
-  { id: 'gc', n: '게임 동전 5개', d: '오락실에서 쓰는 동전', p: 1, i: CUR('gc'), buy: () => { S.gc = Math.min(999, (S.gc || 0) + 5); save(); toast('게임 동전 +5'); return true; } },
   { id: 'rpick', n: '리액션 스티커 뽑기', d: '레나 옆에 붙이는 말풍선·반응 스티커 하나', p: 2, i: 'assets/lena/s/d_bheart.webp', buy: () => { const L = DECOR.filter(d => d.rx && !D().own.includes(d.id)); if (!L.length) { toast('리액션 스티커를 다 모았어요!'); return false; } const d = pick(L); D().own.push(d.id); if (D().on.length < 6) D().on.push(d.id); save(); renderDecor(); toast(`${d.n} 스티커가 나왔어요! 부스 꾸미기에서 붙여요.`); return true; } },
   { id: 'letter', n: '레나의 손편지', d: '음성사서함에 남는 짧은 편지', p: 2, i: 'assets/lena/st_tape.webp', buy: () => letter() }
 ];
@@ -125,8 +124,10 @@ function today() {
   S.shop = { day: k, slots: [{ t: 'g', id: g1.id }, { t: 'g', id: want.id, want: 1 }, dl.length ? { t: 'd', id: pickR(dl).id } : { t: 'g', id: 'ring' }, { t: 'u', id: util.id }], want: want.id, sale, sold: [] };
   save(); return S.shop;
 }
+// 값은 게임 동전 기준(할 일 동전보다 흔해서 3배)
+[GIFT, DECOR, UTIL].forEach(L => L.forEach(x => { x.p *= 3; }));
 const priceOf = g => { const s = today(); return s.sale === g.id ? Math.max(1, Math.ceil(g.p / 2)) : g.p; };
-function pay(p) { if ((S.coins || 0) < p) { toast(`할 일 동전이 ${p - (S.coins || 0)}개 모자라요. 전단지 떼고 와요.`); return false; } S.coins -= p; coinSound(); return true; }
+function pay(p) { if ((S.gc || 0) < p) { toast(`게임 동전이 ${p - (S.gc || 0)}개 모자라요. 매일 10개씩 들어와요.`); return false; } S.gc -= p; save(); coinSound(); return true; }
 function fx(img) { const i = el('img', 'gpop'); i.src = img; i.style.left = (app.clientWidth / 2 - 42) + 'px'; i.style.top = (app.clientHeight * .42) + 'px'; app.appendChild(i); setTimeout(() => i.remove(), 1500);
   for (let k = 0; k < 5; k++) { const h = el('div', 'hearts', '♥'); h.style.left = (app.clientWidth / 2 - 60 + Math.random() * 120) + 'px'; h.style.top = (app.clientHeight * .45 + Math.random() * 40) + 'px'; h.style.animationDelay = (k * .1) + 's'; app.appendChild(h); setTimeout(() => h.remove(), 1500); } }
 function give(g) {
@@ -265,7 +266,7 @@ function renderAff() {
 }
 // 자판기 시트
 let tab = 'today';
-SH.shop = { t: '자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매일 자정에 바뀌어요`, r: B => {
+SH.shop = { t: '자판기', s: () => `게임 동전 ${S.gc || 0}개 · 매일 자정에 바뀌어요`, r: B => {
   decay(); const a = A(), n = lv(a.pt), [m, mt] = mood(), s = today();
   const c = el('div', 'card'), top = el('div', 'affc'), av = el('div', 'ava2'), tx = el('div'); tx.append(el('b', null, tierOf(n).name), el('small', null, mt + ' 하루 지날 때마다 회선 등급이 조금씩 내려가요.'));
   top.append(av, tx); c.appendChild(top);
@@ -274,7 +275,7 @@ SH.shop = { t: '자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매�
   const w = GIFT.find(g => g.id === s.want); const wb = el('div', 'want'), wi = el('img'); wi.src = SI(w.i); wi.alt = ''; wb.append(wi, document.createTextNode(`오늘의 주파수: ${w.n} · 보내면 회선 점수 2배`)); c.appendChild(wb);
   B.appendChild(c);
   if (tab === 'note') tab = 'today'; const T = el('div', 'tabs'); [['today', '오늘의 자판기'], ['gift', '선물'], ['decor', '부스 꾸미기']].forEach(([v, l]) => { const b = el('button', tab === v ? 'on' : '', l); b.onclick = () => { tab = v; refreshSheet(); }; T.appendChild(b); }); T.style.marginTop = '14px'; B.appendChild(T);
-  const coinI = `<img src="${CUR('todo')}" alt="">`;
+  const coinI = `<img src="${CUR('gc')}" alt="">`;
   const card = (img, name, sub, price, onBuy, tag, sold) => { const v = el('button', 'vi' + (sold ? ' sold' : '')); if (tag) v.appendChild(el('span', 'tag' + (tag === '희귀' ? ' r' : ''), tag)); const im = el('img'); im.src = img; im.alt = ''; v.append(im, el('b', null, name)); if (sub) v.appendChild(el('small', null, sub)); const pr = el('span', 'pr'); pr.innerHTML = sold ? '구입함' : `${coinI}${price}`; v.appendChild(pr); v.onclick = () => { if (!sold) onBuy(); }; return v; };
   if (tab === 'today') {
     const V = el('div', 'vend'), vt = el('div', 'vt'); vt.append(el('span', null, 'LENA VENDING'), el('span', null, `${dk(new Date()).slice(5).replace('-', '/')} · 자정에 교체`)); V.appendChild(vt);
@@ -282,10 +283,10 @@ SH.shop = { t: '자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매�
     s.slots.forEach((sl, i) => {
       if (sl.t === 'g') { const g = GIFT.find(x => x.id === sl.id); G.appendChild(card(SI(g.i), g.n, `회선 +${g.h * (sl.want ? 2 : 1)}`, priceOf(g), () => give(g), sl.want ? '주파수' : s.sale === g.id ? '반값' : '')); }
       else if (sl.t === 'd') { const d = DECOR.find(x => x.id === sl.id), own = D().own.includes(d.id); G.appendChild(card(SI(d.i), d.n, '부스 유리에 붙이는 장식', d.p, () => { if (!pay(d.p)) return; D().own.push(d.id); if (D().on.length < 4) D().on.push(d.id); save(); fx(SI(d.i)); renderDecor(); refreshSheet(); toast(`${d.n}을(를) 부스에 붙였어요. 영상통화에서 보여요.`); }, '희귀', own)); }
-      else { const u = UTIL.find(x => x.id === sl.id), sold = s.sold.includes(i); G.appendChild(card(u.i, u.n, u.d, u.p, async () => { if (u.id === 'fortune') { openSheet('fort'); return; } if (!pay(u.p)) return; const ok = await u.buy(); if (ok === false) { S.coins += u.p; } else { s.sold.push(i); } save(); refreshSheet(); }, '오늘만', sold)); }
+      else { const u = UTIL.find(x => x.id === sl.id), sold = s.sold.includes(i); G.appendChild(card(u.i, u.n, u.d, u.p, async () => { if (u.id === 'fortune') { openSheet('fort'); return; } if (!pay(u.p)) return; const ok = await u.buy(); if (ok === false) { S.gc = (S.gc || 0) + u.p; } else { s.sold.push(i); } save(); refreshSheet(); }, '오늘만', sold)); }
     });
     V.appendChild(G); B.appendChild(V);
-    B.appendChild(el('div', 'hint', '할 일 동전은 4번 공부 블록을 끝내면 1개씩 받아요. 선물은 몇 번이고 줄 수 있어요. 오늘의 주파수는 날마다 바뀌어요.'));
+    B.appendChild(el('div', 'hint', '게임 동전은 매일 10개씩 들어오고(최대 99), 오락실에서 잘하면 더 받아요. 선물은 몇 번이고 줄 수 있어요. 오늘의 주파수는 날마다 바뀌어요.'));
   } else if (tab === 'gift') {
     const G = el('div', 'gl'); GIFT.forEach(g => G.appendChild(card(SI(g.i), g.n, `+${g.h * (s.want === g.id ? 2 : 1)}`, priceOf(g), () => give(g), s.want === g.id ? '주파수' : s.sale === g.id ? '반값' : ''))); B.appendChild(G);
     const cnt = a.gifts || {}; const tot = Object.values(cnt).reduce((x, y) => x + y, 0); B.appendChild(el('div', 'hint', `지금까지 준 선물 ${tot}개`));
