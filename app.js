@@ -235,7 +235,7 @@ function boardRender(B) {
   else { const G = el('div', 'board'); L.forEach((t, i) => G.appendChild(paper(t, i))); B.appendChild(G); }
   if (boardTab === 'all') { const D = S.items.filter(t => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)); if (D.length) { B.appendChild(lbl(`떼어낸 것 ${D.length}`)); const G = el('div', 'board'); D.slice(0, 6).forEach((t, i) => G.appendChild(paper(t, i))); B.appendChild(G); const c = btn('떼어낸 것 정리', 'ghost wide', () => { S.items = S.items.filter(t => !t.done); save(); refreshSheet(); }); c.style.marginTop = '14px'; B.appendChild(row(c)); } }
 }
-// 다이얼 1 = 전단지(오늘·이번 주·할 일은 안의 탭), 2 = 오늘의 운세, 3 = 레나 자판기(shop.js)
+// 다이얼 1 = 전단지(오늘·이번 주·할 일은 안의 탭), 2 = 오늘의 운세, 3 = 자판기(shop.js)
 SH[1] = { t: '전단지', s: () => `남은 것 ${openItems().length}개 · 떼면 동전 1개`, r: B => boardRender(B) };
 function openBoard(tab) { boardTab = tab || 'today'; openSheet(1); }
 
@@ -360,7 +360,7 @@ $('aMiss').onclick = () => { dtmf(9); openSheet(9); };
 $('aSet').onclick = () => { dtmf(0); openSheet(0); };
 
 // ---------------- dial pad ----------------
-const KEYS = [[1, '전단지'], [2, '오늘의 운세'], [3, '레나 자판기'], [4, '예약 전화'], [5, '음성사서함'], [6, '통화 일기'], [7, '모닝콜'], [8, '오락실'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
+const KEYS = [[1, '전단지'], [2, '오늘의 운세'], [3, '자판기'], [4, '예약 전화'], [5, '음성사서함'], [6, '통화 일기'], [7, '모닝콜'], [8, '오락실'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
 (function buildPad() {
   const K = $('keys');
   KEYS.forEach(([k, l]) => { const b = el('button', 'k' + (k === 7 ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 9) { const e = el('em'); e.hidden = true; b.appendChild(e); }
@@ -381,13 +381,13 @@ function toast(text, undo) { $('toastTx').textContent = text; $('toastUndo').hid
 let callStart = 0, callTimer = 0, busy = false, pendImg = null;
 const QUICK = () => {
   const h = new Date().getHours();
-  return [h >= 20 || h < 4 ? '오늘 하루 정리하자' : '오늘 뭐 있어?', '🔮 오늘의 운세', '30분 뒤에 전화해 줘', '남은 할 일 뭐야?', '칭찬해 줘', '내일 일정 알려 줘'];
+  return [h >= 20 || h < 4 ? '오늘 하루 정리하자' : '오늘 뭐 있어?', '30분 뒤에 전화해 줘', '남은 할 일 뭐야?', '칭찬해 줘', '내일 일정 알려 줘'];
 };
 function openCall() {
   closePad(); if ($('sheet').classList.contains('open')) closeSheet();
   app.classList.add('calling'); callStart = Date.now(); clearInterval(callTimer);
   const up = () => { const s = (Date.now() - callStart) / 1000 | 0, t = `${pad(s / 60 | 0)}:${pad(s % 60)}`; $('callT').textContent = '통화 중 ' + t; $('aT').textContent = '통화 중 ' + t; }; up(); callTimer = setInterval(up, 1000);
-  renderLog(); const Q = $('quick'); Q.innerHTML = ''; Q.classList.toggle('hidden', !S.name); QUICK().forEach(t => { const b = el('button', null, t); b.onclick = () => { dtmf(Math.random() * 9 + 1 | 0); if (t === '🔮 오늘의 운세') fortuneCall(); else sendText(t); }; Q.appendChild(b); });
+  renderLog(); const Q = $('quick'); Q.innerHTML = ''; Q.classList.toggle('hidden', !S.name); QUICK().forEach(t => { const b = el('button', null, t); b.onclick = () => { dtmf(Math.random() * 9 + 1 | 0); sendText(t); }; Q.appendChild(b); });
   tone([350, 440], .25, .04);
 }
 function hangUp() { if (app.classList.contains('outside')) return; stopVoice(); recStop(); app.classList.remove('calling'); clearInterval(callTimer); tone([480, 620], .12, .05); tone([480, 620], .12, .05, 'sine', .2); renderHome(); const last = S.history.filter(h => h.role === 'assistant').slice(-1)[0]; if (last && Date.now() - (last.at || 0) < 5 * 60e3) say(pick(['끊는다고 끝난 거 아니에요. …또 걸어요.', '들어가요. 저는 여기 있을게요.', '…벌써요? 아쉽다.']), 'tease', false); }

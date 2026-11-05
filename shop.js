@@ -265,7 +265,7 @@ function renderAff() {
 }
 // 자판기 시트
 let tab = 'today';
-SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매일 자정에 바뀌어요`, r: B => {
+SH.shop = { t: '자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매일 자정에 바뀌어요`, r: B => {
   decay(); const a = A(), n = lv(a.pt), [m, mt] = mood(), s = today();
   const c = el('div', 'card'), top = el('div', 'affc'), av = el('div', 'ava2'), tx = el('div'); tx.append(el('b', null, `${tierOf(n).name} · ${m}`), el('small', null, mt + ' 하루 지날 때마다 호감도가 조금씩 내려가요.'));
   top.append(av, tx); c.appendChild(top);
