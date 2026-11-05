@@ -146,7 +146,7 @@ const css = `
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 const meta = () => (S.pour = S.pour || { best: 0, wins: 0, runs: 0 });
 const GLOW = {}; function glow(c, r) { const k = c + r; if (GLOW[k]) return GLOW[k]; const R = Math.ceil(r * 3.2), cv = document.createElement('canvas'); cv.width = cv.height = R * 2; const g = cv.getContext('2d'), gr = g.createRadialGradient(R, R, 0, R, R, R); gr.addColorStop(0, c); gr.addColorStop(.3, c + '88'); gr.addColorStop(1, c + '00'); g.fillStyle = gr; g.fillRect(0, 0, R * 2, R * 2); return GLOW[k] = cv; }
-const IMG = n => { const i = new Image(); i.src = 'assets/lena/' + n; return i; }; const cat = IMG('cat.jpg'), bgI = IMG('poster.jpg'), PAP = { sk: IMG('paper_white.webp'), arm: IMG('paper_teal.webp'), fast: IMG('paper_yellow.webp'), gun: IMG('paper_pink.webp'), split: IMG('paper_yellow.webp'), boss: IMG('paper_pink.webp') }, tape = IMG('tape_white.webp'), tapeP = IMG('tape_pink1.webp'); const sk = new Image(); sk.src = 'assets/lena/st_skull.webp';
+const IMG = n => { const i = new Image(); i.src = 'assets/lena/' + n; return i; }; const cat = IMG('cat.jpg'), bgI = IMG('poster.jpg'), PAP = { sk: IMG('paper_white.webp'), arm: IMG('paper_teal.webp'), fast: IMG('paper_yellow.webp'), gun: IMG('paper_pink.webp'), split: IMG('paper_yellow.webp'), boss: IMG('paper_pink.webp') }, tape = IMG('tape_white.webp'), umb = IMG('g/c_umb.webp'), tapeP = IMG('tape_pink1.webp'); const sk = new Image(); sk.src = 'assets/lena/st_skull.webp';
 function lobby() {
   frame(NAME, B => {
     const M = meta(), nm = el('div', 'bp-name'); nm.style.setProperty('--pc', '#bff5ea'); nm.innerHTML = `${NAME}<small>유리에 붙는 독촉장을 빗방울로 떼어 내요</small>`; B.appendChild(nm);
@@ -217,10 +217,10 @@ function play() {
       if (e.hit > 0) { x.fillStyle = `rgba(255,255,255,${e.hit * 4})`; x.fillRect(-w / 2, -h / 2, w, h); }
       if (e.frz > 0 || e.slow > 0) { x.fillStyle = 'rgba(160,220,255,.35)'; x.fillRect(-w / 2, -h / 2, w, h); } if (e.burn > 0) { x.fillStyle = 'rgba(255,110,40,.3)'; x.fillRect(-w / 2, -h / 2, w, h); } if (e.poi > 0) { x.fillStyle = 'rgba(120,255,80,.22)'; x.fillRect(-w / 2, -h / 2, w, h); }
       x.strokeStyle = '#000'; x.lineWidth = 2; x.strokeRect(-w / 2, -h / 2, w, h);
-      const tp = e.boss ? tapeP : tape; if (tp.complete) x.drawImage(tp, -w * .22, -h / 2 - 6, w * .44, 11);
-      const s = Math.min(w * .5, h * .72); if (sk.complete) x.drawImage(sk, -w / 2 + 3, -s / 2, s, s);
-      x.fillStyle = '#111'; x.textAlign = 'right'; x.font = `${e.boss ? 20 : 12}px 'Black Han Sans'`; x.fillText(e.boss ? '해골 사장' : e.ty === 'gun' ? '독촉' : e.ty === 'arm' ? '압류' : e.ty === 'fast' ? '급함' : e.ty === 'split' ? '분할' : '빚', w / 2 - 5, -h / 2 + (e.boss ? 24 : 14));
-      x.font = `${e.boss ? 15 : 11}px 'Space Mono'`; x.fillStyle = e.boss ? '#c4004f' : '#333'; x.fillText(Math.ceil(e.hp), w / 2 - 5, h / 2 - 8);
+      const tp = e.boss ? tapeP : tape, tw = w * .5; if (tp.complete) x.drawImage(tp, -tw / 2, -h / 2 - tw * .1, tw, tw * 129 / 667);
+      const skh = h * .8, skw = skh * 215 / 275; if (sk.complete) x.drawImage(sk, -w / 2 + 4, -skh / 2, skw, skh);
+      x.fillStyle = '#111'; x.textAlign = 'right'; x.font = `${Math.round(h * (e.boss ? .2 : .3))}px 'Black Han Sans'`; x.fillText(e.boss ? '해골 사장' : e.ty === 'gun' ? '독촉' : e.ty === 'arm' ? '압류' : e.ty === 'fast' ? '급함' : e.ty === 'split' ? '분할' : '빚', w / 2 - 5, -h / 2 + h * (e.boss ? .3 : .38));
+      x.font = `700 ${Math.round(h * (e.boss ? .17 : .26))}px 'Space Mono'`; x.fillStyle = e.boss ? '#c4004f' : '#333'; x.fillText(Math.ceil(e.hp), w / 2 - 5, h / 2 - h * .14);
       x.fillStyle = 'rgba(0,0,0,.25)'; x.fillRect(-w / 2 + 3, h / 2 - 5, w - 6, 3); x.fillStyle = e.boss ? '#ff2e6e' : '#ff3d9a'; x.fillRect(-w / 2 + 3, h / 2 - 5, (w - 6) * Math.max(0, e.hp / e.max), 3);
       if (e.ty === 'gun' || e.boss) { x.fillStyle = '#ff2e6e'; x.beginPath(); x.arc(w / 2 - 6, -h / 2 + 6, 3 + Math.sin(G.t * 10), 0, 7); x.fill(); }
       x.restore(); x.globalAlpha = 1; if (e.hit > 0) e.hit -= .016; });
@@ -241,8 +241,7 @@ function play() {
       else if (f.k === 'pop') { x.strokeStyle = f.c; x.lineWidth = 3; x.globalAlpha = f.l / .4; x.beginPath(); x.arc(f.x, f.y, 26 * (1 - f.l / .4) + 6, 0, 7); x.stroke(); x.globalAlpha = 1; }
       else if (f.k === 'ban') { const a = Math.min(1, f.l * 2, (1.8 - f.l) * 4); x.globalAlpha = Math.max(0, a); x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, vh * .36, vw, 64); x.font = "34px 'Black Han Sans'"; x.textAlign = 'center'; x.fillStyle = f.t.includes('사장') ? '#ff2e6e' : '#9ff5e4'; x.strokeStyle = '#000'; x.lineWidth = 5; x.strokeText(f.t, vw / 2, vh * .36 + 44); x.fillText(f.t, vw / 2, vh * .36 + 44); x.globalAlpha = 1; } });
     // 고양이 + 분홍 우산
-    const py = G.floor + 26; const tl = Math.max(-.35, Math.min(.35, -pv / 1800)); x.save(); x.translate(G.px, py - 16); x.rotate(tl); x.translate(-G.px, -(py - 16)); x.fillStyle = '#ff3d9a'; x.strokeStyle = '#000'; x.lineWidth = 2; x.beginPath(); x.arc(G.px, py - 16, 30, Math.PI, 0); x.closePath(); x.fill(); x.stroke();
-    x.strokeStyle = 'rgba(0,0,0,.4)'; [-15, 0, 15].forEach(d => { x.beginPath(); x.moveTo(G.px, py - 46); x.lineTo(G.px + d, py - 16); x.stroke(); }); x.restore();
+    const py = G.floor + 30, tl = Math.max(-.35, Math.min(.35, pv / 1600)), us = 74; if (umb.complete) { x.save(); x.translate(G.px, py - 6); x.rotate(tl); x.drawImage(umb, -us / 2, -us * .95, us, us * 292 / 282); x.restore(); }
     x.save(); x.beginPath(); x.arc(G.px, py, 17, 0, 7); x.closePath(); x.clip(); if (cat.complete) x.drawImage(cat, G.px - 17, py - 17, 34, 34); x.restore(); x.strokeStyle = '#fff'; x.lineWidth = 2.5; x.beginPath(); x.arc(G.px, py, 17, 0, 7); x.stroke();
     // HUD (위쪽 어두운 띠)
     g = x.createLinearGradient(0, 0, 0, 48); g.addColorStop(0, 'rgba(5,7,11,.95)'); g.addColorStop(1, 'rgba(5,7,11,.55)'); x.fillStyle = g; x.fillRect(0, 0, vw, 46);
