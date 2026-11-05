@@ -1,4 +1,4 @@
-// 레나 — 자정의 잭팟 MIDNIGHT JACKPOT (오락실): 빚 갚기 슬롯 로그라이크. 계산 코어(CORE)는 순수 함수라 Node로 시뮬레이션한다.
+// 레나 — LAST CALL (오락실): 빚 갚기 슬롯 로그라이크. 계산 코어(CORE)는 순수 함수라 Node로 시뮬레이션한다.
 'use strict';
 (() => {
 // ---------- 계산 코어 ----------
@@ -210,7 +210,7 @@ window.JACKPOT = CORE;
 const { frame, talk, gcAdd, gc } = window.ARC;
 const IM = n => `assets/lena/${n}.webp`;
 const SIM = { cherry: 's/d_cherry', coin: 'st_coin', heart: 'st_heart', lips: 'st_lips', bolt: 'st_bolt', star: 'st_star', crown: 's/d_crown', skull: 'st_skull' };
-const NAME = 'MIDNIGHT JACKPOT';
+const NAME = 'LAST CALL';
 const TK = '<i class="bp-tk"></i>';
 const css = `
 .bp-hd{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
