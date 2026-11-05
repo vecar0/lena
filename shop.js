@@ -306,4 +306,5 @@ const _sys = sysPrompt; sysPrompt = function (sp) { const a = A(), [m] = mood();
 decay(); D(); setTimeout(() => { renderDecor(); renderAff(); }, 0);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { decay(); renderAff(); } });
 window.openShop = () => openSheet('shop');
+window.lenaShop = { A, lv, need, tierOf, mood, decay, today, GIFT, DECOR, D, SI, decorEdit, fx, renderAff };
 })();
