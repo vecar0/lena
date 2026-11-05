@@ -9,7 +9,8 @@ const css = `
 .cal button{position:relative;min-height:54px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);padding:3px 3px 4px;display:flex;flex-direction:column;align-items:stretch;gap:2px;text-align:left;overflow:hidden}
 .cal button.out{opacity:.3}.cal button.td{border-color:var(--pink);box-shadow:inset 0 0 0 1px var(--pink)}.cal button.sel{background:#22303a}
 .cal .dn{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#cfd8dc}
-.cal .ex{font-size:9.5px;font-weight:800;color:#fff;background:var(--hot);border-radius:4px;padding:0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal .ex{align-self:flex-start;font-size:10.5px;font-weight:900;line-height:1.5;color:#fff;background:var(--hot);border-radius:4px;padding:0 4px;white-space:nowrap}
+.cal button.exd{border-color:rgba(255,46,110,.7)}
 .cal .ds{display:flex;gap:2px;flex-wrap:wrap}.cal .ds i{width:6px;height:6px;border-radius:50%}
 .cal .sb{position:absolute;left:3px;right:3px;bottom:3px;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}.cal .sb b{display:block;height:100%;background:var(--teal)}
 .calh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
@@ -17,7 +18,7 @@ const css = `
 .calh .btn{height:36px;padding:0 12px}
 .dlist .r{display:flex;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.07);font-size:14px}
 .dlist .r b{flex:none;width:46px;font-family:'Space Mono',monospace;font-size:12px;color:var(--yel)}
-.chip{display:inline-block;flex:none;font-size:11.5px;font-weight:800;color:#111;border-radius:6px;padding:1px 7px;border:1.5px solid #000;vertical-align:1px}
+.sj{display:inline-block;flex:none;font-size:11.5px;font-weight:800;color:#111;border-radius:6px;padding:1px 7px;border:1.5px solid #000;vertical-align:1px}
 /* 6 공부: 부스 유리에 붙은 전단지 + 레나 쪽지 + 구겨진 종이 시간표 (앱의 .fly/.ask/.fslip 말투 그대로) */
 .dfly{position:relative;margin:14px 6px 16px;padding:18px 16px 14px;color:#fff;background:url(assets/lena/paper_pink.webp) center/100% 100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.6));transform:rotate(.8deg)}
 .dfly .tp{position:absolute;left:50%;top:-10px;width:78px;height:20px;margin-left:-39px;background:url(assets/lena/tape_white.webp) 0 0/100% 100%;transform:rotate(-4deg)}
@@ -48,7 +49,7 @@ const css = `
 .pr .st img{width:40px;height:40px}
 .pr.done .w{color:rgba(0,0,0,.45);text-decoration:line-through;text-decoration-color:rgba(0,0,0,.35)}
 .pr.done .st{border:0;background:none;box-shadow:none;transform:rotate(-12deg)}
-.pr.fx{min-height:36px;color:rgba(0,0,0,.45);font-size:13px}.pr.fx .w{min-height:0;font-size:13px;font-weight:600}
+.pr.pfx{min-height:36px;color:rgba(0,0,0,.45);font-size:13px}.pr.pfx .w{min-height:0;font-size:13px;font-weight:600}
 .pr.ed{background:rgba(47,224,200,.22);margin:0 -8px;padding:0 8px;border-radius:6px}
 .ptools{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 10px;border-bottom:1.5px dashed rgba(0,0,0,.2)}
 .ptools button{flex:1 0 auto;min-width:62px;height:44px;padding:0 10px;border-radius:10px;background:#fff;color:#111;border:2px solid #000;box-shadow:2px 2px 0 #000;font-size:13.5px;font-weight:800}
@@ -99,7 +100,7 @@ const matOf = id => ST().mats.find(m => m.id === id);
 const exSubs = e => [...new Set([...(e.subs || []), ...e.ranges.map(r => (matOf(r.mat) || {}).sub).filter(Boolean)])];
 const subs = () => [...new Set([...ST().mats.map(m => m.sub), ...ST().exams.filter(e => e.date >= todayK()).flatMap(exSubs)])];
 const colOf = sub => { let h = 0; for (const c of sub || '') h = (h * 31 + c.charCodeAt(0)) >>> 0; return PAL[h % PAL.length]; };
-const chip = sub => { const c = el('span', 'chip', sub); c.style.background = colOf(sub); return c; };
+const chip = sub => { const c = el('span', 'sj', sub); c.style.background = colOf(sub); return c; };
 const hm = m => m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ''}` : `${m}분`;
 function makeUnits(kind, from, to, chunk, mins, label) {
   const U = [];
@@ -273,6 +274,8 @@ SH.cal = { t: '캘린더', s: () => '시험·숙제·학원·일정·공부량�
 SH.tt = { t: '시간표', s: () => `매주 반복 ${(S.reps || []).length}개 · 이 시간은 피해서 짜요`, r: B => { boardTab = 'tt'; _br(B); } };
 const _ob = openBoard; openBoard = function (tab) { if (tab === 'cal' || tab === 'week') return openSheet('cal'); if (tab === 'tt') return openSheet('tt'); if (tab === 'study') return openSheet(6); _ob(tab); };
 
+// 달력 칸이 좁아서 시험 이름은 짧게(중간·기말·수행…), 전체 이름은 아래 그날 목록에
+const exShort = n => { const m = String(n).match(/중간|기말|모의|수행|듣기|쪽지|실기|퀴즈/); return m ? m[0] : String(n).replace(/\s/g, '').slice(0, 3); };
 // ---------- 캘린더 ----------
 function renderCal(B) {
   boardTabs(B);
@@ -285,7 +288,7 @@ function renderCal(B) {
     const d = dAdd(start, i), k = dkey(d); if (i >= 35 && d.getMonth() !== calM.getMonth()) break;
     const c = el('button', (d.getMonth() !== calM.getMonth() ? 'out ' : '') + (k === dkey(now) ? 'td ' : '') + (k === calSel ? 'sel' : ''));
     c.appendChild(el('span', 'dn', String(d.getDate())));
-    ST().exams.filter(e => e.date === k).forEach(e => c.appendChild(el('span', 'ex', e.name)));
+    { const E = ST().exams.filter(e => e.date === k); if (E.length) { c.classList.add('exd'); c.appendChild(el('span', 'ex', exShort(E[0].name) + (E.length > 1 ? `+${E.length - 1}` : ''))); } }
     const ds = el('div', 'ds');
     S.items.filter(t => t.due && t.due.slice(0, 10) === k && !t.rid).slice(0, 4).forEach(() => { const x = el('i'); x.style.background = 'var(--pink)'; ds.appendChild(x); });
     ST().mats.filter(m => m.kind === 'hw' && m.due === k && m.units.some(u => !u.done)).forEach(() => { const x = el('i'); x.style.background = 'var(--yel)'; ds.appendChild(x); });
@@ -310,7 +313,7 @@ function renderCal(B) {
   rows.sort((a, b) => a[2] - b[2]).forEach(([t, x]) => { const r = el('div', 'r'); r.append(el('b', null, t), document.createTextNode(x)); L.appendChild(r); });
   if (!rows.length) L.appendChild(el('div', 'hint', '이날은 비어 있어요.'));
   B.appendChild(L);
-  const c = el('div', 'card'), t = inp('text', '이날 일정 붙이기 (예: 수행평가)'), tm = inp('time', '', ''); c.style.marginTop = '10px'; tm.style.maxWidth = '120px';
+  const c = el('div', 'card'), t = inp('text', '일정 (예: 수행평가)'), tm = inp('time', '', ''); c.style.marginTop = '10px'; tm.style.maxWidth = '120px';
   c.append(row(t, tm), row(btn('붙이기', 'wide', () => { const v = t.value.trim(); if (!v) return; addItem(v, `${k}T${tm.value || '09:00'}`); save(); pushSync(true); dirty(); refreshSheet(); renderHome(); toast('붙였어요.'); })));
   B.appendChild(c);
 }
@@ -321,8 +324,8 @@ SH[6] = {
   t: '공부',
   s: () => { const e = nextExam(); if (!e) return '빈 시간에 맞춰 레나가 짜요'; const dd = dTo(e.date); return `${e.name} ${dd ? 'D-' + dd : 'D-DAY'} · ${phaseOf(dd)[0]}`; },
   r: B => {
-    const T = el('div', 'tabs'); [['today', '오늘'], ['exam', '시험'], ['mat', '과목·교재']].forEach(([v, l]) => { const b = el('button', sub === v ? 'on' : '', l); b.onclick = () => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
-    ({ today: stToday, exam: stExam, mat: stMat })[sub](B);
+    const T = el('div', 'tabs'); [['today', '오늘'], ['exam', '시험'], ['mat', '과목·교재'], ['note', '노트']].forEach(([v, l]) => { const b = el('button', sub === v ? 'on' : '', l); b.onclick = () => { if (v === 'note' && window.lenaNotes) lenaNotes.reset(); sub = v; ed = -1; addOpen = formOpen = timeOpen = false; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
+    ({ today: stToday, exam: stExam, mat: stMat, note: B2 => window.lenaNotes ? lenaNotes.render(B2) : null })[sub](B);
   }
 };
 // 유리에 붙은 분홍 전단지: 시험까지 남은 날과 이번 주 할 것
@@ -370,7 +373,7 @@ function stToday(B) {
   const list = [...lg.map(l => ({ s: l.s, lg: l })), ...D.blocks.map((b, i) => ({ s: b.s, b, i })), ...fixd.map(f => ({ s: f[0], fx: f }))].sort((a, b) => a.s - b.s);
   const subWord = (sb, txt) => { const w = el('span'), i2 = el('i', null, sb); i2.style.setProperty('--c', colOf(sb)); w.append(i2, document.createTextNode(txt)); return w; };
   list.forEach(x => {
-    if (x.fx) { const r = el('div', 'pr fx'); r.append(el('span', 't', toT(x.fx[0])), el('span', 'w', `${x.fx[2] || '일정'} ~${toT(x.fx[1])}`)); sp.appendChild(r); return; }
+    if (x.fx) { const r = el('div', 'pr pfx'); r.append(el('span', 't', toT(x.fx[0])), el('span', 'w', `${x.fx[2] || '일정'} ~${toT(x.fx[1])}`)); sp.appendChild(r); return; }
     if (x.lg) { const r = el('div', 'pr done'), t = el('span', 't'); t.append(document.createTextNode(toT(x.lg.s)), el('small', null, `${x.lg.mins}분`)); const w = el('span', 'w'); w.appendChild(subWord(x.lg.sub, x.lg.label)); const st2 = el('span', 'st'), im = el('img'); im.src = CUR('todo'); im.alt = '끝냄'; st2.appendChild(im); r.append(t, w, st2); sp.appendChild(r); return; }
     const b = x.b, i = x.i, r = el('div', 'pr' + (ed === i ? ' ed' : '')), t = el('span', 't'); t.append(document.createTextNode(toT(b.s)), el('small', null, `${b.e - b.s}분`));
     const w = el('button', 'w'); w.appendChild(subWord(b.sub, b.parts.map(p => p.t.label).join(' + '))); w.onclick = () => { ed = ed === i ? -1 : i; edMode = ''; addOpen = false; refreshSheet(); };
@@ -407,13 +410,15 @@ function editRow(i) {
     B2('↓ 뒤로', go((F, b) => { if (i < F.length - 1) { const a = F[i + 1]; [a.sub, b.sub] = [b.sub, a.sub]; [a.parts, b.parts] = [b.parts, a.parts]; ed = i + 1; } })),
     B2('과목 바꾸기', () => { edMode = 'sub'; refreshSheet(); }),
     B2('빼기', go(F => { F.splice(i, 1); ed = -1; }), 'del'));
+  { const b = (ST().fix[todayK()] || splan().days[0].blocks)[i], lab = b ? b.parts.map(p => (p.t || p).label).join(' ') : '';
+    if (b && window.lenaNotes && lenaNotes.has(b.sub)) w.appendChild(B2(/필승/.test(lab) ? '필승노트 보기' : /백지/.test(lab) ? '백지 복습 문제' : `${b.sub} 노트`, () => { lenaNotes.open(b.sub, /필승/.test(lab) ? 'cram' : /백지/.test(lab) ? 'quiz' : ''); sub = 'note'; ed = -1; refreshSheet(); })); }
   return w;
 }
 const xbtnS = fn => { const b = el('button', 'x', '×'); b.onclick = fn; b.setAttribute('aria-label', '지우기'); return b; };
 function stExam(B) {
   const today = todayK(), E = ST().exams.filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
   E.forEach((e, n) => {
-    const dd = dTo(e.date), c = el('div', 'mat'), h = el('div', 'h'), ch = el('span', 'chip', dd ? `D-${dd}` : 'D-DAY'); ch.style.background = dd <= 7 ? 'var(--hot)' : 'var(--yel)';
+    const dd = dTo(e.date), c = el('div', 'mat'), h = el('div', 'h'), ch = el('span', 'sj', dd ? `D-${dd}` : 'D-DAY'); ch.style.background = dd <= 7 ? 'var(--hot)' : 'var(--yel)';
     h.append(ch, el('b', null, `${e.name} · ${e.date.slice(5).replace('-', '/')}`), xbtnS(() => { if (!confirm(`'${e.name}' 지울까요?`)) return; ST().exams = ST().exams.filter(x => x !== e); save(); dirty(); refreshSheet(); })); c.appendChild(h);
     const sp = el('div', 'hint'); exSubs(e).forEach(s => sp.append(chip(s), document.createTextNode(' '))); c.appendChild(sp);
     e.ranges.forEach(r => { const m = matOf(r.mat); if (m) c.appendChild(el('div', 'hint', `${m.title} ${m.units[r.from] ? m.units[r.from].name : ''}~${m.units[r.to] ? m.units[r.to].name : ''}`)); });
