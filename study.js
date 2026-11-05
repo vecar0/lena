@@ -31,7 +31,7 @@ const css = `
 .dfly .stg span.past{background:rgba(0,0,0,.4);color:rgba(255,255,255,.45);text-decoration:line-through}
 .dfly .stg span.cur{background:#fff;color:#111;border:2px solid #000;box-shadow:2px 2px 0 #000}
 .dfly p{font-size:13.5px;font-weight:700;line-height:1.45;margin-top:10px;word-break:keep-all}
-.dfly.none{background-image:url(assets/lena/paper_teal.webp);color:#111;padding-bottom:44px}.dfly .ddn em{font-style:normal;font-size:.56em;margin-right:2px;vertical-align:.18em;opacity:.92}
+.dfly.none{background-image:url(assets/lena/paper_teal.webp);color:#111;padding-bottom:44px}.dfly .ddn em{font-style:normal;font-size:.9em;margin-right:1px}
 .dfly.none .ddn{color:var(--yel);font-size:30px}
 .lena{margin:0 2px 14px}
 .lena .row .btn{flex:1 1 auto}

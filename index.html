@@ -103,7 +103,7 @@ img{object-fit:contain} /* 그림이 찌그러지지 않게: 따로 cover를 준
 
 .lenahit{position:absolute;left:28%;right:12%;top:36%;height:30%;z-index:2}
 /* 똑똑: 해골이 원래 유리에 대고 있는 손 자리에 물결 + 눈 번쩍 (따로 그린 손 없음, v57). 자리는 placeKnock()이 그림 좌표로 맞춤 */
-.knock{position:absolute;z-index:5;left:0;top:0;width:96px;height:96px;margin:-48px 0 0 -48px;opacity:0;pointer-events:none;transition:opacity .4s}
+.knock{position:absolute;z-index:2;left:0;top:0;width:96px;height:96px;margin:-48px 0 0 -48px;opacity:0;pointer-events:none;transition:opacity .4s}
 .knock.on{opacity:1;pointer-events:auto}
 .knock .rp{position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px;border-radius:50%;border:2px solid rgba(214,244,255,.8);box-shadow:0 0 10px rgba(150,225,255,.55),inset 0 0 8px rgba(255,255,255,.35);opacity:0}
 .knock.on .rp{animation:rip 6s ease-out infinite}.knock.on .rp.r2{animation-delay:.22s}
