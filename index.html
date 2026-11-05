@@ -102,11 +102,22 @@ img{object-fit:contain} /* 그림이 찌그러지지 않게: 따로 cover를 준
 .ci{display:inline-block;width:1.3em;height:1.3em;vertical-align:-.3em;margin:0 2px;object-fit:contain}
 
 .lenahit{position:absolute;left:28%;right:12%;top:36%;height:30%;z-index:2}
-.knock{position:absolute;z-index:4;width:150px;left:-10px;top:38%;pointer-events:auto;opacity:0;transform:translateX(-60px) rotate(-12deg);transition:opacity .3s,transform .5s var(--ease)}
-.knock.on{opacity:1;transform:translateX(0) rotate(-12deg)}
-.knock.tap{animation:knock .6s 2}
-.knock span{position:absolute;left:96px;top:6px;font-family:'Black Han Sans';font-size:22px;color:var(--pink);text-shadow:2px 2px 0 #000;transform:rotate(-8deg);white-space:nowrap}
-@keyframes knock{0%,100%{transform:rotate(-12deg)}30%{transform:translate(8px,4px) rotate(-6deg)}60%{transform:rotate(-12deg)}75%{transform:translate(6px,3px) rotate(-8deg)}}
+/* 똑똑: 해골이 원래 유리에 대고 있는 손 자리에 물결 + 눈 번쩍 (따로 그린 손 없음, v57). 자리는 placeKnock()이 그림 좌표로 맞춤 */
+.knock{position:absolute;z-index:5;left:0;top:0;width:96px;height:96px;margin:-48px 0 0 -48px;opacity:0;pointer-events:none;transition:opacity .4s}
+.knock.on{opacity:1;pointer-events:auto}
+.knock .rp{position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px;border-radius:50%;border:2px solid rgba(214,244,255,.8);box-shadow:0 0 10px rgba(150,225,255,.55),inset 0 0 8px rgba(255,255,255,.35);opacity:0}
+.knock.on .rp{animation:rip 6s ease-out infinite}.knock.on .rp.r2{animation-delay:.22s}
+.knock.tap .rp{animation:rip2 .6s ease-out 3}.knock.tap .rp.r2{animation-delay:.12s}
+.knock span{position:absolute;right:62px;top:-4px;font-family:'Black Han Sans';font-size:17px;color:#fff;text-shadow:0 0 8px var(--pink),2px 2px 0 #000;transform:rotate(-8deg);white-space:nowrap;opacity:.85}
+.knock.tap span{animation:kword .6s ease-out 3}
+@keyframes rip{0%{transform:scale(.3);opacity:0}3%{opacity:.85}22%{transform:scale(3);opacity:0}100%{transform:scale(3);opacity:0}}
+@keyframes rip2{0%{transform:scale(.3);opacity:1}100%{transform:scale(3.4);opacity:0}}
+@keyframes kword{0%,100%{transform:rotate(-8deg)}30%{transform:translate(-3px,-2px) rotate(-12deg) scale(1.12)}}
+.keyes{position:absolute;inset:0;z-index:2;pointer-events:none}
+.keyes i{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle,rgba(255,120,200,.95) 0 18%,rgba(255,61,154,.55) 35%,transparent 70%);opacity:0;pointer-events:none;mix-blend-mode:screen}
+.keyes.tap i{animation:eyef 1.2s ease-out}
+@keyframes eyef{0%{opacity:0;transform:scale(.6)}20%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.knock.on .rp,.knock.tap .rp,.knock.tap span,.keyes.tap i{animation:none}.knock.on .rp{opacity:.6;transform:scale(1.6)}}
 
 .sub{position:absolute;left:18px;right:18px;bottom:calc(var(--sb) + 132px);text-align:center;z-index:5}
 .who{display:inline-block;font-family:'Black Han Sans';font-size:13px;letter-spacing:2px;color:#000;background:var(--teal);padding:3px 9px 2px;transform:rotate(-2deg);margin-bottom:9px}
@@ -174,7 +185,7 @@ img{object-fit:contain} /* 그림이 찌그러지지 않게: 따로 cover를 준
 .app.ringing .home,.app.ringing .callv{display:none!important}
 .ab em[hidden],.k em[hidden]{display:none}
 .app.outside .inc{background:rgba(6,9,11,.55)}
-.app.dim .flyers,.app.dim .knock,.app.dim .lenahit{opacity:0;pointer-events:none;transition:opacity .25s}
+.app.dim .flyers,.app.dim .knock,.app.dim .keyes,.app.dim .lenahit{opacity:0;pointer-events:none;transition:opacity .25s}
 .ava{width:136px;height:136px;border-radius:50%;background:url(assets/lena/cat.jpg) center/cover;border:3px solid #000;box-shadow:5px 5px 0 var(--pink);animation:ring 1.2s infinite}
 @keyframes ring{0%,100%{box-shadow:5px 5px 0 var(--pink),0 0 0 0 rgba(47,224,200,.45)}70%{box-shadow:5px 5px 0 var(--pink),0 0 0 22px rgba(47,224,200,0)}}
 .inc h1{font-family:'Black Han Sans';font-weight:400;font-size:46px;margin-top:24px;letter-spacing:1px;text-shadow:3px 3px 0 var(--pink)}
@@ -341,7 +352,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
  .ab i{width:50px;height:50px}.ab svg{width:22px;height:22px}.ab{font-size:11px;gap:4px}
  .quick{padding-bottom:6px}
  .f1{width:118px;padding:10px 11px 11px}.f1 b{font-size:13.5px}
- .f2{width:112px}.knock{width:118px;top:44%}
+ .f2{width:112px}
 }
 .ahead .hd{display:flex;flex-direction:column;align-items:center}
 @media (max-height:700px){.f1{top:calc(var(--st) + 78px)}.f2{top:calc(var(--st) + 170px)}.coinb{top:calc(var(--st) + 182px)}.sub{bottom:calc(var(--sb) + 118px)}.line{font-size:17px}}
@@ -362,7 +373,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
     </div>
     <div class="flyers" id="flyers"></div>
     <div class="lenahit" id="lenaHit" aria-label="레나"></div>
-    <div class="knock" id="knock"><img src="assets/lena/knock.webp" alt="" style="width:100%"><span>똑똑</span></div>
+    <div class="keyes" id="kEyes" aria-hidden="true"><i></i><i></i></div><button class="knock" id="knock" aria-label="밀린 전단지 정리"><i class="rp"></i><i class="rp r2"></i><span>똑똑</span></button>
     <div class="sub"><div class="who">레나</div><div class="line" id="line"></div></div>
     <div class="ctl">
       <div><button class="rb" id="dialBtn" aria-label="다이얼"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="1.3"/><circle cx="12" cy="6" r="1.3"/><circle cx="18" cy="6" r="1.3"/><circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/><circle cx="6" cy="18" r="1.3"/><circle cx="12" cy="18" r="1.3"/><circle cx="18" cy="18" r="1.3"/></svg></button><div class="lb">다이얼</div></div>

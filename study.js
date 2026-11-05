@@ -25,13 +25,14 @@ const css = `
 .dfly .dtop{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
 .dfly small{display:block;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;opacity:.9}
 .dfly .dnm{font-size:17px;font-weight:900;line-height:1.3;margin-top:2px;word-break:keep-all}
-.dfly .ddn{flex:none;font-family:'Black Han Sans';font-size:42px;line-height:.9;color:#fff;text-shadow:3px 3px 0 #000;padding-right:2px}
+.dfly .ddn{flex:none;font-family:'Black Han Sans';font-size:32px;line-height:1;color:#fff;text-shadow:3px 3px 0 #000;padding-right:2px}
 .dfly .stg{display:flex;gap:5px;margin-top:12px}
 .dfly .stg span{flex:1;height:30px;display:grid;place-items:center;border-radius:7px;font-size:12px;font-weight:800;background:rgba(0,0,0,.22);color:rgba(255,255,255,.75)}
 .dfly .stg span.past{background:rgba(0,0,0,.4);color:rgba(255,255,255,.45);text-decoration:line-through}
 .dfly .stg span.cur{background:#fff;color:#111;border:2px solid #000;box-shadow:2px 2px 0 #000}
 .dfly p{font-size:13.5px;font-weight:700;line-height:1.45;margin-top:10px;word-break:keep-all}
-.dfly.none{background-image:url(assets/lena/paper_teal.webp);color:#111;padding-bottom:44px}.dfly.none .ddn{color:var(--yel);font-size:30px}
+.dfly.none{background-image:url(assets/lena/paper_teal.webp);color:#111;padding-bottom:44px}.dfly .ddn em{font-style:normal;font-size:.56em;margin-right:2px;vertical-align:.18em;opacity:.92}
+.dfly.none .ddn{color:var(--yel);font-size:30px}
 .lena{margin:0 2px 14px}
 .lena .row .btn{flex:1 1 auto}
 .lena .lsub{display:block;font-size:12px;font-weight:600;opacity:.6;margin-top:6px}
@@ -333,7 +334,7 @@ function dFlyer(B) {
   const e = nextExam(), f = el('div', 'dfly' + (e ? '' : ' none')); f.appendChild(el('i', 'tp'));
   const top = el('div', 'dtop'), L = el('div');
   if (!e) { L.append(el('small', null, '다가오는 시험'), el('div', 'dnm', '아직 없어요')); top.append(L, el('div', 'ddn', '평소')); f.append(top, el('p', null, '교재 진도를 날마다 조금씩. 시험을 넣으면 3주 전부터 회독으로 바꿔 짜요.')); B.appendChild(f); return; }
-  const dd = dTo(e.date); L.append(el('small', null, `${e.date.slice(5).replace('-', '/')} 시험까지`), el('div', 'dnm', e.name)); top.append(L, el('div', 'ddn', dd ? `D-${dd}` : 'D-DAY')); f.appendChild(top);
+  const dd = dTo(e.date); L.append(el('small', null, `${e.date.slice(5).replace('-', '/')} 시험까지`), el('div', 'dnm', e.name)); const dn = el('div', 'ddn'); if (dd) { dn.append(el('em', null, 'D-'), document.createTextNode(dd)); } else dn.append(el('em', null, 'D-'), document.createTextNode('DAY')); top.append(L, dn); f.appendChild(top);
   const G = el('div', 'stg'), stages = [['3주 전', 21], ['2주 전', 14], ['1주 전', 7], ['전날', 1]], cur = stages.findIndex(([, n], k) => dd <= n && (k === 3 || dd > stages[k + 1][1]));
   stages.forEach(([n], k) => G.appendChild(el('span', cur >= 0 && k < cur ? 'past' : k === cur ? 'cur' : '', n)));
   f.append(G, el('p', null, phaseOf(dd)[1])); B.appendChild(f);
