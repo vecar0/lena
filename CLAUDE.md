@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v39). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v40). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512, 3.x는 thinkingLevel low. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -55,6 +55,10 @@
 ## 레나가 먼저 움직이기 (`proactive.js`, app.js 함수를 감싸서 덧붙임)
 - A1 점심(12:30)·밤(22:00) 알림, A2 일정 1시간 전·끝나고 1시간 뒤 "어땠어요?", A3 밀린 일 재촉(15·21시). 설정 `S.pro` (0번 설정 > 레나가 먼저 연락). 모두 `plan()`의 reminders로 서버에 올라감.
 - D1 시간 없는 할 일에 시간 제안 카드, D2 지난 일정 "했어요?"(응/내일로/안 할래), D3 반복 일정 `S.reps`(2주 치 전단지 자동 생성, `rkey`, 지운 건 `S.repSkip`), D4 밀린 전단지 한 번에 정리 시트 `SH.cl`(해골 손 "똑똑"을 누르면 열림). Gemini 답에 `repeat`, add 항목에 `alarm:true`.
+## 대화 후속 질문·날씨 (`follow.js`, v40, proactive.js 뒤에 감쌈)
+- 후속 질문: Gemini 답의 `follow:[{at,q}]`(전단지로 안 붙인 앞일·걱정거리, 끝날 즈음 시각) → `S.follow`[{id,at,q,asked}]. 대화에 "내일 HH:MM쯤 '…' 물어볼게요" 쪽지(되돌리기). 그 시각에 폰 알림(`fu…`), 시각이 지난 뒤 앱을 열면 레나가 먼저 물어봄(`askFirst`, 한 번만, 대화 기록에도 남김). 프롬프트에 기다리는 질문·방금 물어본 질문을 넘김. 설정 `S.pro.follow`.
+- 날씨: Open-Meteo(키 없음), 위치는 처음 켤 때 한 번(`S.wx` on/lat/lon/data, 2시간마다 새로). 비·눈·33°↑·−5°↓면 전날 21:30 알림(`wx_e_`), 비 60%↑·눈이면 아침 7:30(`wx_m_`). 하루 첫 열기에 눈에 띄는 날씨만 레나가 먼저 말함(`S.wx.said`). 프롬프트에 오늘·내일 날씨.
+- 설정 0번 > '레나가 챙길 것'(후속 질문·날씨 켜기/끄기). 점검용 `window.lenaFollow`.
 ## 단축어 연결 (`box.js` + 서버 `box-worker.js`)
 - 새 Cloudflare Worker `lena-box`(KV 바인딩 `BOX`)를 사용자가 직접 배포해야 함. 앱 0번 설정 > 단축어에서 주소 입력. 열쇠 `S.boxTok`.
 - B2: 앱이 `/alarms`에 모닝콜·⏰ 표시 전단지 시간을 올리고, 밤 10시 단축어 자동화가 받아 시계 알람 생성. C3 공유 시트 단축어·C4 잠금화면/제어센터 단축어가 `/in`으로 보내면 앱이 `/inbox`를 가져와 통화로 정리.
