@@ -333,7 +333,7 @@ SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
   { const c = B.appendChild(el('div', 'card')), t = inp('password', S.key ? '••••' + S.key.slice(-4) : 'AIza로 시작하는 키'); t.autocomplete = 'off';
     c.append(row(t, btn('저장', '', () => { const v = t.value.trim(); if (!v) return; S.key = v; save(); loadModels().then(refreshSheet); refreshSheet(); say('키 받았어요. 이제 마음껏 떠들어요.', 'happy', false); })));
     c.appendChild(el('div', 'hint', S.key ? '키 저장됨. 통화가 Gemini로 연결돼요.' : '키가 없으면 레나가 정해진 말만 해요. aistudio.google.com에서 무료로 받을 수 있어요.'));
-    const s = el('select', 'in'); s.appendChild(new Option('자동 (가장 새 Flash)', '')); (S.mlist || []).forEach(m => s.appendChild(new Option(m, m))); s.value = S.brain || ''; s.onchange = () => { S.brain = s.value; save(); };
+    const s = el('select', 'in'); s.appendChild(new Option('자동 (가장 빠른 것)', '')); (S.mlist || []).forEach(m => s.appendChild(new Option(m, m))); s.value = S.brain || ''; s.onchange = () => { S.brain = s.value; save(); };
     c.append(el('div', 'hint', '대화 두뇌'), row(s)); if (S.model) c.appendChild(el('div', 'hint', '최근 대답한 두뇌: ' + S.model)); }
   B.appendChild(lbl('폰 알림'));
   { const c = B.appendChild(el('div', 'card')), t = inp('url', 'https://…workers.dev', S.srv);
@@ -399,7 +399,9 @@ const QUICK = () => {
   const h = new Date().getHours();
   return [h >= 20 || h < 4 ? '오늘 하루 정리하자' : '오늘 뭐 있어?', '30분 뒤에 전화해 줘', '남은 할 일 뭐야?', '칭찬해 줘', '내일 일정 알려 줘'];
 };
+let warmAt = 0;
 function openCall() {
+  if (S.key && Date.now() - warmAt > 60e3) { warmAt = Date.now(); fetch('https://generativelanguage.googleapis.com/', { mode: 'no-cors' }).catch(() => {}); } // 연결 미리 열기
   closePad(); if ($('sheet').classList.contains('open')) closeSheet();
   app.classList.add('calling'); callStart = Date.now(); clearInterval(callTimer);
   const up = () => { const s = (Date.now() - callStart) / 1000 | 0, t = `${pad(s / 60 | 0)}:${pad(s % 60)}`; $('callT').textContent = '통화 중 ' + t; $('aT').textContent = '통화 중 ' + t; }; up(); callTimer = setInterval(up, 1000);
@@ -499,24 +501,31 @@ function mRank(n) { if (BAD_M.test(n) || !/^gemini/.test(n) || !/flash|pro/.test
 function mAuto() { const fl = (S.mlist || []).filter(n => /flash/.test(n) && mRank(n) > 0).sort((a, b) => mRank(b) - mRank(a)); return fl[0] || 'gemini-flash-latest'; }
 // 붐비는(429·5xx·시간 초과) 모델은 잠깐 쉬게 하고 다음 모델로 넘어간다
 const COOL = {};
-function mChain() { const all = [...new Set([S.brain || mAuto(), mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-flash-lite-latest'])], ok = all.filter(m => !(COOL[m] > Date.now())); return ok.length ? ok : all; }
+// 모델마다 첫 글자가 오기까지 걸린 시간(ms)을 기억(S.mlat, 평균). '자동'이면 후보 셋 중 가장 빠른 것부터.
+const TH = {};
+function lat(m, ms) { if (!S.mlat) S.mlat = {}; const o = S.mlat[m]; S.mlat[m] = o ? Math.round(o * .7 + ms * .3) : ms; }
+function mChain() {
+  const fast = S.brain ? [S.brain] : [...new Set([mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash'])].sort((a, b) => ((S.mlat || {})[a] ?? 0) - ((S.mlat || {})[b] ?? 0));
+  const all = [...new Set([...fast, mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-flash-lite-latest'])], ok = all.filter(m => !(COOL[m] > Date.now())); return ok.length ? ok : all; }
 async function loadModels() { if (!S.key) return; try { const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key=${encodeURIComponent(S.key)}`); if (!r.ok) return; const j = await r.json(); S.mlist = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, '')).filter(n => mRank(n) > 0).sort((a, b) => mRank(b) - mRank(a)); save(); } catch (e) {} }
 function unesc(s) { try { return JSON.parse('"' + s.replace(/\\$/, '') + '"'); } catch (e) { return s.replace(/\\n/g, '\n').replace(/\\"/g, '"'); } }
 function parseReply(t) { t = t.replace(/```json|```/g, '').trim(); try { return JSON.parse(t); } catch (e) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (x) {} } const m = t.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); return { reply: m ? unesc(m[1]) : t.slice(0, 400), mood: 'calm' }; } }
 async function gemini(sys, contents, onPart) {
   let lastErr = null;
   for (const m of mChain()) for (let tryN = 0; tryN < 2; tryN++) {
-    const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents, generationConfig: Object.assign({ responseMimeType: 'application/json', temperature: 1, maxOutputTokens: 2048 }, /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: 'low' } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: 512 } } : {}) });
-    const ac = new AbortController(); const t1 = setTimeout(() => ac.abort(), 18000), t2 = setTimeout(() => ac.abort(), 50000); let acc = '';
+    // 대화는 빠르게: 생각 최소(3.x minimal, 2.5 Flash 0). 그 모델이 안 받아 주면(400) 한 단계 올려 다시.
+    const th = /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: TH[m] || 'minimal' } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: TH[m] != null ? TH[m] : (/pro/.test(m) ? 128 : 0) } } : /latest/.test(m) && TH[m] !== 'skip' ? { thinkingConfig: { thinkingBudget: 0 } } : {};
+    const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents, generationConfig: Object.assign({ responseMimeType: 'application/json', temperature: 1, maxOutputTokens: 2048 }, th) });
+    const ac = new AbortController(); const t1 = setTimeout(() => ac.abort(), 12000), t2 = setTimeout(() => ac.abort(), 45000); let acc = '', t0 = Date.now(), first = 0;
     try {
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:streamGenerateContent?alt=sse&key=${encodeURIComponent(S.key)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: ac.signal });
-      if (r.status === 400 || r.status === 401 || r.status === 403) { let x = ''; try { x = await r.text(); } catch (e) {} if (r.status !== 400 || /API_KEY|api key/i.test(x)) { clearTimeout(t1); clearTimeout(t2); throw Object.assign(new Error('key'), { status: 403 }); } }
+      if (r.status === 400 || r.status === 401 || r.status === 403) { let x = ''; try { x = await r.text(); } catch (e) {} if (r.status !== 400 || /API_KEY|api key/i.test(x)) { clearTimeout(t1); clearTimeout(t2); throw Object.assign(new Error('key'), { status: 403 }); } if (/think/i.test(x) && TH[m] == null && !tryN) { clearTimeout(t1); clearTimeout(t2); TH[m] = /gemini-3/.test(m) ? 'low' : /latest/.test(m) ? 'skip' : 512; continue; } }
       if (!r.ok || !r.body) { clearTimeout(t1); clearTimeout(t2); lastErr = Object.assign(new Error('http'), { status: r.status }); if (r.status >= 500 && !tryN) { await sleep(1200); continue; } if (r.status === 429 || r.status >= 500) COOL[m] = Date.now() + (r.status === 429 ? 90e3 : 30e3); break; }
       const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '';
       for (;;) { const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); let k;
         while ((k = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1); if (!line.startsWith('data:')) continue;
-          try { const j = JSON.parse(line.slice(5)); const tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join(''); if (tx) { clearTimeout(t1); acc += tx; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } } catch (e) {} } }
-      clearTimeout(t1); clearTimeout(t2); if (acc.trim()) { S.model = m; return parseReply(acc); } break;
+          try { const j = JSON.parse(line.slice(5)); const tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join(''); if (tx) { clearTimeout(t1); if (!first) first = Date.now() - t0; acc += tx; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } } catch (e) {} } }
+      clearTimeout(t1); clearTimeout(t2); if (acc.trim()) { S.model = m; lat(m, first || Date.now() - t0); return parseReply(acc); } break;
     } catch (e) { clearTimeout(t1); clearTimeout(t2); if (e.status === 403) throw e; lastErr = e; if (acc.trim()) { S.model = m; return parseReply(acc); } if (e.name === 'AbortError') COOL[m] = Date.now() + 30e3; break; }
   }
   throw lastErr || new Error('none');
