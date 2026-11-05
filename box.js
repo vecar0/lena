@@ -27,18 +27,19 @@ function alarms() {
 let lastA = '', aT = 0;
 async function syncAlarms(force) {
   if (!S.box) return; const list = alarms(), j = JSON.stringify(list); if (!force && j === lastA) return;
-  try { const r = await fetch(B() + '/alarms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ t: S.boxTok, alarms: list, tz: new Date().getTimezoneOffset() }) }); if (r.ok) { lastA = j; S.boxOk = Date.now(); } } catch (e) {}
+  try { const r = await fetch(B() + '/alarms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ t: S.boxTok, alarms: list, tz: new Date().getTimezoneOffset() }) }); if (r.ok) { lastA = j; S.boxOk = Date.now(); S.boxN = list.length; S.boxErr = ''; save(); } else S.boxErr = '알람 올리기 실패 (' + r.status + ')'; } catch (e) { S.boxErr = '서버에 닿지 않음'; }
 }
 const _ps = pushSync; pushSync = function (f) { _ps(f); clearTimeout(aT); aT = setTimeout(() => syncAlarms(f), 400); };
 
 // ---------- C3·C4: 우편함 받아 오기 ----------
-let polling = false;
+let polling = false, checking = false;
 async function inbox() {
-  if (!S.box || polling) return; polling = true;
-  try { const r = await fetch(url('/inbox')); if (r.ok) { const j = await r.json(); const it = (j.items || []).filter(x => x && x.text); if (it.length) handle(it); } } catch (e) {}
+  if (!S.box || polling || checking) return; polling = true;
+  try { const r = await fetch(url('/inbox')); if (r.ok) { const j = await r.json(); const it = (j.items || []).filter(x => x && x.text && x.src !== 'check'); if (it.length) handle(it); } } catch (e) {}
   polling = false;
 }
 function handle(list) {
+  S.boxIn = Date.now(); S.boxInN = (S.boxInN || 0) + list.length; save();
   const text = list.map(x => x.text).join('\n---\n');
   if (!S.key) { list.forEach(x => addItem(x.text.split('\n')[0].slice(0, 80), '')); save(); renderHome(); toast(`단축어로 온 ${list.length}개를 할 일로 붙였어요.`); return; }
   if (!app.classList.contains('calling')) openCall();
@@ -65,21 +66,38 @@ SH.box = { t: '단축어 연결', s: '앱을 안 열어도 레나에게', r: Bx 
   const g = el('div', 'guide'); g.innerHTML = '처음 한 번만, 컴퓨터에서 해 주세요.<ol><li>Cloudflare 대시보드 → <b>Workers</b> → 새로 만들기, 이름 <b>lena-box</b></li><li>저장소의 <b>box-worker.js</b> 내용을 통째로 붙여 넣고 배포</li><li>Storage → <b>KV</b>에서 새 공간을 만들고, Worker 설정 → Bindings에 변수 이름 <b>BOX</b>로 연결</li><li>생긴 주소(…workers.dev)를 위 칸에 넣고 저장</li></ol>';
   c.appendChild(g); Bx.appendChild(c);
   if (!S.box) return;
+  Bx.appendChild(lbl('연결 상태'));
+  const st = el('div', 'card'), ago = t => { if (!t) return '아직 없음'; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.round(m / 60)}시간 전` : `${Math.round(m / 1440)}일 전`; };
+  const sl = el('div', 'guide'); sl.innerHTML = `알람 목록 올림: <b>${ago(S.boxOk)}</b>${S.boxOk ? ` (${S.boxN || 0}개)` : ''}<br>단축어로 받은 메모: <b>${ago(S.boxIn)}</b>${S.boxInN ? ` (지금까지 ${S.boxInN}개)` : ''}${S.boxErr ? `<br><span style="color:var(--hot)">문제: ${S.boxErr}</span>` : ''}`;
+  const out = el('div', 'guide'); out.style.marginTop = '8px';
+  st.append(sl, out, row(btn('전체 점검', 'teal wide', async () => {
+    const L = []; const show = () => { out.innerHTML = L.map(([k, v]) => `${v ? '✅' : '❌'} ${k}`).join('<br>'); };
+    const step = async (k, f) => { try { const v = await f(); L.push([k, !!v]); } catch (e) { L.push([k, false]); } show(); return L[L.length - 1][1]; };
+    out.textContent = '점검 중…'; checking = true;
+    if (!await step('서버 주소에 닿음', async () => (await fetch(B() + '/')).ok)) { checking = false; out.innerHTML += '<br>→ 1번 주소를 다시 확인해요.'; return; }
+    await step('알람 목록 올리기', async () => { await syncAlarms(true); return S.boxOk && Date.now() - S.boxOk < 15000; });
+    await step('단축어 쪽에서 알람 받기', async () => { const j = await (await fetch(url('/alarms', '&h=72'))).json(); return Array.isArray(j.alarms); });
+    const word = '점검 ' + Math.random().toString(36).slice(2, 6) + ' & 확인';
+    await step('특수문자 섞인 메모 보내기(&·띄어쓰기)', async () => (await fetch(url('/in', '&src=check&text=' + encodeURIComponent(word)))).ok);
+    await step('앱이 우편함에서 꺼내기', async () => { const j = await (await fetch(url('/inbox'))).json(); return (j.items || []).some(x => x.text === word); });
+    checking = false; out.innerHTML += '<br>모두 ✅면 서버와 앱은 정상이에요. 그래도 안 되면 단축어 쪽(아래 순서)을 확인해요.';
+  })));
+  Bx.appendChild(st);
   Bx.appendChild(lbl('2. 진짜 알람 자동으로 (B2)'));
   const a = el('div', 'card'), ga = el('div', 'guide');
-  ga.innerHTML = '매일 밤 단축어가 내일 모닝콜과 ⏰ 표시한 전단지 시간을 받아 <b>시계 앱 알람</b>을 만들어요. 앱이 꺼져 있어도, 무음이어도 울려요.<ol><li>단축어 앱 → <b>자동화</b> → + → <b>특정 시간</b> → 밤 10:00, 매일, <b>즉시 실행</b></li><li>동작: <b>URL 콘텐츠 가져오기</b> — 아래 주소</li><li><b>사전 값 가져오기</b> — 키 <b>alarms</b></li><li><b>각 항목을 반복</b> 안에: <b>사전 값 가져오기</b> 키 time → <b>알람 생성</b>(시간 = 그 값, 레이블은 반복 항목의 label)</li></ol>전단지 종이의 🔕를 누르면 ⏰로 바뀌고, 그 일정도 진짜 알람이 돼요.';
+  ga.innerHTML = '매일 밤 단축어가 내일 모닝콜과 ⏰ 표시한 전단지 시간을 받아 <b>시계 앱 알람</b>을 만들어요. 앱이 꺼져 있어도, 무음이어도 울려요.<ol><li>단축어 앱 → <b>자동화</b> → + → <b>특정 시간</b> → 밤 10:00, 매일, <b>즉시 실행</b>("실행 전에 묻기" 끄기)</li><li>동작: <b>URL 콘텐츠 가져오기</b> — 아래 주소</li><li><b>사전 값 가져오기</b> — 키 <b>alarms</b></li><li><b>각 항목을 반복</b> 안에: <b>사전 값 가져오기</b> 키 time → <b>알람 생성</b>(시간 = 그 값, 레이블은 반복 항목의 label)</li></ol>전단지 종이의 🔕를 누르면 ⏰로 바뀌고, 그 일정도 진짜 알람이 돼요.<br>잘 되는지 보려면 자동화를 길게 눌러 <b>실행</b> → 시계 앱 알람에 "레나 모닝콜"이 생기면 성공이에요. (알람이 없으면 아무것도 안 만들어요)';
   a.append(ga, cpRow('알람 받는 주소', url('/alarms')));
   const n = alarms(); a.appendChild(el('div', 'hint', n.length ? `지금 올라간 알람 ${n.length}개 · 가장 가까운 것 ${when(n[0].at)} ${n[0].label}` : '아직 알람이 없어요. 7번 모닝콜을 켜거나 전단지에 ⏰를 눌러요.'));
   a.appendChild(row(btn('지금 다시 올리기', 'ghost wide', () => { syncAlarms(true).then(() => toast('알람 목록을 올렸어요.')); })));
   Bx.appendChild(a);
   Bx.appendChild(lbl('3. 공유하기로 보내기 (C3)'));
   const s = el('div', 'card'), gs = el('div', 'guide');
-  gs.innerHTML = '문자·카톡·사파리의 예약 안내를 <b>공유 → 레나에게</b>로 보내면, 레나가 일정만 뽑아 전단지에 붙여요.<ol><li>단축어 앱 → + → 이름 <b>레나에게</b></li><li>설정(ⓘ) → <b>공유 시트에서 보기</b> 켜기, 받는 것: 텍스트·URL</li><li>동작: <b>URL 콘텐츠 가져오기</b> — 아래 주소 뒤에 <b>단축어 입력</b>을 붙임</li><li>동작: <b>알림 표시</b> — URL의 콘텐츠</li></ol>';
+  gs.innerHTML = '문자·카톡·사파리의 예약 안내를 <b>공유 → 레나에게</b>로 보내면, 레나가 일정만 뽑아 전단지에 붙여요.<ol><li>단축어 앱 → + → 이름 <b>레나에게</b></li><li>설정(ⓘ) → <b>공유 시트에서 보기</b> 켜기, 받는 것: 텍스트·URL</li><li>동작: <b>URL 인코딩</b> — 단축어 입력 <span style="color:var(--yel)">(이게 없으면 &·#·줄바꿈에서 글이 잘리거나 실패해요)</span></li><li>동작: <b>URL 콘텐츠 가져오기</b> — 아래 주소를 붙여 넣고, 맨 끝에 <b>URL 인코딩된 텍스트</b> 변수를 붙임</li><li>동작: <b>알림 표시</b> — URL의 콘텐츠</li></ol>받아야 할 알림: <b>"레나가 받았어요…"</b>';
   s.append(gs, cpRow('보내는 주소 (끝에 내용 붙이기)', url('/in', '&src=share&text=')));
   Bx.appendChild(s);
   Bx.appendChild(lbl('4. 잠금화면·제어센터 버튼 (C4)'));
   const l = el('div', 'card'), gl = el('div', 'guide');
-  gl.innerHTML = '잠금화면에서 바로 "내일 3시 치과"라고 말하면 레나에게 가요.<ol><li>단축어 앱 → + → 이름 <b>레나 메모</b></li><li>동작: <b>텍스트 받아쓰기</b>(또는 입력 요청)</li><li>동작: <b>URL 콘텐츠 가져오기</b> — 아래 주소 뒤에 받아쓴 텍스트</li><li>동작: <b>알림 표시</b></li><li>잠금화면 꾸미기 → 아래 버튼 자리 또는 <b>제어 센터</b> → 컨트롤 추가 → <b>단축어</b> → 레나 메모</li></ol>동작 버튼이 있는 아이폰이면 설정 → 동작 버튼 → 단축어에도 연결할 수 있어요.';
+  gl.innerHTML = '잠금화면에서 바로 "내일 3시 치과"라고 말하면 레나에게 가요.<ol><li>단축어 앱 → + → 이름 <b>레나 메모</b></li><li>동작: <b>텍스트 받아쓰기</b>(또는 입력 요청)</li><li>동작: <b>URL 인코딩</b> — 받아쓴 텍스트</li><li>동작: <b>URL 콘텐츠 가져오기</b> — 아래 주소 끝에 <b>URL 인코딩된 텍스트</b></li><li>동작: <b>알림 표시</b> — URL의 콘텐츠</li><li>잠금화면 꾸미기 → 아래 버튼 자리 또는 <b>제어 센터</b> → 컨트롤 추가 → <b>단축어</b> → 레나 메모</li></ol>동작 버튼이 있는 아이폰이면 설정 → 동작 버튼 → 단축어에도 연결할 수 있어요.';
   l.append(gl, cpRow('메모 보내는 주소 (끝에 내용 붙이기)', url('/in', '&src=lock&text=')));
   l.appendChild(row(btn('시험으로 하나 보내 보기', 'ghost wide', async () => { try { await fetch(url('/in', '&src=test&text=' + encodeURIComponent('단축어 시험이에요'))); toast('보냈어요. 잠시 뒤 통화에 나타나요.'); setTimeout(inbox, 800); } catch (e) { toast('서버에 닿지 않아요.'); } })));
   Bx.appendChild(l);
