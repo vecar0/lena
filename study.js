@@ -519,5 +519,5 @@ const _ap = apply; apply = function (r) {
   const txt = `공부에 넣음: ${got.join(', ')} · 4번 공부에서 확인`;
   if (res) { res.querySelector('span').textContent += ' · ' + txt; return res; } return noteEl(txt);
 };
-window.lenaStudy = { keepRate, plan: () => splan(), simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
+window.lenaStudy = { tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, plan: () => splan(), simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
 })();

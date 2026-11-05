@@ -47,7 +47,7 @@ const subsAll = () => [...new Set([...(ST().mats || []).map(m => m.sub), ...ST()
 const md = t => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()}`; };
 
 // 상태
-let view = 'list', openId = null, fSub = '', fTitle = '', fText = '', files = [], busy = false, err = '', filterSub = '', mode = '', shown = {};
+let keep = false, view = 'list', openId = null, fSub = '', fTitle = '', fText = '', files = [], busy = false, err = '', filterSub = '', mode = '', shown = {};
 
 // ---------- 파일 → Gemini 부분 ----------
 function readImg(file) { return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => { const im = new Image(); im.onload = () => { const s = Math.min(1, 1800 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res({ name: file.name, mime: 'image/jpeg', data: c.toDataURL('image/jpeg', .85).split(',')[1] }); }; im.onerror = rej; im.src = fr.result; }; fr.onerror = rej; fr.readAsDataURL(file); }); }
@@ -224,7 +224,8 @@ window.lenaNotes = {
   render,
   has: sb => ST().notes.some(n => n.sub === sb),
   open: (sb, m) => { filterSub = sb; view = m === 'cram' ? 'cram' : m === 'quiz' ? 'quiz' : 'list'; shown = {}; },
-  reset: () => { if (!busy && view !== 'new') { view = 'list'; } },
+  reset: () => { if (keep) { keep = false; return; } if (!busy && view !== 'new') { view = 'list'; } },
+  prefill: F => { files = F.slice(0, 12).map(f => ({ name: f.name, mime: f.mime, data: f.data })); view = 'new'; err = ''; keep = true; },
   _test: { fromText, toText, clean, set: o => { ({ view, openId, filterSub } = Object.assign({ view, openId, filterSub }, o)); } }
 };
 // 레나 대화에도 노트 핵심을 조금 넘긴다(퀴즈·설명할 때 쓰게)

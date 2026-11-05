@@ -571,6 +571,7 @@ async function sendText(raw, special) {
   while (contents.length && contents[0].role !== 'user') contents.shift();
   if (special) contents[contents.length - 1].parts[0].text = text;
   if (img) contents[contents.length - 1].parts.unshift({ inline_data: { mime_type: img.mime, data: img.data } });
+  const extra = window.pendFiles || []; window.pendFiles = null; extra.forEach(f => contents[contents.length - 1].parts.unshift({ inline_data: { mime_type: f.mime, data: f.data } }));
   try {
     const r = await gemini(sysPrompt(special), contents, onPart);
     const reply = String(r.reply || '…').trim(); onPart(reply);

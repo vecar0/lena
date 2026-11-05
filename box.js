@@ -35,9 +35,35 @@ const _ps = pushSync; pushSync = function (f) { _ps(f); clearTimeout(aT); aT = s
 let polling = false, checking = false;
 async function inbox() {
   if (!S.box || polling || checking) return; polling = true;
-  try { const r = await fetch(url('/inbox')); if (r.ok) { const j = await r.json(); const it = (j.items || []).filter(x => x && x.text && x.src !== 'check'); if (it.length) handle(it); } } catch (e) {}
+  try { const r = await fetch(url('/inbox')); if (r.ok) { const j = await r.json(); const all = (j.items || []).filter(x => x && x.src !== 'check'); const it = all.filter(x => x.text), fl = all.filter(x => x.file); if (it.length) handle(it); if (fl.length) await gotFiles(fl); } } catch (e) {}
   polling = false;
 }
+// ---------- 공유하기로 온 파일(사진·PDF): 받아서 '레나한테 보여주기' 또는 '노트로 정리' ----------
+const b64 = blob => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1]); fr.onerror = rej; fr.readAsDataURL(blob); });
+let boxFiles = [];
+async function gotFiles(list) {
+  for (const x of list) { try { const r = await fetch(url('/file', '&id=' + encodeURIComponent(x.file))); if (!r.ok) continue; const blob = await r.blob(), type = x.type || blob.type, name = x.name || (/pdf/.test(type) ? '공유한 PDF' : '공유한 사진');
+      if (/^image\//.test(type)) { const im = await shrink(blob); boxFiles.push({ name, mime: im.mime, data: im.data, kind: 'img' }); }
+      else if (/pdf/.test(type)) boxFiles.push({ name, mime: 'application/pdf', data: await b64(blob), kind: 'pdf' });
+      else if (/^text\//.test(type)) handle([{ text: (await blob.text()).slice(0, 2000) }]);
+    } catch (e) {} }
+  if (!boxFiles.length) return;
+  S.boxIn = Date.now(); S.boxInN = (S.boxInN || 0) + boxFiles.length; save();
+  if (!S.key) { toast(`공유한 파일 ${boxFiles.length}개를 받았어요. 0번 설정에 Gemini 키가 있어야 레나가 볼 수 있어요.`); boxFiles = []; return; }
+  if (!app.classList.contains('calling')) openCall();
+  setTimeout(fileAsk, 500);
+}
+function fileAsk() {
+  if (!boxFiles.length) return;
+  const F = boxFiles.slice(), n = F.length, im = F.filter(f => f.kind === 'img').length, pd = n - im;
+  const c = el('div', 'ask'); c.append(el('span', 'who', '레나'), document.createTextNode(`공유한 ${[im ? `사진 ${im}장` : '', pd ? `PDF ${pd}개` : ''].filter(Boolean).join(', ')} 받았어요. 어떻게 할까요?`));
+  const fin = msg => { boxFiles = []; c.classList.add('done'); c.querySelector('.row').remove(); c.appendChild(el('div', 'hint', msg)); };
+  c.appendChild(row(btn('레나한테 보여주기', 'teal', () => { fin('보여 줬어요.'); window.pendFiles = F.slice(0, 6); sendText(`(공유로 보낸 ${n > 1 ? '파일 ' + n + '개' : im ? '사진' : 'PDF'}) 여기서 일정·할 일·예약이 있으면 정리해서 저장하고, 아니면 뭔지 짧게 알려 줘.`); }),
+    btn('노트로 정리', 'ghost', () => { fin('4번 공부 > 노트로 넘겼어요.'); if (window.lenaNotes && lenaNotes.prefill) { lenaNotes.prefill(F); window.lenaStudy && lenaStudy.tab && lenaStudy.tab('note'); openSheet(6); } }),
+    btn('버리기', 'ghost', () => fin('버렸어요.'))));
+  const L = $('log'); L.appendChild(c); L.scrollTop = L.scrollHeight;
+}
+window.lenaBox = { gotFiles, files: () => boxFiles };
 function handle(list) {
   S.boxIn = Date.now(); S.boxInN = (S.boxInN || 0) + list.length; save();
   const text = list.map(x => x.text).join('\n---\n');
@@ -68,6 +94,8 @@ SH.box = { t: '단축어 연결', s: '앱을 안 열어도 레나에게', r: Bx 
   if (!S.box) return;
   Bx.appendChild(lbl('연결 상태'));
   const st = el('div', 'card'), ago = t => { if (!t) return '아직 없음'; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.round(m / 60)}시간 전` : `${Math.round(m / 1440)}일 전`; };
+  const vw = el('div', 'warn'); vw.hidden = true; fetch(B() + '/').then(r => r.text()).then(t => { if (!/v2/.test(t)) { vw.hidden = false; vw.innerHTML = '서버 코드가 예전 버전이라 <b>사진·PDF는 못 받아요</b>(글은 돼요). 컴퓨터에서 Cloudflare → Workers → <b>lena-box</b> → <b>코드 편집</b>(Edit code) → 전부 지우고 아래 버튼으로 복사한 새 코드를 붙여 넣기 → <b>배포</b>(Deploy).'; vw.appendChild(row(btn('새 서버 코드 복사', 'ghost wide', async () => { try { copy(await (await fetch('box-worker.js', { cache: 'no-store' })).text()); } catch (e) { toast('못 가져왔어요. 저장소의 box-worker.js를 써 주세요.'); } }))); } }).catch(() => {});
+  st.appendChild(vw);
   const sl = el('div', 'guide'); sl.innerHTML = `알람 목록 올림: <b>${ago(S.boxOk)}</b>${S.boxOk ? ` (${S.boxN || 0}개)` : ''}<br>단축어로 받은 메모: <b>${ago(S.boxIn)}</b>${S.boxInN ? ` (지금까지 ${S.boxInN}개)` : ''}${S.boxErr ? `<br><span style="color:var(--hot)">문제: ${S.boxErr}</span>` : ''}`;
   const out = el('div', 'guide'); out.style.marginTop = '8px';
   st.append(sl, out, row(btn('전체 점검', 'teal wide', async () => {
@@ -93,7 +121,8 @@ SH.box = { t: '단축어 연결', s: '앱을 안 열어도 레나에게', r: Bx 
   Bx.appendChild(lbl('3. 공유하기로 보내기 (C3)'));
   const s = el('div', 'card'), gs = el('div', 'guide');
   gs.innerHTML = '문자·카톡·사파리 글을 <b>공유 → 레나에게</b>로 보내면 레나가 일정만 뽑아 전단지에 붙여요.<div class="hint">동작 추가: 편집 화면 아래 <b>검색창</b>에 <b>[검색어]</b>를 치고 나온 동작을 눌러요. 괄호 안은 영어 이름.</div>단축어 탭 → + → 이름 <b>레나에게</b><ol><li>아래 <b>ⓘ</b>(세부사항) → <b>공유 시트에서 보기</b> 켜기</li><li>[인코딩] → <b>URL 인코딩</b> (URL Encode). 입력 자리는 <b>단축어 입력</b> <span style="color:var(--yel)">(이게 없으면 &·#·줄바꿈에서 글이 잘려요)</span></li><li>[URL 콘텐츠] → <b>URL의 콘텐츠 가져오기</b>. URL 자리에 아래 <b>보내는 주소</b>를 붙여 넣고, 커서를 <b>맨 끝(text= 뒤)</b>에 둔 채 키보드 위 변수 줄에서 <b>URL 인코딩된 텍스트</b> 누르기</li><li>(있으면 좋아요) [알림] → <b>알림 보기</b> (Show Notification), 내용 <b>URL의 콘텐츠</b></li></ol>▶ 메모 앱 글을 고르고 공유 → <b>레나에게</b> → “레나가 받았어요…”가 뜨면 성공.';
-  s.append(gs, cpRow('보내는 주소 (끝에 내용 붙이기)', url('/in', '&src=share&text=')));
+  const gf = el('div', 'guide'); gf.style.marginTop = '14px'; gf.innerHTML = '<b style="color:var(--yel)">사진·PDF도 보내려면 (새 방식, 글도 같이 돼요)</b><ol><li>레나에게 단축어를 열고 <b>URL 인코딩</b> 동작은 지우기(길게 눌러 삭제)</li><li><b>URL의 콘텐츠 가져오기</b>의 URL을 아래 <b>파일 보내는 주소</b>로 바꾸기(뒤에 아무것도 안 붙임)</li><li>그 동작의 <b>›</b>(더 보기)를 펼쳐서 <b>방법: POST</b>, <b>요청 본문: 파일</b>, 파일 자리에 <b>단축어 입력</b></li><li>ⓘ(세부사항) → 공유 시트에서 보기 켜기, 받는 유형은 <b>이미지·PDF·텍스트·URL</b> 켜 두기</li><li>(사진 여러 장) [반복] → <b>각 항목을 반복</b>(Repeat with Each) 안에 3번 동작을 넣고, 파일 자리를 <b>반복 항목</b>으로</li></ol>▶ 사진을 공유 → <b>레나에게</b> → “레나가 파일을 받았어요…”가 뜨면 성공. 앱을 열면 레나가 <b>보여주기 / 노트로 정리</b>를 물어봐요.';
+  s.append(gs, cpRow('보내는 주소 (끝에 내용 붙이기)', url('/in', '&src=share&text=')), gf, cpRow('파일 보내는 주소 (사진·PDF·글)', url('/in', '&src=share')));
   Bx.appendChild(s);
   Bx.appendChild(lbl('4. 잠금화면·제어센터 버튼 (C4)'));
   const l = el('div', 'card'), gl = el('div', 'guide');
