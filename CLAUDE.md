@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v36). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v37). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512, 3.x는 thinkingLevel low. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -16,7 +16,8 @@
 - 홈(영상통화) = 비 오는 공중전화 부스(배경 영상 `assets/lena/bg.mp4`, 끊김 없이 반복, 번쩍임 줄임). 위: 부재중 배지(0개면 숨김)·시계. 유리에 붙은 전단지(다음 일정 분홍 '외 N개', 할 일 노랑 '할 일 N'). 동전 개수는 영상 화면에 안 띄움(v36). 지난 일정이 있으면 해골 손이 유리를 "똑똑". 아래: 레나 자막, 버튼 다이얼/수화기 들기/전단지.
 - 다이얼(공중전화 키패드, DTMF 소리): 1 오늘 2 할 일 3 이번 주(전단지 시트 탭) 4 예약 전화 5 음성사서함(기억) 6 통화 일기 7 모닝콜 8 오락실 9 부재중 ✱ 통화 기록 0 설정 # 닫기.
 - 통화 = Gemini 대화(스트리밍 자막, 사진, 음성 입력 SpeechRecognition). 답 JSON: reply, mood(tease/happy/worry/pout/surprise/calm → 스티커 팝), add, done, remove, callback, remember, diary. 저장하면 "✓ … 되돌리기" 쪽지.
-- 전단지를 떼면(끝냄) 찢어지는 연출 + 동전 1개. 동전 1개로 "오늘의 운세 전화"(`fortuneCall`, 하루 한 번 `S.fortDay`; 키 없으면 앱이 직접 만든 운세). 통화 빠른 버튼·오락실에서 연다.
+- 전단지를 떼면(끝냄) 찢어지는 연출 + 동전 1개.
+- 오늘의 운세 = 전용 페이지 `SH.fort`(v37). 접힌 쪽지 → 할 일 동전 1개로 펴기(하루 한 번, 그날은 몇 번이든 다시 봄). 내용: 총운 별 1~5·한 줄, 사랑/일/돈 점수, 행운의 숫자·색(견본 동그라미)·물건, 조심할 것, 레나의 한마디, "레나랑 이 운세 얘기하기"(통화로). 키 있으면 Gemini가 일정·기억을 보고 JSON으로 만들고(`fortMake`), 없거나 실패하면 날짜+이름으로 정해지는 `fortLocal`. 저장 `S.fort[날짜]`(14일치), 아래 '지난 운세' 목록(눌러서 펼침). 여는 곳: 통화 빠른 버튼 '🔮 오늘의 운세', 자판기 운세 칸(`fortuneCall()`은 이제 페이지를 엶). 쪽지 CSS `.fslip`.
 - 모닝콜: 정한 시각 알림(받을 때까지 2분마다 5번 더) · 진짜 알람은 iOS 단축어 '레나 알람'(알람 생성)으로 시계 앱에 만든다(`shortcuts://run-shortcut`) + 앱을 열면 걸려오는 전화 화면 → 받으면 오늘 브리핑, "5분만…"이면 5분 뒤 다시. 2시간 안에 안 받으면 부재중.
 - 처음 실행: 모르는 번호 전화 → 받으면 레나가 이름을 묻고, 키를 받는다.
 
