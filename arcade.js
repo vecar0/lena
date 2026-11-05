@@ -112,7 +112,7 @@ function frame(title, body, back, flat) {
 }
 function hdr() { const g = $('gcb'); if (!g) return; g.innerHTML = ''; const i = el('img'); i.src = CUR('gc'); i.alt = ''; g.append(i, document.createTextNode(gc())); g.title = '게임 동전'; }
 function talk(B, who, t) { const r = el('div', 'talkr'), i = el('i', who === 'sk' ? 'sk' : $('app').classList.contains('outside') ? '' : 'face'); const s = el('span', null, t); r.append(i, s); B.appendChild(r); return s; }
-function openArc() { const fresh = gcInit(); A.classList.add('on'); hub(fresh); }
+function openArc() { ['sv', 'svBest', 'svKill', 'rh', 'rhDif', 'cardAsc', 'cardAscMax', 'cardBest', 'cardRun', 'cardWin', 'idl', 'idr'].forEach(k => { delete S[k]; }); const fresh = gcInit(); A.classList.add('on'); hub(fresh); }
 function closeArc() { if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; } A.classList.remove('on'); cur = ''; if (typeof renderHome === 'function') renderHome(); }
 window.openArc = openArc;
 window.ARC = { A, frame, talk, gc, gcAdd, hub, reg, img, gimg: n => `assets/lena/g/${n}.webp`, set cleanup(f) { cleanup = f; }, get cleanup() { return cleanup; }, closeArc };

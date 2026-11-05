@@ -210,7 +210,7 @@ window.JACKPOT = CORE;
 const { frame, talk, gcAdd, gc } = window.ARC;
 const IM = n => `assets/lena/${n}.webp`;
 const SIM = { cherry: 's/d_cherry', coin: 'st_coin', heart: 'st_heart', lips: 'st_lips', bolt: 'st_bolt', star: 'st_star', crown: 's/d_crown', skull: 'st_skull' };
-const NAME = '자정의 잭팟';
+const NAME = 'MIDNIGHT JACKPOT';
 const TK = '<i class="bp-tk"></i>';
 const css = `
 .bp-hd{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
@@ -221,7 +221,7 @@ const css = `
 .bp-dl{display:flex;align-items:center;gap:8px;font-family:'Black Han Sans';font-size:17px;color:#fff;text-shadow:2px 2px 0 #000}
 .bp-dl i{display:flex;gap:4px;margin-left:auto}.bp-dl i u{width:12px;height:12px;border-radius:50%;border:2px solid #000;background:#2a2d33}.bp-dl i u.on{background:var(--pink)}.bp-dl i u.now{background:var(--yel)}
 .bp-dl em{font-style:normal;font-family:'Space Mono',monospace;font-size:11.5px;color:#ff8fb6;text-shadow:none}
-.bp-name{text-align:center;font-family:'Black Han Sans';font-size:44px;line-height:1;color:var(--yel);text-shadow:3px 3px 0 var(--pink),6px 6px 0 #000;letter-spacing:2px;margin:6px 0 0}
+.bp-name{text-align:center;font-family:'Black Han Sans';font-size:clamp(28px,9.5vw,44px);line-height:1;color:var(--yel);text-shadow:3px 3px 0 var(--pink),6px 6px 0 #000;letter-spacing:2px;margin:6px 0 0}
 .bp-name small{display:block;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:6px;color:var(--teal);text-shadow:none;margin-top:6px}
 .bp-panel{position:relative;padding:12px;border-radius:4px;border:2px solid #000;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;color:#111;box-shadow:4px 4px 0 var(--teal)}
 .bp-panel::before{content:"";position:absolute;left:50%;top:-9px;width:54px;height:16px;margin-left:-27px;background:url(assets/lena/tape_pink1.webp) center/100% 100%}
@@ -293,7 +293,7 @@ function enter() { delete S.slotRun; R = S.slot2 || null; tk0 = R ? R.cards : nu
 function lobby() {
   frame(NAME, B => {
     const M = meta();
-    const nm = el('div', 'bp-name'); nm.innerHTML = `${NAME}<small>MIDNIGHT JACKPOT</small>`; B.appendChild(nm);
+    const nm = el('div', 'bp-name'); nm.innerHTML = `${NAME}<small>빚 갚기 슬롯</small>`; B.appendChild(nm);
     talk(B, 'sk', '(해골이 빚 장부를 펼친다) 마감 9번. 다 갚으면 놓아준대요. …못 갚으면? 몰라요, 저도.');
     const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, '빚 갚기 슬롯'));
     P.appendChild(el('div', 'hint', '라운드 3번이 마감 하나. 레버를 당겨 칩을 벌고, ATM에 넣어 두면 라운드마다 이자 7%. 가운데 해골 셋이 뜨면 「통화 끊김」 — 손에 든 칩은 날아가요. 마감마다 레나가 전화해서 하나를 골라 줘요. 티켓으로 부적(7칸)을 사서 판을 키워요.'));
@@ -488,6 +488,6 @@ async function go() {
 function pop(t) { const w = $('rwin'); if (!w) return; const p = el('div', 'bp-pop', t); w.parentNode.appendChild(p); setTimeout(() => p.remove(), 950); }
 function count(tr, n) { let v = 0; const st = Math.max(1, Math.ceil(n / 16)); const iv = setInterval(() => { v = Math.min(n, v + st); tr.textContent = '+' + nf(v); if (v >= n) clearInterval(iv); }, 40); }
 function burst(n) { const w = $('rwin'); if (!w) return; const b = w.getBoundingClientRect(); for (let i = 0; i < n; i++) { const c = el('div', 'bp-coin'); document.body.appendChild(c); const x0 = b.left + b.width / 2, y0 = b.bottom, vx = (Math.random() - .5) * 9, vy = -8 - Math.random() * 7; let x = x0, y = y0, vy2 = vy, t = 0; const f = () => { t++; x += vx; vy2 += .55; y += vy2; c.style.transform = `translate(${x - 13}px,${y - 13}px) rotate(${t * 12}deg)`; if (t < 70 && y < innerHeight + 30) requestAnimationFrame(f); else c.remove(); }; requestAnimationFrame(f); } }
-window.ARC.reg({ id: 'slot', order: 5, name: '자정의 잭팟', ban: 'slot', icon: IM('s/d_cherry'), color: '#f2ea3a', cost: 3, sub: () => `해골 빚 갚기 슬롯 · 최고 마감 ${meta().best}${S.slot2 && S.slot2.ph !== 'over' ? ' · 이어하기' : ''}`, start: enter });
+window.ARC.reg({ id: 'slot', order: 5, name: NAME, ban: 'slot', icon: IM('s/d_cherry'), color: '#f2ea3a', cost: 3, sub: () => `해골 빚 갚기 슬롯 · 최고 마감 ${meta().best}${S.slot2 && S.slot2.ph !== 'over' ? ' · 이어하기' : ''}`, start: enter });
 window.lenaSlot = { get R() { return R; }, set R(v) { R = v; }, draw, lobby, CORE };
 })();
