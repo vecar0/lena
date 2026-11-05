@@ -20,7 +20,8 @@ const DEBT = [75, 200, 650, 2200, 12500, 33000, 66000, 200000, 1000000];
 const LEVER = [7, 14, 28, 42, 56, 140, 168, 196, 224];
 const RESTOCK = [3, 6, 20, 69, 300, 1000, 2000, 7000, 43000];
 const FINAL = 9;
-let HEAT = 2.05; // 마감마다 기계가 달아오름(전체 배수)
+let HEAT = 2.05;
+let HARD = 1; // 난이도는 하나(어려움): 빚이 마감마다 10%씩 더 불어남 // 마감마다 기계가 달아오름(전체 배수)
 
 // 부적: r 등급(0 흔함·1 조금 귀함·2 귀함·3 전설), p 티켓 값, free = 칸 안 차지, lock = 도전 과제로 열림
 const CH = [
@@ -41,8 +42,8 @@ const CH = [
   { id: 'cateye', n: '고양이 눈', r: 2, p: 4, i: 's/d_halo', d: '눈 ×3', f: m => { m.pm.eye *= 3; } },
   { id: 'gum', n: '잭팟 껌', r: 2, p: 4, i: 's/d_bheart', d: '잭팟 ×3', f: m => { m.pm.jack *= 3; } },
   { id: 'umb4', n: '네잎 우산', r: 1, p: 3, i: 's/d_lights', d: '돌릴 때마다 행운 +2', f: m => { m.luck += 2; } },
-  { id: 'wet', n: '젖은 부적', r: 0, p: 2, i: 's/d_bdots', d: '행운 +4, 대신 해골 +1%p (저주)', curse: 1, f: m => { m.luck += 4; m.sk += .01; } },
-  { id: 'skumb', n: '해골 우산', r: 2, p: 3, i: 'st_skull', d: '마감마다 해골 셋을 한 번 막아요', f: m => { m.umb = 1; } },
+  { id: 'wet', n: '젖은 부적', r: 0, p: 2, i: 's/d_bdots', d: '행운 +4, 대신 끊김 +1%p (저주)', curse: 1, f: m => { m.luck += 4; m.sk += .01; } },
+  { id: 'skumb', n: '해골 우산', r: 2, p: 3, i: 'st_skull', d: '마감마다 통화 끊김을 한 번 막아요', f: m => { m.umb = 1; } },
   { id: 'piggy', n: '저금통 해골', r: 1, p: 2, i: 'cur/debt', d: 'ATM 이자 +3%p', f: m => { m.int += .03; } },
   { id: 'recv', n: '여분의 수화기', r: 2, p: 4, i: 'st_phone', d: '라운드마다 돌리기 +2번', f: m => { m.spins += 2; } },
   { id: 'cards', n: '티켓 집게', r: 1, p: 3, i: 'cur/phone', d: '라운드가 끝날 때마다 티켓 +1', f: m => { m.cards += 1; } },
@@ -52,10 +53,10 @@ const CH = [
   { id: 'redbtn', n: '빨간 버튼', r: 1, p: 3, i: 's/d_neon', d: '마감마다 한 번: 다음 돌리기 행운 +10', charge: 1, f: () => {} },
   { id: 'loser', n: '꽝 수집가', r: 0, p: 1, i: 's/d_duck', d: '꽝마다 칩 +2×마감 (칸 안 차지)', free: 1, f: m => { m.miss += 2; } },
   { id: 'dual', n: '이중 회선', r: 2, p: 5, i: 's/d_notes', d: '한 번에 줄 2개 이상이면 ×1.5', f: m => { m.multi *= 1.5; } },
-  { id: 'devil', n: '악마의 계약', r: 3, p: 5, i: 's/d_anger', d: '전체 ×2, 대신 해골 +3%p (저주)', curse: 1, f: m => { m.G *= 2; m.sk += .03; } },
+  { id: 'devil', n: '악마의 계약', r: 3, p: 5, i: 's/d_anger', d: '전체 ×2, 대신 끊김 +3%p (저주)', curse: 1, f: m => { m.G *= 2; m.sk += .03; } },
   { id: 'photo', n: '레나의 사진', r: 3, p: 6, i: 's/d_blush', d: '모든 그림 배수 ×2', f: m => { SY.forEach(s => { m.sm[s] *= 2; }); } },
   // 도전 과제로 열리는 부적
-  { id: 'rain', n: '빗방울 렌즈', r: 2, p: 4, i: 's/d_bdots', lock: 'a_skull', d: '해골 셋이 나온 뒤 그 마감 동안 전체 ×2', f: (m, R) => { if (R.skDl) m.G *= 2; } },
+  { id: 'rain', n: '빗방울 렌즈', r: 2, p: 4, i: 's/d_bdots', lock: 'a_skull', d: '통화가 끊긴 뒤 그 마감 동안 전체 ×2', f: (m, R) => { if (R.skDl) m.G *= 2; } },
   { id: 'bones', n: '뼈 주사위', r: 1, p: 3, i: 'st_skull', lock: 'a_dl3', d: '행운이 7 이상인 돌리기는 ×2', f: m => { m.lucky7 = 1; } },
   { id: 'vip', n: 'VIP 회선', r: 2, p: 5, i: 'st_phone', lock: 'a_call5', d: '레나의 전화 다시 걸기 공짜', f: m => { m.freecall = 1; } },
   { id: 'atm2', n: '해골 은행장', r: 2, p: 4, i: 'cur/debt', lock: 'a_atm', d: 'ATM 이자 +7%p', f: m => { m.int += .07; } },
@@ -71,7 +72,7 @@ const rint = (R, a, b) => a + Math.floor(rng(R) * (b - a + 1));
 function wpick(R, w) { const ks = Object.keys(w); let t = 0; ks.forEach(k => { t += w[k]; }); let x = rng(R) * t; for (const k of ks) if ((x -= w[k]) < 0) return k; return ks[ks.length - 1]; }
 
 function newRun(seed, o = {}) {
-  const R = { rs: seed | 0, dl: 1, rd: 1, ph: 'round', chips: 30, atm: 0, cards: 3, spins: 0, ch: [], chain: {}, k: 0, miss: 0, perm: { sv: {}, sm: {}, pm: {}, pa: 0, luck: 0, slots: 0 }, luckDl: 0, umbUsed: 0, btnUsed: 0, boost: 0, skDl: 0, skSeen: 0, hard: o.hard || 0, restockN: 0, offers: [], call: null, recall: 0, endless: 0, unl: o.unl || [], log: { jack: 0, bestWin: 0, calls: 0, skulls: 0 } };
+  const R = { rs: seed | 0, dl: 1, rd: 1, ph: 'round', chips: 30, atm: 0, cards: 3, spins: 0, ch: [], chain: {}, k: 0, miss: 0, perm: { sv: {}, sm: {}, pm: {}, pa: 0, luck: 0, slots: 0 }, luckDl: 0, umbUsed: 0, btnUsed: 0, boost: 0, skDl: 0, skSeen: 0, hard: o.hard == null ? HARD : o.hard, restockN: 0, offers: [], call: null, recall: 0, endless: 0, unl: o.unl || [], log: { jack: 0, bestWin: 0, calls: 0, skulls: 0 } };
   roll(R); return R;
 }
 function mods(R) {
@@ -178,7 +179,7 @@ const CALL = {
   slot: { t: () => '부적 칸 +1', d: '칸이 하나 늘어요', a: R => { R.perm.slots += 1; } },
   sale: { t: () => '가게 할인', d: '이번 마감 부적 값 −1', a: R => { R.saleDl = R.dl; } },
   plk: { t: () => '행운 영구 +1', d: '이번 판 내내', a: R => { R.perm.luck += 1; } },
-  dbl: { t: () => '칩 ×2', d: '대신 해골 확률 +2%p (위험)', red: 1, a: R => { R.chips *= 2; R.ch.push('wet2'); } }
+  dbl: { t: () => '칩 ×2', d: '대신 끊김 확률 +2%p (위험)', red: 1, a: R => { R.chips *= 2; R.ch.push('wet2'); } }
 };
 function callOpts(R) {
   const ids = Object.keys(CALL).filter(k => k !== 'dbl' || R.skSeen), out = [];
@@ -193,14 +194,14 @@ function callOpts(R) {
   return out;
 }
 const callText = (R, o) => ({ t: CALL[o.id].t(R, o), d: CALL[o.id].d, red: CALL[o.id].red || 0 });
-CH.push({ id: 'wet2', n: '빨간 약속', r: 0, p: 0, i: 's/d_anger', d: '해골 +2%p (레나의 위험한 전화)', curse: 1, free: 1, hide: 1, f: m => { m.sk += .02; } }); CHM.wet2 = CH[CH.length - 1];
+CH.push({ id: 'wet2', n: '빨간 약속', r: 0, p: 0, i: 's/d_anger', d: '끊김 +2%p (레나의 위험한 전화)', curse: 1, free: 1, hide: 1, f: m => { m.sk += .02; } }); CHM.wet2 = CH[CH.length - 1];
 const recallCost = R => mods(R).freecall ? 0 : Math.max(1, R.dl - 1) + R.recall;
 function recall(R) { const c = recallCost(R); if (R.cards < c) return false; R.cards -= c; R.recall++; R.call = callOpts(R); return true; }
 function takeCall(R, i) { if (R.ph !== 'call' || !R.call || !R.call[i]) return false; const o = R.call[i]; CALL[o.id].a(R, o); R.log.calls++; R.call = null; R.ph = 'round'; return true; }
 function pressRed(R) { if (!R.ch.includes('redbtn') || R.btnUsed) return false; R.btnUsed = 1; R.boost = 10; return true; }
 const skullP = R => Math.min(.3, .013 + mods(R).sk);
 
-const CORE = { setHeat: h => { HEAT = h; }, SY, SN, BV, BW, PV, PN, FIX, CH, CHM, DEBT, LEVER, FINAL, newRun, mods, debtOf, leverOf, restockOf, priceOf, roll, restock, buy, sell, deposit, canPayEarly, payEarly, startRound, spin, judge, callOpts, callText, takeCall, recall, recallCost, pressRed, goEndless, skullP, slots, used, rng };
+const CORE = { setHeat: h => { HEAT = h; }, setHard: h => { HARD = h; }, SY, SN, BV, BW, PV, PN, FIX, CH, CHM, DEBT, LEVER, FINAL, newRun, mods, debtOf, leverOf, restockOf, priceOf, roll, restock, buy, sell, deposit, canPayEarly, payEarly, startRound, spin, judge, callOpts, callText, takeCall, recall, recallCost, pressRed, goEndless, skullP, slots, used, rng };
 if (typeof module !== 'undefined') module.exports = CORE;
 if (typeof window === 'undefined' || !window.ARC) return;
 window.JACKPOT = CORE;
@@ -253,12 +254,14 @@ const css = `
 .bp-tk{display:inline-block;width:18px;height:12px;margin-right:2px;vertical-align:-1px;background:linear-gradient(90deg,#ff3d9a 0 70%,#ffd6e4 70% 72%,#ff3d9a 72%);border:1.5px solid #000;border-radius:2px;-webkit-mask:radial-gradient(circle at 0 50%,#0000 3px,#000 3.5px) left/51% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/51% 100% no-repeat;mask:radial-gradient(circle at 0 50%,#0000 3px,#000 3.5px) left/51% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/51% 100% no-repeat}
 .bp-tkout{position:absolute;left:50%;bottom:9%;z-index:6;display:flex;align-items:center;justify-content:center;gap:6px;width:46%;height:30px;margin-left:-23%;background:repeating-linear-gradient(90deg,#ff3d9a 0 22%,#ffd6e4 22% 23%);border:2px solid #000;border-radius:3px;color:#fff;font-family:'Black Han Sans';font-size:15px;text-shadow:1px 1px 0 #000;transform-origin:top;animation:bptk 1.6s forwards;pointer-events:none}
 @keyframes bptk{0%{transform:translateY(-10px) scaleY(.1);opacity:0}25%{transform:translateY(0) scaleY(1);opacity:1}70%{transform:translateY(14px)}100%{transform:translateY(40px) rotate(-8deg);opacity:0}}
-.sc.six::before{content:"6";position:absolute;right:6%;bottom:2%;z-index:2;font-family:'Black Han Sans';font-size:clamp(14px,5vw,22px);color:#ff2e6e;text-shadow:1px 1px 0 #000,0 0 6px #ff2e6e}
-.sc.six{background:#2a0610!important;animation:bp6 .25s steps(2) 6}.sc.six img{filter:drop-shadow(0 0 6px #ff2e6e) sepia(1) saturate(6) hue-rotate(-30deg)}
-@keyframes bp6{50%{background:#ff2e6e}}
-.bp-666{position:absolute;left:0;right:0;top:9%;z-index:7;text-align:center;font-family:'Black Han Sans';font-size:clamp(54px,20vw,86px);letter-spacing:6px;color:#ff2e6e;text-shadow:3px 3px 0 #000,0 0 22px #ff2e6e,0 0 50px #ff2e6e;animation:bp6t 1.6s forwards;pointer-events:none}
-@keyframes bp6t{0%{transform:scale(2.4);opacity:0}15%{transform:scale(1);opacity:1}25%{transform:scale(1.08) rotate(-2deg)}80%{opacity:1}100%{opacity:0;transform:scale(.9)}}
-.bp-red{position:fixed;inset:0;z-index:58;pointer-events:none;background:radial-gradient(circle,transparent 30%,rgba(255,0,40,.55));animation:bpred 1.4s forwards}@keyframes bpred{0%,30%,60%{opacity:1}15%,45%{opacity:.3}100%{opacity:0}}
+.sc.six{background:#111!important}.sc.six img{filter:grayscale(1) contrast(1.4) brightness(.8)}
+.sc.six::after{content:"";position:absolute;inset:0;z-index:2;background:repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.4) 0 2px,transparent 2px 5px);mix-blend-mode:screen;animation:bpst .12s steps(2) infinite}
+@keyframes bpst{50%{background-position:0 2px,3px 0;opacity:.6}}
+.bp-cut{position:absolute;left:0;right:0;top:10%;z-index:7;text-align:center;pointer-events:none;animation:bpct 1.9s forwards}
+.bp-cut b{display:inline-block;padding:4px 14px;border:3px solid #000;border-radius:8px;background:#111;color:#9ff5e4;font-family:'Black Han Sans';font-size:clamp(30px,10vw,44px);letter-spacing:2px;box-shadow:4px 4px 0 var(--hot);text-shadow:0 0 3px rgba(47,224,200,.7)}
+.bp-cut svg{display:block;width:70%;height:40px;margin:6px auto 0;overflow:visible}.bp-cut polyline{fill:none;stroke:#2fe0c8;stroke-width:3;filter:drop-shadow(0 0 4px #2fe0c8);stroke-dasharray:600;stroke-dashoffset:600;animation:bpl .9s forwards}
+@keyframes bpct{0%{opacity:0;transform:translateY(-8px)}10%{opacity:1;transform:none}14%{transform:translateX(-5px)}18%{transform:translateX(5px)}22%{transform:none}85%{opacity:1}100%{opacity:0}}
+.bp-dead{position:fixed;inset:0;z-index:58;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 2px,transparent 2px 4px),rgba(0,20,18,.45);animation:bpdead 1.5s forwards}@keyframes bpdead{0%{opacity:0}8%{opacity:1}20%{opacity:.4}30%{opacity:1}100%{opacity:0}}
 .sc.hit{background:#fff36b!important;animation:bphit .45s cubic-bezier(.3,1.8,.5,1)}
 .sc.hit img{filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 2px #f2ea3a)}
 @keyframes bphit{0%{transform:scale(1)}40%{transform:scale(1.22);background:#fff}100%{transform:scale(1)}}
@@ -277,15 +280,15 @@ const css = `
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 const nf = n => n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + 'M' : n >= 1e4 ? (n / 1e3).toFixed(n >= 1e5 ? 0 : 1) + 'K' : String(Math.floor(n));
 const ACH = [
-  ['a_first', '첫 판을 시작했어요', ''], ['a_skull', '해골 셋을 처음 봤어요', 'rain'], ['a_dl3', '마감 3을 넘겼어요', 'bones'], ['a_atm', 'ATM에 1,000칩을 모았어요', 'atm2'],
+  ['a_first', '첫 판을 시작했어요', ''], ['a_skull', '통화가 처음 끊겼어요', 'rain'], ['a_dl3', '마감 3을 넘겼어요', 'bones'], ['a_atm', 'ATM에 1,000칩을 모았어요', 'atm2'],
   ['a_cherry', '한 번에 500칩 이상 벌었어요', 'cherry2'], ['a_jack', '잭팟(15칸 한 그림)', 'jack2'], ['a_rich', '마감 6을 넘겼어요', 'lips2'], ['a_call5', '레나의 전화를 5번 받았어요', 'vip'],
-  ['a_win', '마감 9 — 빚을 다 갚았어요', 'cat'], ['a_end', '끝없는 밤 마감 10을 넘겼어요', ''], ['a_hard', '빚쟁이 등급 1을 깼어요', ''], ['a_daily', '오늘의 판을 했어요', '']
+  ['a_win', '마감 9 — 빚을 다 갚았어요', 'cat'], ['a_end', '끝없는 밤 마감 10을 넘겼어요', ''], ['a_end12', '끝없는 밤 마감 12를 넘겼어요', ''], ['a_daily', '오늘의 판을 했어요', '']
 ];
 function meta() { if (!S.slotMeta) S.slotMeta = { best: 0, wins: 0, hardMax: 0, hard: 0, unl: [], ach: {}, seen: {}, calls: 0, daily: {} }; return S.slotMeta; }
 function ach(id) { const M = meta(); if (M.ach[id]) return; M.ach[id] = dk(new Date()); const a = ACH.find(x => x[0] === id); if (a[2] && !M.unl.includes(id)) M.unl.push(id); toast(`도전 과제: ${a[1]}${a[2] ? ` → 새 부적 '${CHM[a[2]].n}'` : ''}`); }
 let R = null, busy = false, last = null;
 function persist() { S.slot2 = R; save(); }
-function checkAch() { if (!R) return; const M = meta(); if (R.skSeen) ach('a_skull'); if (R.dl > 3) ach('a_dl3'); if (R.dl > 6) ach('a_rich'); if (R.atm >= 1000) ach('a_atm'); if (R.log.bestWin >= 500) ach('a_cherry'); if (R.log.jack) ach('a_jack'); if (M.calls >= 5) ach('a_call5'); if (R.endless && R.dl > 10) ach('a_end'); R.ch.forEach(id => { M.seen[id] = 1; }); }
+function checkAch() { if (!R) return; const M = meta(); if (R.skSeen) ach('a_skull'); if (R.dl > 3) ach('a_dl3'); if (R.dl > 6) ach('a_rich'); if (R.atm >= 1000) ach('a_atm'); if (R.log.bestWin >= 500) ach('a_cherry'); if (R.log.jack) ach('a_jack'); if (M.calls >= 5) ach('a_call5'); if (R.endless && R.dl > 10) ach('a_end'); if (R.endless && R.dl > 12) ach('a_end12'); R.ch.forEach(id => { M.seen[id] = 1; }); }
 function enter() { delete S.slotRun; R = S.slot2 || null; tk0 = R ? R.cards : null; if (R) R.unl = meta().unl; R ? draw() : lobby(); }
 function lobby() {
   frame(NAME, B => {
@@ -293,12 +296,11 @@ function lobby() {
     const nm = el('div', 'bp-name'); nm.innerHTML = `${NAME}<small>MIDNIGHT JACKPOT</small>`; B.appendChild(nm);
     talk(B, 'sk', '(해골이 빚 장부를 펼친다) 마감 9번. 다 갚으면 놓아준대요. …못 갚으면? 몰라요, 저도.');
     const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, '빚 갚기 슬롯'));
-    P.appendChild(el('div', 'hint', '라운드 3번이 마감 하나. 레버를 당겨 칩을 벌고, ATM에 넣어 두면 라운드마다 이자 7%. 666(해골 셋)이 뜨면 손에 든 칩은 날아가요. 마감마다 레나가 전화해서 하나를 골라 줘요. 티켓로 부적(7칸)을 사서 판을 키워요.'));
-    if (M.hardMax) { const T = el('div', 'bp-tier'); for (let h = 0; h <= M.hardMax; h++) { const b = el('button', M.hard === h ? 'on' : '', h ? '빚쟁이 ' + h : '보통'); b.onclick = () => { M.hard = h; save(); lobby(); }; T.appendChild(b); } P.append(el('div', 'hint', '빚쟁이 등급 — 높을수록 빚이 마감마다 10%씩 더 불어나요'), T); }
+    P.appendChild(el('div', 'hint', '라운드 3번이 마감 하나. 레버를 당겨 칩을 벌고, ATM에 넣어 두면 라운드마다 이자 7%. 가운데 해골 셋이 뜨면 「통화 끊김」 — 손에 든 칩은 날아가요. 마감마다 레나가 전화해서 하나를 골라 줘요. 티켓으로 부적(7칸)을 사서 판을 키워요.'));
     B.appendChild(P);
     const today = dk(new Date()), dd = M.daily[today];
     const r = el('div', 'bp-row');
-    const go = (seed, daily) => { if (gc() < 3) { toast('게임 동전이 모자라요. (3개 필요)'); return; } gcAdd(-3); coinSound(); R = newRun(seed, { hard: M.hard, unl: M.unl }); tk0 = R.cards; R.daily = daily ? today : ''; ach('a_first'); if (daily) { M.daily = { [today]: { best: dd ? dd.best : 0 } }; ach('a_daily'); } persist(); draw(); };
+    const go = (seed, daily) => { if (gc() < 3) { toast('게임 동전이 모자라요. (3개 필요)'); return; } gcAdd(-3); coinSound(); R = newRun(seed, { unl: M.unl }); tk0 = R.cards; R.daily = daily ? today : ''; ach('a_first'); if (daily) { M.daily = { [today]: { best: dd ? dd.best : 0 } }; ach('a_daily'); } persist(); draw(); };
     const a = el('button', 'bp-go'); a.innerHTML = `새 판 시작<small>게임 동전 3</small>`; a.onclick = () => go((Date.now() * 9301) ^ (Math.random() * 1e9), 0);
     const b = el('button', 'bp-go t'); b.innerHTML = `오늘의 판<small>${dd ? `오늘 최고 마감 ${dd.best}` : '오늘 모두 같은 판'}</small>`; b.onclick = () => go([...today].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619), 2166136261), 1);
     r.append(a, b); B.appendChild(r);
@@ -307,7 +309,7 @@ function lobby() {
   }, true);
 }
 function hdr(B) {
-  const d = el('div', 'bp-dl'); d.append(document.createTextNode(`${R.endless ? '끝없는 밤 · ' : ''}마감 ${R.dl}${R.endless ? '' : '/' + FINAL}`), el('em', null, `해골 ${(skullP(R) * 100).toFixed(1)}%`));
+  const d = el('div', 'bp-dl'); d.append(document.createTextNode(`${R.endless ? '끝없는 밤 · ' : ''}마감 ${R.dl}${R.endless ? '' : '/' + FINAL}`), el('em', null, `끊김 ${(skullP(R) * 100).toFixed(1)}%`));
   const i = el('i'); for (let k = 1; k <= 3; k++) i.appendChild(el('u', k < R.rd ? 'on' : k === R.rd ? 'now' : '')); d.appendChild(i); B.appendChild(d);
   const h = el('div', 'bp-hd'), m = mods(R), intr = Math.floor(R.atm * (.07 + m.int));
   [['debt', '갚을 빚', nf(debtOf(R))], ['chip', '손에 든 칩', nf(R.chips)], ['debt', 'ATM' + (intr ? ` +${nf(intr)}` : ''), nf(R.atm)], ['tk', '티켓', R.cards]].forEach(([k, a, v]) => { const x = el('div'), s2 = el('small'); s2.innerHTML = (k === 'tk' ? TK : ci(k)) + a; x.append(s2, el('b', null, v)); h.appendChild(x); });
@@ -343,7 +345,7 @@ function draw() {
 }
 function roundUI(B) {
   const d = debtOf(R), lev = leverOf(R.dl), have = R.atm + R.chips;
-  talk(B, R.sayW || (have >= d ? 'l' : 'sk'), R.say || (have >= d ? `빚 ${nf(d)}은 모였어요. 일찍 갚으면 남은 라운드마다 티켓 4장.` : R.rd === 3 ? `(해골이 장부를 톡톡) 마지막 라운드. ${nf(d - have)}칩 더.` : `라운드 ${R.rd}/3. 칩은 ATM에 넣어 둬요 — 해골 셋이면 손에 든 건 날아가요.`));
+  talk(B, R.sayW || (have >= d ? 'l' : 'sk'), R.say || (have >= d ? `빚 ${nf(d)}은 모였어요. 일찍 갚으면 남은 라운드마다 티켓 4장.` : R.rd === 3 ? `(해골이 장부를 톡톡) 마지막 라운드. ${nf(d - have)}칩 더.` : `라운드 ${R.rd}/3. 칩은 ATM에 넣어 둬요 — 통화가 끊기면 손에 든 건 날아가요.`));
   R.say = '';
   const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, `라운드 ${R.rd} 준비`));
   const a = el('div', 'bp-row');
@@ -382,10 +384,10 @@ function callUI(B) {
   B.appendChild(C);
 }
 function winUI(B) {
-  const M = meta(); if (!R.counted) { R.counted = 1; M.wins++; ach('a_win'); if (R.hard >= 1) ach('a_hard'); if (R.hard === M.hardMax && M.hardMax < 5) M.hardMax++; persist(); }
+  const M = meta(); if (!R.counted) { R.counted = 1; M.wins++; ach('a_win'); persist(); }
   talk(B, 'l', '…진짜 다 갚았어요? 해골이 장부를 덮었어요. 송휘님, 오늘 밤은 제 거예요.');
   const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, '빚을 다 갚았어요 🎉'));
-  P.appendChild(el('div', 'hint', `여기서 끝내면 게임 동전 +${Math.min(60, R.dl * 2 + 20)}. 끝없는 밤으로 가면 빚이 계속 커지고, 넘긴 마감마다 동전이 더 붙어요.${M.hardMax > R.hard ? ` 빚쟁이 등급 ${M.hardMax}이 열렸어요.` : ''}`));
+  P.appendChild(el('div', 'hint', `여기서 끝내면 게임 동전 +${Math.min(60, R.dl * 2 + 20)}. 끝없는 밤으로 가면 빚이 계속 커지고, 넘긴 마감마다 동전이 더 붙어요.`));
   const r = el('div', 'bp-row'); r.append(btn('끝없는 밤으로', 'teal', () => { goEndless(R); persist(); draw(); }), btn('여기서 끝내기', 'ghost', () => { R.ph = 'over'; finish(); })); P.appendChild(r); B.appendChild(P);
 }
 function finish() {
@@ -398,7 +400,7 @@ function overUI(B) {
   if (R.reward == null) { finish(); return; }
   talk(B, R.won ? 'l' : 'sk', R.won ? '수고했어요. 장부는 제가 태워 버릴게요.' : R.quit ? '도망가는 거예요? …다음엔 끝까지 봐요.' : `(해골이 장부에 빨간 줄을 긋는다) 마감 ${R.dl}에서 ${nf(debtOf(R) - R.atm - R.chips)}칩이 모자랐어요.`);
   const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, `넘긴 마감 ${R.passed} · 게임 동전 +${R.reward}`));
-  P.appendChild(el('div', 'hint', `가장 크게 번 한 번: ${nf(R.log.bestWin)}칩 · 잭팟 ${R.log.jack}번 · 해골 셋 ${R.log.skulls}번 · 레나의 전화 ${R.log.calls}번`));
+  P.appendChild(el('div', 'hint', `가장 크게 번 한 번: ${nf(R.log.bestWin)}칩 · 잭팟 ${R.log.jack}번 · 통화 끊김 ${R.log.skulls}번 · 레나의 전화 ${R.log.calls}번`));
   P.appendChild(el('div', 'bp-row')).appendChild(btn('다시 하기', 'teal wide', () => { S.slot2 = null; R = null; save(); lobby(); })); B.appendChild(P);
 }
 let tk0 = null;
@@ -448,12 +450,14 @@ async function go() {
   const tray = $('tray'), cab = document.querySelector('#arc .cabw');
   if (res.skull) {
     [6, 7, 8].forEach(i => { const x = document.querySelector(`#rwin .sc[data-i="${i}"]`); x && x.classList.add('six'); });
-    cab && cab.classList.add('bp-skull'); const c6 = document.querySelector('#arc .cab'); if (c6) c6.appendChild(el('div', 'bp-666', '666')); document.body.appendChild(Object.assign(el('div', 'bp-red'), {})); setTimeout(() => document.querySelectorAll('.bp-red').forEach(x => x.remove()), 1500);
-    tone([110, 104, 98], .5, .1, 'sawtooth'); setTimeout(() => tone([82, 78], .6, .1, 'square'), 350); if (tray) tray.textContent = res.lost ? `−${nf(res.lost)}` : '666';
-    R.say = res.lost ? `(해골 셋이 웃는다) 손에 든 ${nf(res.lost)}칩이 날아갔어요. …ATM에 넣어 두랬잖아요.` : '(666 — 해골 셋이 웃는다) 다행히 손에 든 칩이 없었어요.'; R.sayW = 'sk';
+    cab && cab.classList.add('bp-skull'); const c6 = document.querySelector('#arc .cab');
+    if (c6) { const k = el('div', 'bp-cut'); k.innerHTML = '<b>뚝 — 통화 끊김</b><svg viewBox="0 0 100 20" preserveAspectRatio="none"><polyline points="0,10 30,10 36,2 42,18 48,10 100,10"/></svg>'; c6.appendChild(k); }
+    const dd = el('div', 'bp-dead'); document.body.appendChild(dd); setTimeout(() => dd.remove(), 1600);
+    [0, 500, 1000].forEach(d => setTimeout(() => tone([480, 620], .3, .07, 'sine'), d)); if (tray) tray.textContent = res.lost ? `−${nf(res.lost)}` : '뚝';
+    R.say = res.lost ? `(해골 셋이 웃는다) 손에 든 ${nf(res.lost)}칩이 날아갔어요. …ATM에 넣어 두랬잖아요.` : '(뚝— 해골이 수화기를 내려놨다) 다행히 손에 든 칩이 없었어요.'; R.sayW = 'sk';
     await wait(1700);
   } else {
-    if (res.blocked) { pop('해골 우산이 막았어요!'); R.say = '(해골 우산이 펴졌다) 이번엔 봐줬대요.'; R.sayW = 'sk'; await wait(700); }
+    if (res.blocked) { pop('해골 우산이 끊김을 막았어요!'); R.say = '(해골 우산이 펴졌다) 이번엔 봐줬대요.'; R.sayW = 'sk'; await wait(700); }
     const sv = $('bpl'), cabE = document.querySelector('#arc .cab'), wE = $('rwin'); let run = 0, n = 0;
     const NOTE = [523, 587, 659, 784, 880, 988, 1047, 1175, 1319, 1568];
     for (const w of res.wins) {
