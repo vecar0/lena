@@ -36,7 +36,7 @@ function materialize() {
 }
 window.materialize = materialize; window.addRep = (...a) => addRep(...a); window.delRep = r => delRep(r); window.daysTxt = d => daysTxt(d);
 const daysTxt = d => !d.length || d.length === 7 ? '매일' : d.length === 5 && [1, 2, 3, 4, 5].every(x => d.includes(x)) ? '평일' : d.length === 2 && d.includes(0) && d.includes(6) ? '주말' : [...d].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map(x => WD[x]).join('·');
-function addRep(text, time, days) { const r = { id: uid('r'), text: String(text).slice(0, 60), time, days: days.filter(v => Number.isInteger(v) && v >= 0 && v < 7) }; S.reps.push(r); materialize(); save(); return r; }
+function addRep(text, time, days) { const ds = days.filter(v => Number.isInteger(v) && v >= 0 && v < 7), same = S.reps.find(x => norm(x.text) === norm(text) && x.time === time && [...x.days].sort().join() === [...ds].sort().join()); if (same) return same; /* 같은 반복 일정은 또 안 만듦 */ const r = { id: uid('r'), text: String(text).slice(0, 60), time, days: days.filter(v => Number.isInteger(v) && v >= 0 && v < 7) }; S.reps.push(r); materialize(); save(); return r; }
 function delRep(r) { S.reps = S.reps.filter(x => x !== r); S.items = S.items.filter(t => !(t.rid === r.id && !t.done && new Date(t.due) > new Date())); save(); }
 
 // ---------- D1 시간 제안 ----------

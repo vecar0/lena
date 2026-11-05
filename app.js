@@ -80,6 +80,9 @@ const isLate = t => !t.done && t.due && !t.rid && new Date(t.due) < new Date();
 const repEndAt = t => { const r = (S.reps || []).find(x => x.id === t.rid), d = new Date(t.due); if (r && r.end) { const [h, m] = r.end.split(':').map(Number); d.setHours(h, m, 0, 0); } else d.setTime(d.getTime() + 3600e3); return d; };
 const repOver = t => !!t.rid && !t.done && repEndAt(t) < new Date();
 const onDate = (t, d) => t.due && t.due.slice(0, 10) === dk(d);
+// 같은 것인지 비교할 때: 띄어쓰기·문장부호·대소문자 무시
+const norm = x => String(x || '').toLowerCase().replace(/[\s·.,!?~'"()\[\]\-_/]/g, '');
+function dedupItems() { const seen = new Set(), n = S.items.length; S.items = S.items.filter(t => { if (t.done || t.rid) return true; const k = norm(t.text) + '|' + (t.due || ''); if (seen.has(k)) return false; seen.add(k); return true; }); return n - S.items.length; }
 function addItem(text, due) { const t = { id: uid('t'), text: String(text).slice(0, 80), due: /^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(due || '') ? due.slice(0, 16) : '', done: false, at: Date.now() }; S.items.push(t); return t; }
 function setDone(t, v, srcEl) {
   if (t.done === v) return; t.done = v; t.doneAt = v ? Date.now() : 0;
@@ -543,6 +546,7 @@ function sysPrompt(special) {
 음성사서함(기억): ${JSON.stringify(S.memory.slice(-40))}
 모은 동전: ${S.coins}
 규칙:
+- 이미 위 목록에 있는 일정·할 일·예약 전화·기억은 add/callback/remember에 다시 넣지 않는다(새로 생긴 것만).
 - 일정·할 일·약속을 말하면 add에 {"text","due"}. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.
 - 끝냈다고 하면 done에 id. 취소·지워 달라고 하면 remove에 id.
 - "~뒤에/~시에 전화해 줘, 깨워 줘, 알려 줘"는 callback에 {"at":"YYYY-MM-DDTHH:mm","text":"무슨 일로"}(미래 시각만).
@@ -590,10 +594,10 @@ async function sendText(raw, special) {
 }
 function apply(r) {
   const snap = JSON.stringify({ items: S.items, calls: S.calls, memory: S.memory, diary: S.diary }), out = [];
-  (r.add || []).forEach(a => { if (a && a.text) { const t = addItem(a.text, a.due); out.push(`'${t.text}'${t.due ? ' ' + when(t.due) : ''}`); } });
+  (r.add || []).forEach(a => { if (!a || !a.text) return; const due = /^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(a.due || '') ? a.due.slice(0, 16) : ''; if (S.items.some(x => !x.done && norm(x.text) === norm(a.text) && (x.due || '') === due)) return; /* 이미 있는 전단지는 또 붙이지 않음 */ const t = addItem(a.text, a.due); out.push(`'${t.text}'${t.due ? ' ' + when(t.due) : ''}`); });
   (r.done || []).forEach(id => { const t = S.items.find(x => x.id === id); if (t && !t.done) { setDone(t, true, $('log').lastChild); out.push(`'${t.text}' 뗌`); } });
   (r.remove || []).forEach(id => { const t = S.items.find(x => x.id === id); if (t) { S.items = S.items.filter(x => x !== t); out.push(`'${t.text}' 지움`); } });
-  (r.callback || []).forEach(c => { if (!c || !/^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(c.at || '')) return; const at = new Date(c.at.slice(0, 16)).getTime(); if (!(at > Date.now())) return; S.calls.push({ id: uid('c'), at, text: String(c.text || '').slice(0, 60), done: false }); out.push(`${when(at)} 전화 예약`); });
+  (r.callback || []).forEach(c => { if (!c || !/^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(c.at || '')) return; const at = new Date(c.at.slice(0, 16)).getTime(); if (!(at > Date.now())) return; if (S.calls.some(x => !x.done && Math.abs(x.at - at) < 3 * 60e3)) return; S.calls.push({ id: uid('c'), at, text: String(c.text || '').slice(0, 60), done: false }); out.push(`${when(at)} 전화 예약`); });
   (r.remember || []).forEach(m => { m = String(m || '').trim(); if (m && !S.memory.includes(m)) { S.memory.push(m.slice(0, 120)); out.push('음성사서함에 저장'); } });
   if (!out.length) return null;
   save(); renderHome();
