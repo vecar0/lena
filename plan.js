@@ -49,7 +49,7 @@ const _bt = boardTabs; boardTabs = function (B) {
 const _br = boardRender; boardRender = function (B) {
   if (boardTab !== 'tt') {
     _br(B);
-    if (boardTab === 'today') { const r = row(btn('오늘 브리핑', 'ghost wide', () => openSheet('brief')), btn('레나가 시간표 짜기', 'teal wide', () => openSheet('plan'))); r.style.marginBottom = '12px'; B.insertBefore(r, B.children[1]); }
+    if (boardTab === 'today') { const r = el('div', 'qrow'); r.append(btn('☎ 오늘 브리핑', 'ghost', () => openSheet('brief')), btn('레나가 시간표 짜기', 'ghost', () => openSheet('plan'))); r.lastChild.style.color = 'var(--teal)'; B.insertBefore(r, B.children[1]); }
     return;
   }
   boardTabs(B);

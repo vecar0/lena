@@ -17,7 +17,7 @@ const css = `
 .nbusy i{flex:none;width:18px;height:18px;border-radius:50%;border:3px solid var(--teal);border-right-color:transparent;animation:nspin .8s linear infinite}
 @keyframes nspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.nbusy i{animation:none}}
-.npaper{position:relative;margin:16px 4px 10px;padding:22px 16px 16px;color:#17181a;background:#f3efe6 url(assets/lena/paper_white.webp) center/cover;border-radius:3px;box-shadow:4px 5px 0 rgba(0,0,0,.55)}
+.npaper{position:relative;margin:16px 4px 10px;padding:22px 16px 16px;color:#17181a;background:linear-gradient(rgba(243,239,230,.62),rgba(243,239,230,.62)),#f3efe6 url(assets/lena/paper_white.webp) center/cover;border-radius:3px;box-shadow:4px 5px 0 rgba(0,0,0,.55)}
 .npaper>.tape{position:absolute;top:-11px;left:50%;width:84px;height:22px;margin-left:-42px;background:url(assets/lena/tape_pink1.webp) 0 0/100% 100%;transform:rotate(-3deg)}
 .npaper h3{font-family:'Black Han Sans';font-weight:400;font-size:22px;line-height:1.25;word-break:keep-all}
 .npaper .meta{font-size:12px;color:rgba(0,0,0,.55);margin-top:4px}

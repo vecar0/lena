@@ -22,7 +22,7 @@ const dayAdd = (n) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(
 // ---------- D3 반복 일정 ----------
 if (!S.reps) S.reps = []; if (!S.repSkip) S.repSkip = {};
 function materialize() {
-  let n = 0;
+  let n = 0; const old = S.items.length; S.items = S.items.filter(t => !(t.rid && !t.done && t.due && Date.now() - new Date(t.due) > 2 * DAY)); if (S.items.length !== old) n++;
   for (const r of S.reps) for (let i = 0; i < 14; i++) {
     const d = dayAdd(i); if (r.days.length && !r.days.includes(d.getDay())) continue;
     const key = r.id + '_' + dk(d); if (S.repSkip[key]) continue;
@@ -57,7 +57,7 @@ function suggestCard(t, onDone) {
 const undated = () => openItems().filter(t => !t.due && t.noSug !== dk(new Date()));
 
 // ---------- D2 끝났는지 묻기 ----------
-const pastDue = () => S.items.filter(t => !t.done && t.due && Date.now() - new Date(t.due) > 30 * 60e3 && Date.now() - new Date(t.due) < 3 * DAY);
+const pastDue = () => S.items.filter(t => !t.done && t.due && !t.rid && Date.now() - new Date(t.due) > 30 * 60e3 && Date.now() - new Date(t.due) < 3 * DAY);
 function askDone(t) {
   const c = el('div', 'ask'); c.append(el('span', 'who', '레나'), document.createTextNode(pick([`'${t.text}' 했어요?`, `'${t.text}' 끝났어요? 솔직하게.`, `${when(t.due)} '${t.text}'… 어떻게 됐어요?`])));
   const fin = msg => { c.classList.add('done'); c.querySelector('.row').remove(); c.appendChild(el('div', 'hint', msg)); };
@@ -103,18 +103,9 @@ const _br = boardRender; boardRender = function (B) {
   _br(B);
   if (boardTab === 'today') {
     const late = S.items.filter(isLate).length, ud = undated().slice(0, 2);
-    if (late || ud.length) { const box = el('div', 'sug'); if (late) box.appendChild(row(btn(`밀린 거 ${late}장 한 번에 정리`, 'wide', () => openSheet('cl')))); ud.forEach(t => box.appendChild(suggestCard(t, () => setTimeout(refreshSheet, 900)))); B.insertBefore(lbl('레나의 제안'), B.children[1]); B.insertBefore(box, B.children[2]); }
+    if (late || ud.length) { const box = el('div', 'sug'); if (late) { const lb = btn(`밀린 거 ${late}장 한 번에 정리 ›`, 'ghost wide', () => openSheet('cl')); lb.style.cssText = 'height:42px;color:#ff7a9c;border-color:rgba(255,122,156,.5)'; box.appendChild(row(lb)); } ud.forEach(t => box.appendChild(suggestCard(t, () => setTimeout(refreshSheet, 900)))); B.insertBefore(lbl('레나의 제안'), B.children[1]); B.insertBefore(box, B.children[2]); }
   }
-  if (boardTab === 'all' || boardTab === 'week') {
-    B.appendChild(lbl('반복 일정'));
-    const c = el('div', 'card'), t = inp('text', '예: 헬스, 영어 학원'), tm = inp('time', '', '19:00'); let sel = [];
-    const P2 = el('div', 'pills'); [1, 2, 3, 4, 5, 6, 0].forEach(i => { const b = el('button', null, WD[i]); b.onclick = () => { sel = sel.includes(i) ? sel.filter(x => x !== i) : [...sel, i]; b.classList.toggle('on'); }; P2.appendChild(b); });
-    P2.style.margin = '10px 0';
-    c.append(row(t), P2, row(tm, btn('반복으로 붙이기', '', () => { const v = t.value.trim(); if (!v || !tm.value) { toast('이름과 시간을 넣어 주세요.'); return; } addRep(v, tm.value, sel); pushSync(true); refreshSheet(); toast(`${daysTxt(sel)} ${tm.value} '${v}' 계속 붙일게요.`); })));
-    c.appendChild(el('div', 'hint', '요일을 안 고르면 매일이에요. 앞으로 2주 치 전단지가 알아서 붙어요. 통화로 "월수금 7시 헬스"라고 해도 돼요.'));
-    B.appendChild(c);
-    if (S.reps.length) { const l = el('div', 'list card'); l.style.marginTop = '10px'; S.reps.forEach(r => { const it = el('div', 'it'), tx = el('div', 't', r.text); tx.appendChild(el('small', null, `${daysTxt(r.days)} ${r.time}`)); it.append(tx, xbtn(() => { delRep(r); pushSync(true); refreshSheet(); })); l.appendChild(it); }); B.appendChild(l); }
-  }
+  if (boardTab === 'all') { const r = btn(`매주 반복하는 일정${S.reps.length ? ` ${S.reps.length}개` : ''}은 3번 시간표에서 ›`, 'ghost wide', () => openSheet('tt')); r.style.marginTop = '14px'; B.appendChild(row(r)); }
 };
 
 // ---------- Gemini: 반복 일정·알람 ----------
@@ -144,11 +135,11 @@ const _plan = plan; plan = function () {
     const d = dayAdd(i), ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
     if (o.lunch) { const pm = ev.filter(t => t.due.slice(11) >= o.lunch); push('pa_l_' + dk(d), at(d, o.lunch), `${n}점심은 먹었어요? ` + (pm.length ? `오후엔 ${pm[0].due.slice(11, 16)} '${pm[0].text}'${pm.length > 1 ? ` 외 ${pm.length - 1}개` : ''} 있어요.` : '오후는 비어 있어요. …저랑 놀래요?')); }
     if (o.night) { push('pa_n_' + dk(d), at(d, o.night), pick([`${n}오늘 하루 어땠어요? 전화 걸어서 정리해요. 내일 공부도 같이 봐요.`, `${n}잘 시간 다 됐죠? 자기 전에 저한테 하루 얘기해 줘요.`, `${n}오늘도 수고했어요. 내일 일정 같이 볼래요?`])); }
-    if (o.nag) for (const tm of ['15:00', '21:00']) { const due = ev.filter(t => t.due.slice(11) < tm); if (due.length) push(`pa_g_${tm}_${dk(d)}`, at(d, tm), pick([`'${due[0].text}' 아직이죠? …해골이 장부 펼쳤어요.`, `${n}'${due[0].text}' 했어요? 했으면 떼 주세요. 동전 줄게요.`]) + (due.length > 1 ? ` (밀린 거 ${due.length}장)` : '')); }
+    if (o.nag) for (const tm of ['15:00', '21:00']) { const due = ev.filter(t => !t.rid && t.due.slice(11) < tm); if (due.length) push(`pa_g_${tm}_${dk(d)}`, at(d, tm), pick([`'${due[0].text}' 아직이죠? …해골이 장부 펼쳤어요.`, `${n}'${due[0].text}' 했어요? 했으면 떼 주세요. 동전 줄게요.`]) + (due.length > 1 ? ` (밀린 거 ${due.length}장)` : '')); }
   }
   for (const t of S.items) { if (t.done || !t.due) continue; const a = new Date(t.due).getTime();
     if (o.before) push(t.id + '_h', a - 3600e3, `${n}'${t.text}' 1시간 남았어요. 준비해요?`);
-    if (o.after) push(t.id + '_f', a + 3600e3, `'${t.text}' 끝났어요? 어땠는지 들려줘요. 끝났으면 떼 주기.`); }
+    if (o.after && !t.rid) push(t.id + '_f', a + 3600e3, `'${t.text}' 끝났어요? 어땠는지 들려줘요. 끝났으면 떼 주기.`); }
   const late = S.items.filter(isLate); if (o.nag && late.length) { const d = new Date(); for (const tm of ['15:00', '21:00']) push('pa_late_' + tm + dk(d), at(d, tm), `밀린 전단지 ${late.length}장… '${late[0].text}'부터 정리해요. 1분이면 돼요.`); }
   p.reminders = p.reminders.concat(add).sort((a, b) => a.at - b.at).slice(0, 180);
   return p;

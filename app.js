@@ -75,7 +75,10 @@ function tick() {
 
 // ---------------- items (전단지) ----------------
 const openItems = () => S.items.filter(t => !t.done);
-const isLate = t => !t.done && t.due && new Date(t.due) < new Date();
+// 시간표(매주 반복)로 생긴 전단지(t.rid)는 '할 일'이 아니라 일정이라 밀림·부재중·재촉에서 뺀다
+const isLate = t => !t.done && t.due && !t.rid && new Date(t.due) < new Date();
+const repEndAt = t => { const r = (S.reps || []).find(x => x.id === t.rid), d = new Date(t.due); if (r && r.end) { const [h, m] = r.end.split(':').map(Number); d.setHours(h, m, 0, 0); } else d.setTime(d.getTime() + 3600e3); return d; };
+const repOver = t => !!t.rid && !t.done && repEndAt(t) < new Date();
 const onDate = (t, d) => t.due && t.due.slice(0, 10) === dk(d);
 function addItem(text, due) { const t = { id: uid('t'), text: String(text).slice(0, 80), due: /^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(due || '') ? due.slice(0, 16) : '', done: false, at: Date.now() }; S.items.push(t); return t; }
 function setDone(t, v, srcEl) {
@@ -98,7 +101,7 @@ function coinPop(srcEl) {
 function mcAt(d) { if (!S.morning) return null; const [h, m] = S.morning.split(':').map(Number); const x = new Date(d); x.setHours(h, m, 0, 0); return x; }
 function missed() {
   const from = S.ack || 0, now = Date.now(), L = [];
-  S.items.forEach(t => { if (t.done || !t.due || S.fired[t.id]) return; const a = new Date(t.due).getTime(); if (a > from && a <= now) L.push({ at: a, text: t.text, kind: '전단지', ref: t }); });
+  S.items.forEach(t => { if (t.done || !t.due || t.rid || S.fired[t.id]) return; const a = new Date(t.due).getTime(); if (a > from && a <= now) L.push({ at: a, text: t.text, kind: '전단지', ref: t }); });
   S.calls.forEach(c => { if (c.done || S.fired[c.id]) return; if (c.at > from && c.at <= now) L.push({ at: c.at, text: c.text || '약속한 전화', kind: '예약 전화', ref: c }); });
   for (let i = 0; i < 2; i++) { const d = new Date(); d.setDate(d.getDate() - i); const m = mcAt(d); if (!m) continue; const a = m.getTime(); if (a > from && a <= now && S.mcDone !== dk(d) && now - a > 2 * 3600e3) L.push({ at: a, text: '모닝콜', kind: '모닝콜' }); }
   return L.sort((a, b) => b.at - a.at);
@@ -199,7 +202,10 @@ function row(...k) { const r = el('div', 'row'); r.append(...k); return r; }
 function lbl(t) { return el('div', 'lbl', t); }
 function empty(t, img) { const e = el('div', 'empty'); if (img) { const i = el('img'); i.src = `assets/lena/${img}.webp`; i.alt = ''; e.appendChild(i); } e.appendChild(document.createTextNode(t)); return e; }
 function xbtn(fn) { const b = el('button', 'x', '×'); b.setAttribute('aria-label', '지우기'); b.onclick = fn; return b; }
-function pills(opts, cur, fn) { const P = el('div', 'pills'); opts.forEach(([v, l]) => { const b = el('button', String(cur) === String(v) ? 'on' : '', l); b.onclick = () => fn(v); P.appendChild(b); }); return P; }
+function pills(opts, cur, fn) {
+  // 켜기/끄기 두 버튼은 스위치 하나로
+  if (opts.length === 2 && opts[0][1] === '켜기' && opts[1][1] === '끄기') { const on = String(cur) === String(opts[0][0]), w = el('div', 'sww'), b = el('button', 'sw' + (on ? ' on' : '')); b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', on); b.setAttribute('aria-label', on ? '켜짐' : '꺼짐'); b.onclick = () => fn(on ? opts[1][0] : opts[0][0]); w.appendChild(b); return w; }
+  const P = el('div', 'pills'); opts.forEach(([v, l]) => { const b = el('button', String(cur) === String(v) ? 'on' : '', l); b.onclick = () => fn(v); P.appendChild(b); }); return P; }
 
 // 1~3 전단지
 let boardTab = 'today';
@@ -219,8 +225,8 @@ function boardAdd(B) {
   t.enterKeyHint = 'done';
   const go = () => { const v = t.value.trim(); if (!v) { t.focus(); return; } const it = addItem(v, d.value); save(); t.value = ''; d.value = ''; refreshSheet(); say(it.due ? `${when(it.due)}, '${v}'. 붙여 뒀어요.` : `'${v}' 붙여 뒀어요. 까먹으면 혼나요.`, 'happy', false); };
   t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
-  c.append(row(t), row(d, btn('붙이기', '', go)));
-  const h = el('div', 'hint', '시간은 비워도 돼요. 통화로 "내일 3시 치과"처럼 말해도 붙여요.'); c.appendChild(h); B.appendChild(c);
+  c.classList.add('badd'); const dl = el('label', 'bwhen'); dl.append(el('span', null, '시간 (비워도 돼요)'), d);
+  c.append(row(t, btn('붙이기', '', go)), dl); B.appendChild(c);
 }
 function boardTabs(B) { const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['all', '할 일']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T); }
 function boardRender(B) {
@@ -238,15 +244,16 @@ function boardRender(B) {
     B.appendChild(W); B.appendChild(lbl('새 전단지')); boardAdd(B); return;
   }
   let L;
-  if (boardTab === 'today') L = S.items.filter(t => (onDate(t, now) || isLate(t)) && (!t.done || dk(new Date(t.doneAt || 0)) === dk(now))).sort((a, b) => a.done - b.done || a.due.localeCompare(b.due));
-  else L = S.items.filter(t => !t.done).sort((a, b) => (a.due || '0').localeCompare(b.due || '0'));
-  boardAdd(B);
+  if (boardTab === 'today') L = S.items.filter(t => (onDate(t, now) || isLate(t)) && !repOver(t) && (!t.done || dk(new Date(t.doneAt || 0)) === dk(now))).sort((a, b) => a.done - b.done || a.due.localeCompare(b.due));
+  else L = S.items.filter(t => !t.done && !t.rid).sort((a, b) => (a.due || '0').localeCompare(b.due || '0')); // 할 일 탭엔 시간표 반복은 빼고(3번 시간표에 있음)
+  if (boardTab !== 'today') boardAdd(B);
   if (!L.length) B.appendChild(empty(boardTab === 'today' ? '오늘은 유리가 깨끗해요.\n…심심하면 저랑 놀아요.' : '붙일 게 없네요. 대단한데요?', 'st_peace'));
   else { const G = el('div', 'board'); L.forEach((t, i) => G.appendChild(paper(t, i))); B.appendChild(G); }
+  if (boardTab === 'today') { B.appendChild(lbl('새 전단지')); boardAdd(B); }
   if (boardTab === 'all') { const D = S.items.filter(t => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)); if (D.length) { B.appendChild(lbl(`떼어낸 것 ${D.length}`)); const G = el('div', 'board'); D.slice(0, 6).forEach((t, i) => G.appendChild(paper(t, i))); B.appendChild(G); const c = btn('떼어낸 것 정리', 'ghost wide', () => { S.items = S.items.filter(t => !t.done); save(); refreshSheet(); }); c.style.marginTop = '14px'; B.appendChild(row(c)); } }
 }
 // 다이얼 1 = 전단지(오늘·할 일 탭). 캘린더·시간표는 2·3번 따로(study.js·plan.js)
-SH[1] = { t: '전단지', s: () => `남은 것 ${openItems().length}개 · 떼면 동전 1개`, r: B => boardRender(B) };
+SH[1] = { t: '전단지', s: () => `남은 것 ${openItems().filter(t => !t.rid).length}개 · 떼면 동전 1개`, r: B => boardRender(B) };
 function openBoard(tab) { boardTab = tab || 'today'; openSheet(1); }
 
 // 4 예약 전화
@@ -289,7 +296,7 @@ SH[7] = { t: '모닝콜', s: () => S.morning ? `매일 ${S.morning}에 전화해
     B.appendChild(lbl('진짜 알람도 같이'));
     const a = el('div', 'card');
     a.append(row(btn(`아이폰 알람에 ${S.morning} 넣기`, 'teal wide', () => { location.href = `shortcuts://run-shortcut?name=${encodeURIComponent('레나 알람')}&input=text&text=${encodeURIComponent(S.morning)}`; })));
-    const h = el('div', 'hint'); h.innerHTML = '앱 알림은 한 번씩만 "띵" 울려요. 무음이어도·앱이 꺼져 있어도 크게 계속 울리게 하려면 아이폰 <b>시계 알람</b>을 같이 쓰세요. 위 버튼은 단축어로 알람을 만들어 줘요.<br><br><b>처음 한 번만 준비</b><br>1. 단축어 앱 → + → 이름을 <b>레나 알람</b>으로<br>2. 동작 추가에서 <b>알람 생성</b>(시계)을 고르기<br>3. 시간 칸을 눌러 <b>단축어 입력</b>으로, 레이블은 "레나 모닝콜"<br>4. 완료 → 이제 위 버튼을 누르면 알람이 생겨요';
+    const h = el('div', 'hint'); h.innerHTML = '앱 알림은 한 번씩만 "띵" 울려요. 무음이어도 크게 계속 울리게 하려면 아이폰 <b>시계 알람</b>을 같이 쓰세요.<details class="fold"><summary>처음 한 번만 준비하는 법</summary>1. 단축어 앱 → + → 이름을 <b>레나 알람</b>으로<br>2. 동작 추가에서 <b>알람 생성</b>(시계)을 고르기<br>3. 시간 칸을 눌러 <b>단축어 입력</b>으로, 레이블은 "레나 모닝콜"<br>4. 완료 → 이제 위 버튼을 누르면 알람이 생겨요</details>';
     a.appendChild(h); B.appendChild(a);
   }
   if (!S.pushOn) B.appendChild(el('div', 'hint', '폰 알림이 꺼져 있으면 앱을 열 때만 울려요. 0번 설정에서 켜 주세요.'));
@@ -364,8 +371,8 @@ $('aVid').onclick = toVideo;
 $('logTog').onclick = () => { const m = app.classList.toggle('lmin'); $('logTog').textContent = m ? '대화 펼치기' : '대화 접기'; const L = $('log'); setTimeout(() => L.scrollTop = L.scrollHeight, 300); };
 $('aPad').onclick = () => { dtmf(0); openPad(); };
 $('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
-$('aCall').onclick = () => { dtmf(5); openSheet(4); };
-$('aMiss').onclick = () => { dtmf(5); openSheet(9); };
+$('aCall').onclick = () => { dtmf(4); openSheet(6); };
+$('aMiss').onclick = () => { dtmf(5); openSheet('call'); };
 $('aSet').onclick = () => { dtmf(0); openSheet(0); };
 
 // ---------------- dial pad ----------------

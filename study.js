@@ -34,9 +34,9 @@ const css = `
 .dfly.none{background-image:url(assets/lena/paper_teal.webp);color:#111;padding-bottom:44px}.dfly .ddn em{font-style:normal;font-size:.9em;margin-right:1px}
 .dfly.none .ddn{color:var(--yel);font-size:30px}
 .lena{margin:0 2px 14px}
-.lena .row .btn{flex:1 1 auto}
+.lena .lbtn{display:flex;gap:6px;margin-top:10px}.lena .lbtn .btn{flex:1 1 auto;height:40px;padding:0 8px;font-size:13px}.lena .lbtn .btn.teal{flex:1.4 1 auto}
 .lena .lsub{display:block;font-size:12px;font-weight:600;opacity:.6;margin-top:6px}
-.sheetp{position:relative;margin:16px 4px 8px;padding:22px 14px 12px;color:#17181a;background:#f3efe6 url(assets/lena/paper_white.webp) center/cover;border-radius:3px;box-shadow:4px 5px 0 rgba(0,0,0,.55);transform:rotate(-.5deg)}
+.sheetp{position:relative;margin:16px 4px 8px;padding:22px 14px 12px;color:#17181a;background:linear-gradient(rgba(243,239,230,.62),rgba(243,239,230,.62)),#f3efe6 url(assets/lena/paper_white.webp) center/cover;border-radius:3px;box-shadow:4px 5px 0 rgba(0,0,0,.55);transform:rotate(-.5deg)}
 .sheetp>.tape{position:absolute;top:-11px;left:24px;width:80px;height:22px;background:url(assets/lena/tape_teal1.webp) 0 0/100% 100%;transform:rotate(-5deg)}
 .sheetp>.tape.r{left:auto;right:20px;background-image:url(assets/lena/tape_yellow.webp);transform:rotate(5deg)}
 .sheetp .hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:0 2px 8px;border-bottom:2px solid #17181a}
@@ -351,9 +351,9 @@ function lenaNote(B, D, lg) {
   else say = `오늘은 ${hm(tot)}. 남은 양을 마감까지 고르게 나눠서 잡았어요.${kr != null && kr < .7 ? ' 요즘 좀 밀려서 양을 살짝 줄였어요.' : ''}`;
   const c = el('div', 'ask lena'); c.append(el('span', 'who', '레나'), document.createTextNode(say));
   const lim = (we, u) => u ? hm(u) : `자동(최대 ${hm(AUTO_CAP[we])})`;
-  c.appendChild(el('span', 'lsub', `평일 ${P.wdS}~ ${lim(0, P.wdMax)} · 주말 ${P.weS}~ ${lim(1, P.weMax)} · ${P.end}까지${P.focus && P.focus.until >= k ? ` · ${P.focus.sub} 먼저` : ''}`));
+  if (P.focus && P.focus.until >= k) c.appendChild(el('span', 'lsub', `${P.focus.sub} 먼저 하는 중 (${P.focus.until.slice(5).replace('-', '/')}까지)`));
   const set = mul => { st.adj = { d: k, mul }; delete st.fix[k]; ed = -1; save(); dirty(); pushSync(true); refreshSheet(); };
-  const R = row(...(adj === 1 ? [btn('오늘은 조금만', 'ghost', () => set(.5)), btn('오늘 쉴래', 'ghost', () => set(0)), btn('더 할래', 'ghost', () => set(1.4))] : [btn('원래대로', 'ghost', () => set(1))]), btn('레나랑 얘기', 'teal', () => { closeSheet(); openCall(); setTimeout(() => sendText('공부 계획 얘기하자'), 400); }));
+  const R = el('div', 'lbtn'); R.append(...(adj === 1 ? [btn('조금만', 'ghost', () => set(.5)), btn('쉴래', 'ghost', () => set(0)), btn('더 할래', 'ghost', () => set(1.4))] : [btn('원래대로', 'ghost', () => set(1))]), btn('레나랑 얘기', 'teal', () => { closeSheet(); openCall(); setTimeout(() => sendText('공부 계획 얘기하자'), 400); }));
   c.appendChild(R); B.appendChild(c);
 }
 function stToday(B) {
@@ -397,6 +397,7 @@ function timeEditor(B) {
   const cap = (lab, key, we) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = P[key] ? (P[key] - 30 < 30 ? 0 : P[key] - 30) : 0; up(); }), el('b', null, P[key] ? hm(P[key]) : '자동'), btn('+', 'ghost', () => { P[key] = Math.min(we ? 720 : 600, (P[key] || AUTO_CAP[we ? 1 : 0]) + 30); up(); })); r.append(el('span', null, lab), S3); return r; };
   const cnt = (lab, key) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = Math.max(1, P[key] - 1); up(); }), el('b', null, `${P[key]}과목`), btn('+', 'ghost', () => { P[key] = Math.min(6, P[key] + 1); up(); })); r.append(el('span', null, lab), S3); return r; };
   c.append(time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), cap('평일 하루 최대', 'wdMax', 0), cap('주말 하루 최대', 'weMax', 1), cnt('평일 과목 수', 'wdSubs'), cnt('주말 과목 수', 'weSubs'));
+  c.prepend(el('div', 'hint', `지금: 평일 ${P.wdS}~ · 주말 ${P.weS}~ · ${P.end}까지`));
   c.appendChild(el('div', 'hint', '하루 최대를 0까지 내리면 "자동"이에요. 자동은 그날 빈 시간과 마감까지 남은 양으로 레나가 정해요. 통화로 "주말엔 9시부터" "수학 먼저 해 줘"처럼 말해도 바꿔요.'));
   B.appendChild(c);
 }
