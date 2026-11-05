@@ -143,13 +143,19 @@ function renderHome() {
   }
   // 영상 화면엔 동전 개수를 띄우지 않는다(자판기는 음성 화면 ♥ 배지·오락실에서)
   const late = S.items.filter(isLate);
-  const K = $('knock'); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openBoard('today'); };
+  const K = $('knock'); placeKnock(); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openBoard('today'); };
   // 열린 키패드 숫자 배지
   const k9 = document.querySelector('.k[data-k="5"] em'); if (k9) { k9.textContent = M.length; k9.hidden = !M.length; }
   $('aMissN').textContent = M.length; $('aMissN').hidden = !M.length;
 }
 let knockAt = 0;
-function knockNow() { const K = $('knock'); if (!K.classList.contains('on') || Date.now() - knockAt < 30 * 60e3) return; knockAt = Date.now(); K.classList.remove('tap'); void K.offsetWidth; K.classList.add('tap'); tone([180], .06, .15, 'square'); tone([160], .06, .15, 'square', .2); }
+// 해골 손·눈 자리(배경 그림 1050×1872 좌표) → 지금 화면 좌표. 배경은 cover + 위 가운데 정렬.
+const KN = { hand: [620, 333], eyes: [[207, 382], [317, 320]] };
+function placeKnock() { const bg = $('bg'), W = bg.clientWidth, H = bg.clientHeight; if (!W) return; const s = Math.max(W / 1050, H / 1872), x0 = (W - 1050 * s) / 2, P = ([u, v]) => [x0 + u * s, v * s];
+  const [hx, hy] = P(KN.hand), K = $('knock'); K.style.left = hx + 'px'; K.style.top = hy + 'px';
+  [...$('kEyes').children].forEach((e, i) => { const [x, y] = P(KN.eyes[i]); e.style.left = x + 'px'; e.style.top = y + 'px'; }); }
+addEventListener('resize', placeKnock);
+function knockNow() { const K = $('knock'); placeKnock(); if (!K.classList.contains('on') || Date.now() - knockAt < 30 * 60e3) return; knockAt = Date.now(); K.classList.remove('tap'); void K.offsetWidth; K.classList.add('tap'); const E = $('kEyes'); E.classList.remove('tap'); void E.offsetWidth; E.classList.add('tap'); setTimeout(() => { K.classList.remove('tap'); E.classList.remove('tap'); }, 2000); tone([180], .06, .15, 'square'); tone([160], .06, .15, 'square', .2); }
 
 function greetLine() {
   const h = new Date().getHours(), n = nmc(), now = new Date();
