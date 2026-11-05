@@ -29,9 +29,9 @@ const css = `
 .vi .tag.r{background:#b89cff}
 .gl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .gl .vi{padding:10px 6px 8px}.gl .vi img{width:50px;height:50px}
-.dl{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.dt{position:relative;aspect-ratio:1;border-radius:14px;background:var(--panel2);border:2px solid var(--line);display:grid;place-items:center}
-.dt img{width:72%;height:72%;object-fit:contain}
+.dl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.dt{position:relative;min-width:0;aspect-ratio:1;border-radius:14px;background:var(--panel2);border:2px solid var(--line);display:grid;place-items:center}
+.dt img{position:absolute;left:14%;top:14%;width:72%;height:72%;object-fit:contain}
 .dt.on{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal)}
 .dt.on::after{content:"붙임";position:absolute;bottom:-7px;font-size:10px;font-weight:800;background:var(--teal);color:#000;padding:1px 6px;border-radius:7px}
 .dt.lock{opacity:.3}
