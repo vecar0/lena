@@ -266,14 +266,7 @@ SH[5] = { t: '음성사서함', s: () => `레나가 기억하는 것 ${S.memory.
   const l = el('div', 'list card'); S.memory.slice().reverse().forEach(m => { const r = el('div', 'it'), ic = el('img', 'ic'); ic.src = 'assets/lena/st_tape.webp'; ic.alt = ''; r.append(ic, el('div', 't', m), xbtn(() => { S.memory = S.memory.filter(x => x !== m); save(); refreshSheet(); })); l.appendChild(r); }); B.appendChild(l);
 } };
 
-// 6 통화 일기
-SH[6] = { t: '통화 일기', s: '레나가 쓰는 우리 하루', r: B => {
-  B.appendChild(row(btn('오늘 하루 정리 통화', 'wide', () => { closeSheet(); openCall(); setTimeout(() => sendText('오늘 하루 정리하자'), 400); })));
-  const keys = Object.keys(S.diary).sort().reverse();
-  B.appendChild(lbl('일기'));
-  if (!keys.length) { B.appendChild(empty('아직 한 장도 없어요.\n밤에 "오늘 하루 정리하자"고 전화 걸어 줘요.', 'st_lips')); return; }
-  keys.forEach((k, i) => { const d = el('div', 'diary'), tp = el('div', 'tp'); tp.style.backgroundImage = `url(assets/lena/${TAPES[i % TAPES.length]}.webp)`; const dt = new Date(k + 'T12:00'); d.append(tp, el('h5', null, `${k.replace(/-/g, '.')} ${WD[dt.getDay()]}`), document.createTextNode(S.diary[k])); B.appendChild(d); });
-} };
+// 6 공부 → study.js
 
 // 7 모닝콜
 SH[7] = { t: '모닝콜', s: () => S.morning ? `매일 ${S.morning}에 전화해요` : '꺼져 있어요', r: B => {
@@ -360,7 +353,7 @@ $('aMiss').onclick = () => { dtmf(9); openSheet(9); };
 $('aSet').onclick = () => { dtmf(0); openSheet(0); };
 
 // ---------------- dial pad ----------------
-const KEYS = [[1, '전단지'], [2, '오늘의 운세'], [3, '자판기'], [4, '예약 전화'], [5, '음성사서함'], [6, '통화 일기'], [7, '모닝콜'], [8, '오락실'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
+const KEYS = [[1, '전단지'], [2, '오늘의 운세'], [3, '자판기'], [4, '예약 전화'], [5, '음성사서함'], [6, '공부'], [7, '모닝콜'], [8, '오락실'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
 (function buildPad() {
   const K = $('keys');
   KEYS.forEach(([k, l]) => { const b = el('button', 'k' + (k === 7 ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 9) { const e = el('em'); e.hidden = true; b.appendChild(e); }
@@ -517,13 +510,12 @@ function sysPrompt(special) {
 예약 전화: ${JSON.stringify(S.calls.filter(c => !c.done && c.at > Date.now()).map(c => ({ at: localISO(new Date(c.at)), text: c.text })))}
 음성사서함(기억): ${JSON.stringify(S.memory.slice(-40))}
 모은 동전: ${S.coins}
-오늘 일기: ${S.diary[dk(now)] ? '이미 씀' : '아직 없음'}
 규칙:
 - 일정·할 일·약속을 말하면 add에 {"text","due"}. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.
 - 끝냈다고 하면 done에 id. 취소·지워 달라고 하면 remove에 id.
 - "~뒤에/~시에 전화해 줘, 깨워 줘, 알려 줘"는 callback에 {"at":"YYYY-MM-DDTHH:mm","text":"무슨 일로"}(미래 시각만).
 - 오래 기억할 정보(취향, 사람, 습관)는 remember에 짧게. 이미 있으면 넣지 않는다.
-- "하루 정리/일기" 통화에서는 오늘 어땠는지 한두 번 짧게 묻고, 충분히 들었으면 diary에 레나 시점의 일기 2~4문장(따뜻하고 장난스럽게, 오늘 있었던 일 구체적으로)을 쓰고 reply로 마무리 인사.
+- "하루 정리" 통화에서는 오늘 어땠는지 한두 번 짧게 묻고 따뜻하게 마무리한다. diary는 비워 둔다.
 - 잡담, 고민, 말놀이, 지식 질문, 사진 보기 등 무엇이든 즐겁게 받아 준다. "비서라서 못 한다"는 말은 하지 않는다. 사진 속 사람의 신원은 추측하지 않는다.
 - 같은 말·같은 맺음말을 반복하지 않는다.
 - mood: 놀림·플러팅 "tease", 기쁨·칭찬 "happy", 걱정·잔소리 "worry", 삐침·질투 "pout", 놀람 "surprise", 평온 "calm".${special ? '\n- 이번은 할 일 동전 1개를 넣은 "오늘의 운세 전화"다. 오늘 날짜·일정·기억을 참고해 장난스럽고 다정하게 4~6문장: 오늘 총운 한 줄, 행운의 숫자 하나, 행운의 색 하나, 조심할 것 하나, 레나의 짧은 조언(오늘 일정과 연결되면 좋음). add·done·remove·callback은 비워 둔다.' : ''}
@@ -570,7 +562,6 @@ function apply(r) {
   (r.remove || []).forEach(id => { const t = S.items.find(x => x.id === id); if (t) { S.items = S.items.filter(x => x !== t); out.push(`'${t.text}' 지움`); } });
   (r.callback || []).forEach(c => { if (!c || !/^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(c.at || '')) return; const at = new Date(c.at.slice(0, 16)).getTime(); if (!(at > Date.now())) return; S.calls.push({ id: uid('c'), at, text: String(c.text || '').slice(0, 60), done: false }); out.push(`${when(at)} 전화 예약`); });
   (r.remember || []).forEach(m => { m = String(m || '').trim(); if (m && !S.memory.includes(m)) { S.memory.push(m.slice(0, 120)); out.push('음성사서함에 저장'); } });
-  if (r.diary && String(r.diary).trim()) { S.diary[dk(new Date())] = String(r.diary).trim(); out.push('오늘 일기 씀'); }
   if (!out.length) return null;
   save(); renderHome();
   return noteEl([...new Set(out)].slice(0, 3).join(' · ') + (out.length > 3 ? ` 외 ${out.length - 3}` : ''), () => { const w = JSON.parse(snap); Object.assign(S, w); save(); renderHome(); addHer('되돌렸어요. 잘못 들었네요, 미안.', true); });

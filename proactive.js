@@ -143,7 +143,7 @@ const _plan = plan; plan = function () {
   for (let i = 0; i < 7; i++) {
     const d = dayAdd(i), ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
     if (o.lunch) { const pm = ev.filter(t => t.due.slice(11) >= o.lunch); push('pa_l_' + dk(d), at(d, o.lunch), `${n}점심은 먹었어요? ` + (pm.length ? `오후엔 ${pm[0].due.slice(11, 16)} '${pm[0].text}'${pm.length > 1 ? ` 외 ${pm.length - 1}개` : ''} 있어요.` : '오후는 비어 있어요. …저랑 놀래요?')); }
-    if (o.night) { push('pa_n_' + dk(d), at(d, o.night), pick([`${n}오늘 하루 어땠어요? 전화 걸어서 정리해요. 일기는 제가 쓸게요.`, `${n}잘 시간 다 됐죠? 자기 전에 저한테 하루 얘기해 줘요.`, `${n}오늘도 수고했어요. 내일 일정 같이 볼래요?`])); }
+    if (o.night) { push('pa_n_' + dk(d), at(d, o.night), pick([`${n}오늘 하루 어땠어요? 전화 걸어서 정리해요. 내일 공부도 같이 봐요.`, `${n}잘 시간 다 됐죠? 자기 전에 저한테 하루 얘기해 줘요.`, `${n}오늘도 수고했어요. 내일 일정 같이 볼래요?`])); }
     if (o.nag) for (const tm of ['15:00', '21:00']) { const due = ev.filter(t => t.due.slice(11) < tm); if (due.length) push(`pa_g_${tm}_${dk(d)}`, at(d, tm), pick([`'${due[0].text}' 아직이죠? …해골이 장부 펼쳤어요.`, `${n}'${due[0].text}' 했어요? 했으면 떼 주세요. 동전 줄게요.`]) + (due.length > 1 ? ` (밀린 거 ${due.length}장)` : '')); }
   }
   for (const t of S.items) { if (t.done || !t.due) continue; const a = new Date(t.due).getTime();

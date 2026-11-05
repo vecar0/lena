@@ -42,6 +42,7 @@ const durOf = t => { if (t.rid) { const r = (S.reps || []).find(x => x.id === t.
 const B0 = () => { if (!S.pro) S.pro = {}; if (S.pro.brief === undefined) S.pro.brief = true; return S.pro; };
 
 // ---------- 시간표 탭 (전단지 시트 안) ----------
+let ttEd = null;
 const _bt = boardTabs; boardTabs = function (B) {
   const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['tt', '시간표'], ['all', '할 일']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
 };
@@ -65,18 +66,26 @@ const _br = boardRender; boardRender = function (B) {
     R.filter(r => !r.days.length || r.days.includes(d)).forEach(r => {
       const s = toM(r.time), e = toM(repEnd(r)), b = el('button', 'blk'); b.style.top = ((s - lo * 60) / 60 * PX) + 'px'; b.style.height = Math.max(18, (e - s) / 60 * PX - 2) + 'px';
       b.style.background = cols[S.reps.indexOf(r) % cols.length]; b.append(document.createTextNode(r.text), el('small', null, r.time));
-      b.onclick = () => { if (confirm(`${daysTxt(r.days)} ${r.time}~${repEnd(r)} '${r.text}'\n시간표에서 지울까요?`)) { delRep(r); pushSync(true); refreshSheet(); renderHome(); } };
+      if (ttEd === r) b.style.outline = '3px solid #fff'; b.onclick = () => { ttEd = ttEd === r ? null : r; refreshSheet(); };
       c.appendChild(b); });
     if (d === tdw) { const n = new Date(), m = n.getHours() * 60 + n.getMinutes(); if (m > lo * 60 && m < hi * 60) { const l = el('div', 'now'); l.style.top = ((m - lo * 60) / 60 * PX) + 'px'; c.appendChild(l); } }
     G.appendChild(c); });
   B.appendChild(G);
   if (!R.length) B.appendChild(el('div', 'hint', '아직 비어 있어요. 학원·수업·운동처럼 매주 정해진 걸 넣으면, 레나가 그 시간은 피해서 하루를 짜 줘요.'));
-  B.appendChild(lbl('시간표에 넣기'));
-  const c = el('div', 'card'), t = inp('text', '예: 영어 학원'), s1 = inp('time', '', '19:00'), e1 = inp('time', '', '21:00'); let sel = [];
-  const P2 = el('div', 'pills'); P2.style.margin = '10px 0'; order.forEach(i => { const b = el('button', null, WD[i]); b.onclick = () => { sel = sel.includes(i) ? sel.filter(x => x !== i) : [...sel, i]; b.classList.toggle('on'); }; P2.appendChild(b); });
+  // 넣기/고치기: 프리셋을 누르면 칸이 채워지고, 시간표 칸을 누르면 그 블록을 고친다
+  const E = ttEd && (S.reps || []).includes(ttEd) ? ttEd : null; if (!E) ttEd = null;
+  B.appendChild(lbl(E ? `'${E.text}' 고치기` : '시간표에 넣기'));
+  const c = el('div', 'card'), t = inp('text', '이름 (예: 영어 학원)', E ? E.text : ''), s1 = inp('time', '', E ? E.time : '19:00'), e1 = inp('time', '', E ? repEnd(E) : '21:00'); let sel = E ? E.days.slice() : [];
+  const P2 = el('div', 'pills'); P2.style.margin = '10px 0';
+  const drawDays = () => { P2.innerHTML = ''; order.forEach(i => { const b = el('button', sel.includes(i) ? 'on' : '', WD[i]); b.onclick = () => { sel = sel.includes(i) ? sel.filter(x => x !== i) : [...sel, i]; b.classList.toggle('on'); }; P2.appendChild(b); }); }; drawDays();
+  if (!E) { const PR = el('div', 'pills'); PR.style.marginBottom = '10px';
+    [['학교', '08:30', '16:30', [1, 2, 3, 4, 5]], ['학원', '18:00', '20:00', [1, 3, 5]], ['학원', '18:00', '20:00', [2, 4]], ['과외', '20:00', '22:00', []], ['독서실', '19:00', '22:00', []]].forEach(([n, a1, b1, ds]) => { const b = el('button', null, `${n}${ds.length ? ' ' + daysTxt(ds) : ''}`); b.onclick = () => { t.value = n; s1.value = a1; e1.value = b1; sel = ds.slice(); drawDays(); t.focus(); }; PR.appendChild(b); });
+    c.append(el('div', 'hint', '빠르게 고르기 (고른 뒤 이름·시간을 고쳐도 돼요)'), PR); }
   const tm = row(s1, el('span', 'hint', '~'), e1); tm.style.alignItems = 'center';
-  c.append(row(t), P2, tm, row(btn('시간표에 넣기', 'wide', () => { const v = t.value.trim(); if (!v || !s1.value || !e1.value) { toast('이름과 시간을 넣어 주세요.'); return; } if (e1.value <= s1.value) { toast('끝나는 시간이 더 늦어야 해요.'); return; } const r = addRep(v, s1.value, sel); r.end = e1.value; save(); pushSync(true); refreshSheet(); renderHome(); toast(`${daysTxt(sel)} ${s1.value}~${e1.value} '${v}' 넣었어요. 전단지도 2주 치 붙어요.`); })));
-  c.appendChild(el('div', 'hint', '요일을 안 고르면 매일이에요. 칸을 누르면 지울 수 있어요. 통화로 "월수금 7시부터 9시까지 영어 학원"이라고 해도 돼요.'));
+  const go = () => { const v = t.value.trim(); if (!v || !s1.value || !e1.value) { toast('이름과 시간을 넣어 주세요.'); return null; } if (e1.value <= s1.value) { toast('끝나는 시간이 더 늦어야 해요.'); return null; } return v; };
+  if (E) c.append(row(t), P2, tm, row(btn('지우기', 'ghost', () => { delRep(E); ttEd = null; pushSync(true); refreshSheet(); renderHome(); toast('지웠어요.'); }), btn('취소', 'ghost', () => { ttEd = null; refreshSheet(); }), btn('바꾸기', 'teal wide', () => { const v = go(); if (!v) return; delRep(E); const r = addRep(v, s1.value, sel); r.end = e1.value; ttEd = null; save(); pushSync(true); refreshSheet(); renderHome(); toast(`${daysTxt(sel)} ${s1.value}~${e1.value} '${v}'로 바꿨어요.`); })));
+  else c.append(row(t), P2, tm, row(btn('시간표에 넣기', 'wide', () => { const v = go(); if (!v) return; const r = addRep(v, s1.value, sel); r.end = e1.value; save(); pushSync(true); refreshSheet(); renderHome(); toast(`${daysTxt(sel)} ${s1.value}~${e1.value} '${v}' 넣었어요.`); })));
+  c.appendChild(el('div', 'hint', E ? '요일·시간을 바꾸고 "바꾸기"를 눌러요.' : '요일을 안 고르면 매일이에요. 시간표 칸을 누르면 고치거나 지울 수 있어요.'));
   B.appendChild(c);
 };
 
