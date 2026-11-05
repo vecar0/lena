@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v50). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v51). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512, 3.x는 thinkingLevel low. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -14,7 +14,7 @@
 - 저장: `localStorage['lena1']` → `S` (name, key, items, calls, memory, diary, history, coins, coinDays, morning, mcDone, srv, uid/sec/sub/pushOn, ack, fired). 처음 실행 때 예전 `haru2`에서 이름·키·알림 연결만 가져온다.
 - **앱을 열면 밖 모드(음성통화 화면)**: 고양이 프사(`assets/lena/cat.jpg`, 하얀 고양이·머리 위 핑크 선글라스·초록 수화기 — 원본 `art/new/avatar/cat_pin_5.png`(사용 중, 선글라스 그라데이션), 다른 후보 1~4·6), 이름·통화 시간, 대화, 버튼 6개(키패드·전단지·**영상통화**·예약 전화·부재중·설정). 배경 영상은 멈춰 둔다. "영상통화"를 누르면 아래 부스 화면으로, 부스 화면 위쪽 "음성으로"를 누르면 다시 밖 모드로.
 - 홈(영상통화) = 비 오는 공중전화 부스(배경 영상 `assets/lena/bg.mp4`, 끊김 없이 반복, 번쩍임 줄임). 위: 부재중 배지(0개면 숨김)·시계. 유리에 붙은 전단지(다음 일정 분홍 '외 N개', 할 일 노랑 '할 일 N'). 동전 개수는 영상 화면에 안 띄움(v36). 지난 일정이 있으면 해골 손이 유리를 "똑똑". 아래: 레나 자막, 버튼 다이얼/수화기 들기/전단지.
-- 다이얼(공중전화 키패드, DTMF 소리): 1 전단지(오늘·이번 주·할 일은 시트 안 탭, `openBoard(tab)`) 2 오늘의 운세(`SH[2]=SH.fort`) 3 자판기(`SH[3]=SH.shop`, shop.js; 이름 '자판기') 4 예약 전화 5 음성사서함(기억) 6 통화 일기 7 모닝콜 8 오락실 9 부재중 ✱ 통화 기록 0 설정 # 닫기.
+- 다이얼(공중전화 키패드, DTMF 소리): 1 전단지(탭: 오늘·캘린더·시간표·공부·할 일, `openBoard(tab)`) 2 오늘의 운세(`SH[2]=SH.fort`) 3 자판기(`SH[3]=SH.shop`, shop.js; 이름 '자판기') 4 예약 전화 5 음성사서함(기억) 6 통화 일기 7 모닝콜 8 오락실 9 부재중 ✱ 통화 기록 0 설정 # 닫기.
 - 통화 = Gemini 대화(스트리밍 자막, 사진, 음성 입력 SpeechRecognition). 답 JSON: reply, mood(tease/happy/worry/pout/surprise/calm → 스티커 팝), add, done, remove, callback, remember, diary. 저장하면 "✓ … 되돌리기" 쪽지.
 - 전단지를 떼면(끝냄) 찢어지는 연출 + 동전 1개.
 - 오늘의 운세 = 전용 페이지 `SH.fort`(다이얼 2). 접힌 쪽지 → '쪽지 펴기'(동전 없음, 하루 한 번 새 운세, 그날은 몇 번이든 다시 봄; v38). 내용: 총운 별 1~5·한 줄, 사랑/일/돈 점수, 행운의 숫자·색(견본 동그라미)·물건, 조심할 것, 레나의 한마디, "레나랑 이 운세 얘기하기"(통화로). 키 있으면 Gemini가 일정·기억을 보고 JSON으로 만들고(`fortMake`), 없거나 실패하면 날짜+이름으로 정해지는 `fortLocal`. 저장 `S.fort[날짜]`(14일치), 아래 '지난 운세' 목록(눌러서 펼침). 여는 곳: 다이얼 2만(통화 빠른 버튼의 운세는 v39에 뺌; `fortuneCall()`은 페이지를 엶). 자판기에서 운세 칸은 뺌. 쪽지 CSS `.fslip`.
@@ -63,6 +63,11 @@
 - 아침 브리핑 `SH.brief`: 그날 앱을 처음 열면 자동(`S.briefDay`, 설정 `S.pro.brief`, 걸려오는 전화·다른 시트가 열려 있으면 미룸). 인사+요약, 날씨(`S.wx`), 오늘 일정, '레나가 고른 오늘 꼭 할 3가지'(`top3`: 밀린 것 → 오늘 남은 일정(반복 일정 제외) → 시간 없는 할 일), 운세 한 줄, '시간표 짜 주기'.
 - 오늘 시간표 짜기 `SH.plan`: 시간 없는 할 일(최대 8)을 오늘 빈 시간(9~23시, 지금+15분부터, 일정 앞뒤 10분 여유, 15분 단위)에 배치(`slotPlan`). 키 있으면 Gemini가 순서·걸리는 분(`t.mins`)을 정함. 줄마다 빼기/넣기, 'N개 전단지로 붙이기'로 due 설정.
 - 시간표 탭: 전단지 시트 탭이 오늘/이번 주/**시간표**/할 일(`boardTabs` 덮어씀). `S.reps`를 월~일 격자로(끝 시간 `r.end`, 없으면 +1시간), 칸 누르면 지우기, 아래 '시간표에 넣기'(이름·요일·시작~끝). Gemini repeat에도 `end`. 오늘 탭 위에 '오늘 브리핑'·'레나가 시간표 짜기' 버튼. 시트 번호 표시 ☎.
+## 공부 플래너 (`study.js`, v51, plan.js 뒤)
+- 데이터 `S.study`: `mats`[{id,sub 과목,title,kind 'book'|'hw',due,units[{id,name,n,mins,prog,done}]}] (교재는 단원 a~b 또는 쪽 a~b를 덩어리로, 숙제는 단위 1개), `exams`[{id,name,date,ranges[{mat,from,to}](단원 인덱스)}], `log[날짜]`(끝낸 블록), `rev`(시험 복습 끝낸 키), `pref`{wdS 평일 시작 17:00, weS 주말 10:00, end 23:00, wdMax 180, weMax 300, block 50}.
+- 계산 `simulate`/`splan`(캐시, 5분마다·데이터 바뀌면 다시): 날마다 빈 시간 = 공부 가능 시간 − (시간 있는 전단지 + 시간표 학원 + 앞뒤 10분). 마감 = 범위에 든 단원은 시험 2일 전, 숙제는 학원 날 전날, 교재 끝낼 날. 하루 양은 '마감마다 (남은 양 ÷ 그때까지 하루 최대 합)'의 최대 비율×1.1로 고르게(마감 없는 교재가 있으면 최소 절반). 블록 50분+10분 쉬기, 마감 이른 것부터(2일 차이 안이면 직전 과목과 다른 과목), 교재는 앞 단원부터, 블록 안은 같은 과목, 자투리로 안 쪼갬(블록보다 긴 단원만 이어짐). 시험 이틀 전 '범위 복습·오답', 전날 '총정리' 45분씩 과목별. 마감 못 맞추면 하루 최대를 넘겨 다시 계산(`strained`), 그래도 안 되면 경고.
+- 화면: 전단지 탭 '캘린더'(월 달력: 시험 빨강·숙제 노랑·학원 파랑·일정 분홍 점·공부량 청록 막대, 날 누르면 그날 전부 + 그날 일정 붙이기), '공부'(오늘 계획 ✓완료→진도·동전+1·기록 / 이번 주 / 시험 / 교재·숙제 / 설정). 오늘 계획 블록은 시작 시각에 폰 알림(`st_`). 브리핑에 오늘 공부. plan.js 할 일 배치(`busyToday`)는 공부 블록(`studyBusy`)을 피함.
+- 말로 넣기: Gemini 답 `study:{mats:[...],exams:[{name,date,ranges:[{sub,title,from,to}]}]}` → 교재 이름 일부만 맞아도 연결.
 ## 단축어 연결 (`box.js` + 서버 `box-worker.js`)
 - 새 Cloudflare Worker `lena-box`(KV 바인딩 `BOX`)를 사용자가 직접 배포해야 함. 앱 0번 설정 > 단축어에서 주소 입력. 열쇠 `S.boxTok`.
 - 서버 `https://lena-box.vecar0473.workers.dev` 배포·KV 연결 확인됨(v42 점검: 알람 올리기·받기·/in·/inbox 모두 정상). 단축어 화면 맨 위 '연결 상태'(마지막 알람 올림 `S.boxOk/boxN`, 받은 메모 `S.boxIn/boxInN`, 오류 `S.boxErr`)와 '전체 점검'(5단계, 점검 메모는 src=check라 할 일로 안 붙음, 점검 중엔 inbox 폴링 멈춤).
