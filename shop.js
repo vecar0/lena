@@ -147,7 +147,7 @@ async function letter() {
   const fall = [`${nmc()}오늘도 수고했어요. 전단지 하나 뗄 때마다 저 혼자 박수 쳐요. 내일도 옆에 있을게요. — 레나`, `${nmc()}비 오는 밤엔 송휘님 목소리가 제일 따뜻해요. 감기 조심해요. — 레나`];
   let t = pick(fall);
   if (S.key) { try { const r = await gemini('너는 레나(장난스럽고 다정한 존댓말). 송휘님에게 쓰는 짧은 손편지 3~4문장. 최근 끝낸 일: ' + S.items.filter(x => x.done).slice(-5).map(x => x.text).join(', ') + '. 끝에 "— 레나". JSON {"reply":""}만.', [{ role: 'user', parts: [{ text: '편지 써 줘' }] }]); if (r && r.reply) t = r.reply; } catch (e) {} }
-  S.memory.push('📮 레나의 편지: ' + t.slice(0, 300)); save(); say(t, 'happy', false); toast('편지는 5번 음성사서함에 보관했어요.'); return true;
+  S.memory.push('📮 레나의 편지: ' + t.slice(0, 300)); save(); say(t, 'happy', false); toast('편지는 7번 음성사서함에 보관했어요.'); return true;
 }
 // 부스 꾸미기
 function D() { if (!S.decor) S.decor = { own: [], on: [] }; return S.decor; }
@@ -260,7 +260,7 @@ function decorEdit() {
 // 음성통화 화면 이름 아래 회선 등급 배지(전화기 아이콘)
 function renderAff() {
   const hd = document.querySelector('.ahead .hd'); if (!hd) return; let b = $('affB');
-  if (!b) { b = el('button', 'affb'); b.id = 'affB'; b.onclick = () => { dtmf(8); openSheet('shop'); }; hd.appendChild(b); }
+  if (!b) { b = el('button', 'affb'); b.id = 'affB'; b.onclick = () => { dtmf(9); openSheet('shop'); }; hd.appendChild(b); }
   const a = A(), [m] = mood(); b.innerHTML = `<img class="ci" src="assets/lena/st_phone.webp" alt=""><u>${tierOf(lv(a.pt)).name}</u>`;
 }
 // 자판기 시트
@@ -296,9 +296,9 @@ SH.shop = { t: '자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매�
 
   }
 } };
-SH[3] = SH.shop; // 다이얼 3번
+SH[3] = SH.shop; // 다이얼 9번
 // 홈의 동전 배지 → 자판기
-const _rh = renderHome; renderHome = function () { _rh(); const c = document.querySelector('.coinb'); if (c) c.onclick = () => { dtmf(8); openSheet('shop'); }; renderAff(); };
+const _rh = renderHome; renderHome = function () { _rh(); const c = document.querySelector('.coinb'); if (c) c.onclick = () => { dtmf(9); openSheet('shop'); }; renderAff(); };
 // 오락실의 운세 버튼 → 자판기
 // 레나 대화에 호감도 반영
 const _sys = sysPrompt; sysPrompt = function (sp) { const a = A(), [m] = mood(); return _sys(sp).replace('JSON만 출력:', `- 지금 레나의 호감도 ${lv(a.pt)}단계(「${tierOf(lv(a.pt)).name}」), 기분 "${m}". 단계가 높을수록 더 다정하고 솔직하게, 서운/삐침이면 장난스럽게 투정한다(선물 얘기는 가끔만).\nJSON만 출력:`); };

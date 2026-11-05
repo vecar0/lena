@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v54). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v55). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 모델 자동=가장 새 Flash(lite 제외), 2.5는 thinkingBudget 512, 3.x는 thinkingLevel low. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -14,7 +14,7 @@
 - 저장: `localStorage['lena1']` → `S` (name, key, items, calls, memory, diary, history, coins, coinDays, morning, mcDone, srv, uid/sec/sub/pushOn, ack, fired). 처음 실행 때 예전 `haru2`에서 이름·키·알림 연결만 가져온다.
 - **앱을 열면 밖 모드(음성통화 화면)**: 고양이 프사(`assets/lena/cat.jpg`, 하얀 고양이·머리 위 핑크 선글라스·초록 수화기 — 원본 `art/new/avatar/cat_pin_5.png`(사용 중, 선글라스 그라데이션), 다른 후보 1~4·6), 이름·통화 시간, 대화, 버튼 6개(키패드·전단지·**영상통화**·예약 전화·부재중·설정). 배경 영상은 멈춰 둔다. "영상통화"를 누르면 아래 부스 화면으로, 부스 화면 위쪽 "음성으로"를 누르면 다시 밖 모드로.
 - 홈(영상통화) = 비 오는 공중전화 부스(배경 영상 `assets/lena/bg.mp4`, 끊김 없이 반복, 번쩍임 줄임). 위: 부재중 배지(0개면 숨김)·시계. 유리에 붙은 전단지(다음 일정 분홍 '외 N개', 할 일 노랑 '할 일 N'). 동전 개수는 영상 화면에 안 띄움(v36). 지난 일정이 있으면 해골 손이 유리를 "똑똑". 아래: 레나 자막, 버튼 다이얼/수화기 들기/전단지.
-- 다이얼(공중전화 키패드, DTMF 소리): 1 전단지(탭: 오늘·캘린더·시간표·할 일, `openBoard(tab)`) 2 오늘의 운세(`SH[2]=SH.fort`) 3 자판기(`SH[3]=SH.shop`, shop.js; 이름 '자판기') 4 예약 전화 5 음성사서함(기억) 6 공부(study.js, v52에 통화 일기 대신) 7 모닝콜 8 오락실 9 부재중 ✱ 통화 기록 0 설정 # 닫기.
+- 다이얼(공중전화 키패드, DTMF 소리, v55에 중요도 순으로 정리): 1 전단지(탭 오늘·할 일, `openBoard(tab)`) 2 캘린더(`SH.cal`) 3 시간표(`SH.tt`) 4 공부(`SH[6]`, study.js) 5 전화(`SH.call` = 예약 전화·부재중·통화 기록 탭 `callTab`; 예전 `openSheet(4/9/'*')`는 그 탭으로 열림, 부재중 있으면 부재중 탭 먼저, 키패드 배지도 5번) 6 모닝콜(`SH[7]`, 강조 키) 7 음성사서함(`SH[5]`) 8 오늘의 운세(`SH.fort`=`SH[2]`) 9 자판기(`SH.shop`=`SH[3]`) ✱ 오락실(`SH[8]`) 0 설정 # 닫기. 시트 id와 화면 번호가 다르다: `KEYS`[번호,이름,시트id], 번호 표시는 `NUMOF`(app.js). 통화 일기는 v52에 없앰.
 - 통화 = Gemini 대화(스트리밍 자막, 사진, 음성 입력 SpeechRecognition). 답 JSON: reply, mood(tease/happy/worry/pout/surprise/calm → 스티커 팝), add, done, remove, callback, remember (diary 칸은 남아 있지만 비워 둠, 통화 일기는 v52에 없앰). 저장하면 "✓ … 되돌리기" 쪽지.
 - 전단지를 떼면(끝냄) 찢어지는 연출 + 동전 1개.
 - 오늘의 운세 = 전용 페이지 `SH.fort`(다이얼 2). 접힌 쪽지 → '쪽지 펴기'(동전 없음, 하루 한 번 새 운세, 그날은 몇 번이든 다시 봄; v38). 내용: 총운 별 1~5·한 줄, 사랑/일/돈 점수, 행운의 숫자·색(견본 동그라미)·물건, 조심할 것, 레나의 한마디, "레나랑 이 운세 얘기하기"(통화로). 키 있으면 Gemini가 일정·기억을 보고 JSON으로 만들고(`fortMake`), 없거나 실패하면 날짜+이름으로 정해지는 `fortLocal`. 저장 `S.fort[날짜]`(14일치), 아래 '지난 운세' 목록(눌러서 펼침). 여는 곳: 다이얼 2만(통화 빠른 버튼의 운세는 v39에 뺌; `fortuneCall()`은 페이지를 엶). 자판기에서 운세 칸은 뺌. 쪽지 CSS `.fslip`.

@@ -1,4 +1,4 @@
-// 공부 (다이얼 6): 시험 3주 전부터 회독 단계(블로그 방식) · 평일 2과목/주말 3~4과목 · 빈 시간에 50분 블록 · 블록을 눌러 간단히 조정
+// 공부 (다이얼 4, 시트 id 6): 시험 3주 전부터 회독 단계(블로그 방식) · 평일 2과목/주말 3~4과목 · 빈 시간에 50분 블록 · 블록을 눌러 간단히 조정
 // 전단지 시트에는 '캘린더' 탭만 남긴다(오늘 / 캘린더 / 시간표 / 할 일). app.js·proactive.js·follow.js·plan.js 뒤에 불러온다.
 'use strict';
 (() => {
@@ -259,14 +259,19 @@ function finishBlock(b) {
 // ---------- 전단지 시트: 오늘 / 캘린더 / 시간표 / 할 일 ----------
 let calM = null, calSel = null;
 boardTabs = function (B) {
-  const T = el('div', 'tabs'); [['today', '오늘'], ['cal', '캘린더'], ['tt', '시간표'], ['all', '할 일']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
+  if (curSheet !== 1) return; // 캘린더(2)·시간표(3)는 따로 번호라 탭이 없음
+  const T = el('div', 'tabs'); [['today', '오늘'], ['all', '할 일']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
 };
 const _br = boardRender; boardRender = function (B) {
-  if (boardTab === 'week') boardTab = 'cal';
-  if (boardTab === 'study') boardTab = 'today';
+  if (curSheet === 1 && !['today', 'all'].includes(boardTab)) boardTab = 'today';
   if (boardTab === 'cal') return renderCal(B);
   _br(B);
 };
+
+// ---------- 2 캘린더 · 3 시간표 (따로 번호) ----------
+SH.cal = { t: '캘린더', s: () => '시험·숙제·학원·일정·공부량을 한눈에', r: B => { boardTab = 'cal'; renderCal(B); } };
+SH.tt = { t: '시간표', s: () => `매주 반복 ${(S.reps || []).length}개 · 이 시간은 피해서 짜요`, r: B => { boardTab = 'tt'; _br(B); } };
+const _ob = openBoard; openBoard = function (tab) { if (tab === 'cal' || tab === 'week') return openSheet('cal'); if (tab === 'tt') return openSheet('tt'); if (tab === 'study') return openSheet(6); _ob(tab); };
 
 // ---------- 캘린더 ----------
 function renderCal(B) {
@@ -469,7 +474,7 @@ function stMat(B) {
 }
 
 // ---------- 오늘 브리핑에 공부 덧붙이기 ----------
-if (SH.brief) { const _r = SH.brief.r; SH.brief.r = B => { _r(B); try { const D = splan().days[0]; if (!D || !D.blocks.length) return; const w = B.querySelector('.brief'); const s = el('div', 'bsec'); s.appendChild(el('h5', null, `오늘 공부 ${hm(D.mins)}`)); D.blocks.slice(0, 4).forEach(b => { const r = el('div', 'r'); r.append(el('b', null, toT(b.s)), document.createTextNode(`${b.sub} · ${b.parts.map(p => p.t.label).join(' / ')}`)); s.appendChild(r); }); s.appendChild(row(btn('6 공부 보기', 'ghost wide', () => { sub = 'today'; openSheet(6); }))); w && w.appendChild(s); } catch (e) {} }; }
+if (SH.brief) { const _r = SH.brief.r; SH.brief.r = B => { _r(B); try { const D = splan().days[0]; if (!D || !D.blocks.length) return; const w = B.querySelector('.brief'); const s = el('div', 'bsec'); s.appendChild(el('h5', null, `오늘 공부 ${hm(D.mins)}`)); D.blocks.slice(0, 4).forEach(b => { const r = el('div', 'r'); r.append(el('b', null, toT(b.s)), document.createTextNode(`${b.sub} · ${b.parts.map(p => p.t.label).join(' / ')}`)); s.appendChild(r); }); s.appendChild(row(btn('4 공부 보기', 'ghost wide', () => { sub = 'today'; openSheet(6); }))); w && w.appendChild(s); } catch (e) {} }; }
 
 // ---------- 알림: 오늘 공부 블록 시작 ----------
 const _plan = window.plan; window.plan = function () {
@@ -480,7 +485,7 @@ const _plan = window.plan; window.plan = function () {
 // ---------- Gemini: 말로 넣기 ----------
 const _sys = sysPrompt; sysPrompt = function (sp) {
   const s = _sys(sp), st = ST();
-  return s.replace('JSON만 출력:', `- 공부: 교재·문제집(몇 단원/몇 쪽), 학원 숙제, 시험 날짜·과목·범위를 말하면 study에 넣는다. study={"mats":[{"sub":"과목","title":"교재 이름","kind":"book|hw","from":1,"to":12,"unit":"단원|쪽","chunk":쪽일 때 덩어리 쪽수,"mins":단원 하나 걸리는 분(모르면 40),"due":"YYYY-MM-DD 숙제면 다음 학원 날"}],"exams":[{"name":"시험 이름","date":"YYYY-MM-DD","subs":["과목"],"ranges":[{"sub":"과목","title":"교재 이름","from":시작 번호,"to":끝 번호}]}]}. 교재가 이미 있으면 mats에 다시 넣지 않는다. 계획은 앱이 시험 3주 전부터 회독 단계로 빈 시간에 짠다(6번 공부).
+  return s.replace('JSON만 출력:', `- 공부: 교재·문제집(몇 단원/몇 쪽), 학원 숙제, 시험 날짜·과목·범위를 말하면 study에 넣는다. study={"mats":[{"sub":"과목","title":"교재 이름","kind":"book|hw","from":1,"to":12,"unit":"단원|쪽","chunk":쪽일 때 덩어리 쪽수,"mins":단원 하나 걸리는 분(모르면 40),"due":"YYYY-MM-DD 숙제면 다음 학원 날"}],"exams":[{"name":"시험 이름","date":"YYYY-MM-DD","subs":["과목"],"ranges":[{"sub":"과목","title":"교재 이름","from":시작 번호,"to":끝 번호}]}]}. 교재가 이미 있으면 mats에 다시 넣지 않는다. 계획은 앱이 시험 3주 전부터 회독 단계로 빈 시간에 짠다(4번 공부).
 - 공부 계획 고치기: 송휘님이 공부 시간·양·순서를 바꿔 달라고 하면 study.set에 바꿀 것만 넣는다. set={"wdS":"HH:MM 평일 시작","weS":"HH:MM 주말 시작","end":"HH:MM 끝","wdMax":평일 하루 최대 분(0=자동),"weMax":주말 하루 최대 분(0=자동),"wdSubs":평일 과목 수,"weSubs":주말 과목 수,"block":한 블록 분(30~90),"focus":"먼저 할 과목"(없애려면 ""),"focusDays":며칠 동안,"today":"less|off|more|normal"(오늘만 조금/쉬기/더/원래대로)}. 피곤하다·아프다면 today:"less"나 "off"를 권하고, 바꾼 뒤엔 reply에서 짧게 무엇을 바꿨는지 말한다.
 지금 공부 설정: ${JSON.stringify({ wdS: st.pref.wdS, weS: st.pref.weS, end: st.pref.end, wdMax: st.pref.wdMax || '자동', weMax: st.pref.weMax || '자동', wdSubs: st.pref.wdSubs, weSubs: st.pref.weSubs, block: st.pref.block, focus: st.pref.focus && st.pref.focus.sub || '' })} 오늘 계획: ${(() => { try { const D = splan().days[0]; return D.blocks.map(b => `${toT(b.s)} ${b.sub} ${b.parts.map(p => p.t.label).join('+')}`).join(', ') || '없음'; } catch (e) { return '?'; } })()}
 지금 공부 목록: ${JSON.stringify(st.mats.map(m => `${m.sub}/${m.title}(${m.kind === 'hw' ? '숙제' : m.units.length + '개'}, 남은 ${m.units.filter(u => !u.done).length})`).slice(0, 20))} 시험: ${JSON.stringify(st.exams.map(e => `${e.name} ${e.date} ${exSubs(e).join('·')}`))}
@@ -504,7 +509,7 @@ const _ap = apply; apply = function (r) {
   }
   if (!got.length) return res;
   dirty(); save(); pushSync(true);
-  const txt = `공부에 넣음: ${got.join(', ')} · 6번 공부에서 확인`;
+  const txt = `공부에 넣음: ${got.join(', ')} · 4번 공부에서 확인`;
   if (res) { res.querySelector('span').textContent += ' · ' + txt; return res; } return noteEl(txt);
 };
 window.lenaStudy = { keepRate, plan: () => splan(), simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
