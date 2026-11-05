@@ -1,4 +1,4 @@
-// 단골 등급(예전 호감도) + 매일 바뀌는 자판기 + 부스 꾸미기
+// 회선 등급(예전 호감도) + 매일 바뀌는 자판기 + 부스 꾸미기
 // 할 일 동전(S.coins)을 계속 쓰는 곳. app.js·arcade.js 뒤에 불러온다.
 'use strict';
 (() => {
@@ -105,8 +105,8 @@ const SECRET = [
 ];
 const lv = p => Math.floor(Math.sqrt((p || 0) / 5));
 const need = n => 5 * n * n;
-// 단골 등급 이름
-const TIER = [['모르는 번호', 0], ['저장된 번호', 1], ['밤의 단골', 2], ['단축번호 1번', 3], ['새벽 세 시의 목소리', 4], ['비밀 회선', 5], ['레나 전용선', 6]];
+// 회선 등급 이름
+const TIER = [['모르는 번호', 0], ['저장된 번호', 1], ['밤마다 거는 번호', 2], ['단축번호 1번', 3], ['새벽 세 시의 목소리', 4], ['비밀 회선', 5], ['레나 전용선', 6]];
 const tierOf = n => { const t = TIER[Math.min(n, TIER.length - 1)]; return { name: t[0] + (n >= TIER.length ? ` ${n - TIER.length + 2}` : ''), cls: 't' + t[1] }; };
 const A = () => { if (!S.aff) S.aff = { pt: 0, last: dk(new Date()), dday: dk(new Date()), notes: [] }; S.aff.notes = S.aff.notes || []; return S.aff; };
 const daysSince = d => Math.max(0, Math.round((new Date(dk(new Date()) + 'T00:00') - new Date(d + 'T00:00')) / DAY));
@@ -134,7 +134,7 @@ function give(g) {
   const bonus = today().want === g.id ? 2 : 1; a.pt += g.h * bonus; a.last = dk(new Date()); a.gifts = a.gifts || {}; a.gifts[g.id] = (a.gifts[g.id] || 0) + 1; save();
   fx(SI(g.i)); tone([880, 1320], .1, .04, 'triangle', .1);
   const after = lv(a.pt); let line = pick(g.say) + (bonus > 1 ? ' …제가 갖고 싶었던 거 어떻게 알았어요?' : '');
-  if (after > before) line += `\n(단골 등급이 「${tierOf(after).name}」가 됐어요)`;
+  if (after > before) line += `\n(회선 등급이 「${tierOf(after).name}」가 됐어요)`;
   refreshSheet(); renderAff(); setTimeout(() => say(line, 'happy', false), 600);
 }
 async function unlockNote(n) {
@@ -257,7 +257,7 @@ function decorEdit() {
     L.onpointerup = L.onpointercancel = () => { L.onpointermove = null; tone([900], .03, .03); save(); };
   };
 }
-// 음성통화 화면 이름 아래 단골 등급 배지(전화기 아이콘)
+// 음성통화 화면 이름 아래 회선 등급 배지(전화기 아이콘)
 function renderAff() {
   const hd = document.querySelector('.ahead .hd'); if (!hd) return; let b = $('affB');
   if (!b) { b = el('button', 'affb'); b.id = 'affB'; b.onclick = () => { dtmf(8); openSheet('shop'); }; hd.appendChild(b); }
@@ -267,11 +267,11 @@ function renderAff() {
 let tab = 'today';
 SH.shop = { t: '자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매일 자정에 바뀌어요`, r: B => {
   decay(); const a = A(), n = lv(a.pt), [m, mt] = mood(), s = today();
-  const c = el('div', 'card'), top = el('div', 'affc'), av = el('div', 'ava2'), tx = el('div'); tx.append(el('b', null, tierOf(n).name), el('small', null, mt + ' 하루 지날 때마다 단골 등급이 조금씩 내려가요.'));
+  const c = el('div', 'card'), top = el('div', 'affc'), av = el('div', 'ava2'), tx = el('div'); tx.append(el('b', null, tierOf(n).name), el('small', null, mt + ' 하루 지날 때마다 회선 등급이 조금씩 내려가요.'));
   top.append(av, tx); c.appendChild(top);
   const hb = el('div', 'hbar'), hi = el('i'); hi.style.width = Math.min(100, (a.pt - need(n)) / Math.max(1, need(n + 1) - need(n)) * 100) + '%'; hb.appendChild(hi); c.appendChild(hb);
-  c.appendChild(el('div', 'hint', `단골 등급 · 「${tierOf(n + 1).name}」까지 ${need(n + 1) - a.pt}점`));
-  const w = GIFT.find(g => g.id === s.want); const wb = el('div', 'want'), wi = el('img'); wi.src = SI(w.i); wi.alt = ''; wb.append(wi, document.createTextNode(`오늘 레나가 갖고 싶은 것: ${w.n} (단골 점수 2배)`)); c.appendChild(wb);
+  c.appendChild(el('div', 'hint', `회선 등급 · 「${tierOf(n + 1).name}」까지 ${need(n + 1) - a.pt}점`));
+  const w = GIFT.find(g => g.id === s.want); const wb = el('div', 'want'), wi = el('img'); wi.src = SI(w.i); wi.alt = ''; wb.append(wi, document.createTextNode(`오늘 레나가 갖고 싶은 것: ${w.n} (회선 점수 2배)`)); c.appendChild(wb);
   B.appendChild(c);
   if (tab === 'note') tab = 'today'; const T = el('div', 'tabs'); [['today', '오늘의 자판기'], ['gift', '선물'], ['decor', '부스 꾸미기']].forEach(([v, l]) => { const b = el('button', tab === v ? 'on' : '', l); b.onclick = () => { tab = v; refreshSheet(); }; T.appendChild(b); }); T.style.marginTop = '14px'; B.appendChild(T);
   const coinI = `<img src="${CUR('todo')}" alt="">`;
@@ -280,7 +280,7 @@ SH.shop = { t: '자판기', s: () => `할 일 동전 ${S.coins || 0}개 · 매�
     const V = el('div', 'vend'), vt = el('div', 'vt'); vt.append(el('span', null, 'LENA VENDING'), el('span', null, `${dk(new Date()).slice(5).replace('-', '/')} · 자정에 교체`)); V.appendChild(vt);
     const G = el('div', 'vgrid');
     s.slots.forEach((sl, i) => {
-      if (sl.t === 'g') { const g = GIFT.find(x => x.id === sl.id); G.appendChild(card(SI(g.i), g.n, `단골 +${g.h * (sl.want ? 2 : 1)}`, priceOf(g), () => give(g), sl.want ? '원하는 것' : s.sale === g.id ? '반값' : '')); }
+      if (sl.t === 'g') { const g = GIFT.find(x => x.id === sl.id); G.appendChild(card(SI(g.i), g.n, `회선 +${g.h * (sl.want ? 2 : 1)}`, priceOf(g), () => give(g), sl.want ? '원하는 것' : s.sale === g.id ? '반값' : '')); }
       else if (sl.t === 'd') { const d = DECOR.find(x => x.id === sl.id), own = D().own.includes(d.id); G.appendChild(card(SI(d.i), d.n, '부스 유리에 붙이는 장식', d.p, () => { if (!pay(d.p)) return; D().own.push(d.id); if (D().on.length < 4) D().on.push(d.id); save(); fx(SI(d.i)); renderDecor(); refreshSheet(); toast(`${d.n}을(를) 부스에 붙였어요. 영상통화에서 보여요.`); }, '희귀', own)); }
       else { const u = UTIL.find(x => x.id === sl.id), sold = s.sold.includes(i); G.appendChild(card(u.i, u.n, u.d, u.p, async () => { if (u.id === 'fortune') { openSheet('fort'); return; } if (!pay(u.p)) return; const ok = await u.buy(); if (ok === false) { S.coins += u.p; } else { s.sold.push(i); } save(); refreshSheet(); }, '오늘만', sold)); }
     });
