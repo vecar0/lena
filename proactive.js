@@ -61,7 +61,7 @@ const pastDue = () => S.items.filter(t => !t.done && t.due && !t.rid && Date.now
 function askDone(t) {
   const c = el('div', 'ask'); c.append(el('span', 'who', '레나'), document.createTextNode(pick([`'${t.text}' 했어요?`, `'${t.text}' 끝났어요? 솔직하게.`, `${when(t.due)} '${t.text}'… 어떻게 됐어요?`])));
   const fin = msg => { c.classList.add('done'); c.querySelector('.row').remove(); c.appendChild(el('div', 'hint', msg)); };
-  c.appendChild(row(btn('응, 끝났어', 'teal', () => { setDone(t, true, c); fin('잘했어요. 동전 하나 넣어 뒀어요.'); }), btn('내일로', 'ghost', () => { moveTomorrow(t); fin(`${when(t.due)}로 옮겼어요.`); }), btn('안 할래', 'ghost', () => { delItem(t); fin('떼어 버렸어요.'); })));
+  c.appendChild(row(btn('응, 끝났어', 'teal', () => { setDone(t, true, c); fin('잘했어요. 떼어 뒀어요.'); }), btn('내일로', 'ghost', () => { moveTomorrow(t); fin(`${when(t.due)}로 옮겼어요.`); }), btn('안 할래', 'ghost', () => { delItem(t); fin('떼어 버렸어요.'); })));
   t.asked = 1; save(); return c;
 }
 function moveTomorrow(t) { const d = new Date(t.due || Date.now()), n = dayAdd(1); n.setHours(t.due ? d.getHours() : 12, t.due ? d.getMinutes() : 0); if (t.rkey) S.repSkip[t.rkey] = 1; t.due = localISO(n); delete t.rkey; t.asked = 0; save(); pushSync(true); renderHome(); }
