@@ -85,7 +85,6 @@ const DECOR = [
   { id: 'crown', n: '작은 왕관', p: 3, i: 'd_crown', rx: 1 }, { id: 'halo', n: '천사 링', p: 3, i: 'd_halo', rx: 1 }, { id: 'arrow', n: '여기 봐 화살표', p: 2, i: 'd_arrow', rx: 1 }
 ];
 const UTIL = [
-  { id: 'fortune', n: '오늘의 운세', d: '운세 쪽지를 펴 봐요', p: 1, i: 'assets/lena/st_star.webp', buy: () => fortuneCall() },
   { id: 'gc', n: '게임 동전 5개', d: '오락실에서 쓰는 동전', p: 1, i: CUR('gc'), buy: () => { S.gc = Math.min(999, (S.gc || 0) + 5); save(); toast('게임 동전 +5'); return true; } },
   { id: 'rpick', n: '리액션 스티커 뽑기', d: '레나 옆에 붙이는 말풍선·반응 스티커 하나', p: 2, i: 'assets/lena/s/d_bheart.webp', buy: () => { const L = DECOR.filter(d => d.rx && !D().own.includes(d.id)); if (!L.length) { toast('리액션 스티커를 다 모았어요!'); return false; } const d = pick(L); D().own.push(d.id); if (D().on.length < 6) D().on.push(d.id); save(); renderDecor(); toast(`${d.n} 스티커가 나왔어요! 부스 꾸미기에서 붙여요.`); return true; } },
   { id: 'letter', n: '레나의 손편지', d: '음성사서함에 남는 짧은 편지', p: 2, i: 'assets/lena/st_tape.webp', buy: () => letter() }
@@ -300,6 +299,7 @@ SH.shop = { t: '레나 자판기', s: () => `할 일 동전 ${S.coins || 0}개 �
     const nx = el('div', 'note2 lock'); nx.textContent = `호감도가 「${tierOf(L.length + 1).name}」가 되면 다음 이야기가 열려요.`; B.appendChild(nx);
   }
 } };
+SH[3] = SH.shop; // 다이얼 3번
 // 홈의 동전 배지 → 자판기
 const _rh = renderHome; renderHome = function () { _rh(); const c = document.querySelector('.coinb'); if (c) c.onclick = () => { dtmf(8); openSheet('shop'); }; renderAff(); };
 // 오락실의 운세 버튼 → 자판기

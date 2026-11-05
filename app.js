@@ -131,7 +131,7 @@ function renderHome() {
     const f = el('button', 'fly f1'); f.append(el('div', 'tp'), el('small', null, when(nx.due).toUpperCase()), el('b', null, nx.text));
     f.querySelector('.tp').style.backgroundImage = 'url(assets/lena/tape_white.webp)';
     if (up.length > 1) f.appendChild(el('small', null, `외 ${up.length - 1}개`));
-    f.onclick = () => openSheet(1); F.appendChild(f);
+    f.onclick = () => openBoard('today'); F.appendChild(f);
   }
   const todo = openItems().filter(t => !t.due), doneToday = S.items.filter(t => t.done && t.doneAt && dk(new Date(t.doneAt)) === dk(now) && !t.due);
   if (todo.length || doneToday.length) {
@@ -139,11 +139,11 @@ function renderHome() {
     f.querySelector('.tp').style.backgroundImage = 'url(assets/lena/tape_teal1.webp)';
     doneToday.slice(-1).forEach(t => f.appendChild(el('i', 'd', t.text)));
     todo.slice(0, 3).forEach(t => f.appendChild(el('i', null, t.text)));
-    f.onclick = () => openSheet(2); F.appendChild(f);
+    f.onclick = () => openBoard('all'); F.appendChild(f);
   }
   // 영상 화면엔 동전 개수를 띄우지 않는다(자판기는 음성 화면 ♥ 배지·오락실에서)
   const late = S.items.filter(isLate);
-  const K = $('knock'); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openSheet(1); };
+  const K = $('knock'); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openBoard('today'); };
   // 열린 키패드 숫자 배지
   const k9 = document.querySelector('.k[data-k="9"] em'); if (k9) { k9.textContent = M.length; k9.hidden = !M.length; }
   $('aMissN').textContent = M.length; $('aMissN').hidden = !M.length;
@@ -170,7 +170,7 @@ let curSheet = 0;
 const SH = {};
 function openSheet(n) {
   closePad(); const s = SH[n]; if (!s) return; if (s.direct) { s.direct(); return; } curSheet = n;
-  $('shNum').textContent = /^[0-9*]$/.test(String(n)) ? n : ({ shop: '♥', cl: '#', box: '⚡', fort: '★' })[n] || '•'; $('shT').textContent = s.t; $('shS').textContent = typeof s.s === 'function' ? s.s() : (s.s || '');
+  $('shNum').textContent = /^[0-9*]$/.test(String(n)) ? n : ({ shop: '3', cl: '#', box: '⚡', fort: '2' })[n] || '•'; $('shT').textContent = s.t; $('shS').textContent = typeof s.s === 'function' ? s.s() : (s.s || '');
   const B = $('shB'); B.innerHTML = ''; s.r(B); B.scrollTop = 0;
   $('sheet').classList.add('open'); app.classList.add('dim');
   if (s.open) s.open();
@@ -212,7 +212,7 @@ function boardAdd(B) {
   c.append(row(t), row(d, btn('붙이기', '', go)));
   const h = el('div', 'hint', '시간은 비워도 돼요. 통화로 "내일 3시 치과"처럼 말해도 붙여요.'); c.appendChild(h); B.appendChild(c);
 }
-function boardTabs(B) { const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['all', '할 일']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; curSheet = v === 'today' ? 1 : v === 'week' ? 3 : 2; $('shNum').textContent = curSheet; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T); }
+function boardTabs(B) { const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['all', '할 일']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T); }
 function boardRender(B) {
   boardTabs(B);
   const now = new Date();
@@ -235,9 +235,9 @@ function boardRender(B) {
   else { const G = el('div', 'board'); L.forEach((t, i) => G.appendChild(paper(t, i))); B.appendChild(G); }
   if (boardTab === 'all') { const D = S.items.filter(t => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)); if (D.length) { B.appendChild(lbl(`떼어낸 것 ${D.length}`)); const G = el('div', 'board'); D.slice(0, 6).forEach((t, i) => G.appendChild(paper(t, i))); B.appendChild(G); const c = btn('떼어낸 것 정리', 'ghost wide', () => { S.items = S.items.filter(t => !t.done); save(); refreshSheet(); }); c.style.marginTop = '14px'; B.appendChild(row(c)); } }
 }
-SH[1] = { t: '전단지', s: () => `남은 것 ${openItems().length}개 · 떼면 동전 1개`, r: B => { if (curSheet === 1) boardTab = 'today'; boardRender(B); } };
-SH[2] = { t: '전단지', s: () => `남은 것 ${openItems().length}개 · 떼면 동전 1개`, r: B => { if (curSheet === 2) boardTab = 'all'; boardRender(B); } };
-SH[3] = { t: '전단지', s: '이번 주 한눈에', r: B => { if (curSheet === 3) boardTab = 'week'; boardRender(B); } };
+// 다이얼 1 = 전단지(오늘·이번 주·할 일은 안의 탭), 2 = 오늘의 운세, 3 = 레나 자판기(shop.js)
+SH[1] = { t: '전단지', s: () => `남은 것 ${openItems().length}개 · 떼면 동전 1개`, r: B => boardRender(B) };
+function openBoard(tab) { boardTab = tab || 'today'; openSheet(1); }
 
 // 4 예약 전화
 SH[4] = { t: '예약 전화', s: '정한 시간에 레나가 전화해요', r: B => {
@@ -354,23 +354,23 @@ $('toAudio').onclick = $('toAudio2').onclick = () => { dtmf(1); toAudio(); };
 $('aVid').onclick = toVideo;
 $('logTog').onclick = () => { const m = app.classList.toggle('lmin'); $('logTog').textContent = m ? '대화 펼치기' : '대화 접기'; const L = $('log'); setTimeout(() => L.scrollTop = L.scrollHeight, 300); };
 $('aPad').onclick = () => { dtmf(0); openPad(); };
-$('aBoard').onclick = () => { dtmf(1); openSheet(1); };
+$('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
 $('aCall').onclick = () => { dtmf(4); openSheet(4); };
 $('aMiss').onclick = () => { dtmf(9); openSheet(9); };
 $('aSet').onclick = () => { dtmf(0); openSheet(0); };
 
 // ---------------- dial pad ----------------
-const KEYS = [[1, '오늘'], [2, '할 일'], [3, '이번 주'], [4, '예약 전화'], [5, '음성사서함'], [6, '통화 일기'], [7, '모닝콜'], [8, '오락실'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
+const KEYS = [[1, '전단지'], [2, '오늘의 운세'], [3, '레나 자판기'], [4, '예약 전화'], [5, '음성사서함'], [6, '통화 일기'], [7, '모닝콜'], [8, '오락실'], [9, '부재중'], ['*', '통화 기록'], [0, '설정'], ['#', '닫기']];
 (function buildPad() {
   const K = $('keys');
   KEYS.forEach(([k, l]) => { const b = el('button', 'k' + (k === 7 ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 9) { const e = el('em'); e.hidden = true; b.appendChild(e); }
-    b.onclick = () => { dtmf(k); $('lcd').textContent = `${k} · ${l}`; if (k === '#') { closePad(); return; } setTimeout(() => openSheet(k), 140); }; K.appendChild(b); });
+    b.onclick = () => { dtmf(k); $('lcd').textContent = `${k} · ${l}`; if (k === '#') { closePad(); return; } setTimeout(() => k === 1 ? openBoard('today') : openSheet(k), 140); }; K.appendChild(b); });
 })();
 function openPad() { $('lcd').textContent = '번호를 누르세요_'; renderHome(); $('sPad').classList.add('open'); app.classList.add('dim'); }
 function closePad() { $('sPad').classList.remove('open'); if (!$('sheet').classList.contains('open')) app.classList.remove('dim'); }
 $('sPad').addEventListener('click', e => { if (e.target === $('sPad') || e.target.classList.contains('panel')) closePad(); });
 $('dialBtn').onclick = () => { dtmf(0); openPad(); };
-$('boardBtn').onclick = () => { dtmf(1); openSheet(1); };
+$('boardBtn').onclick = () => { dtmf(1); openBoard('today'); };
 $('missBtn').onclick = () => { dtmf(9); openSheet(9); };
 
 // ---------------- toast ----------------
@@ -446,20 +446,21 @@ JSON만 출력: {"total":1~5,"love":1~5,"work":1~5,"money":1~5,"line":"오늘 �
   try { const j = await gemini(sys, [{ role: 'user', parts: [{ text: '오늘 운세 뽑아 줘' }] }]); if (j && j.line && j.total) { const L = fortLocal(day); return Object.assign(L, j, { total: Math.max(1, Math.min(5, +j.total || L.total)), love: Math.max(1, Math.min(5, +j.love || L.love)), work: Math.max(1, Math.min(5, +j.work || L.work)), money: Math.max(1, Math.min(5, +j.money || L.money)), hex: /^#[0-9a-f]{6}$/i.test(j.hex || '') ? j.hex : L.hex }); } } catch (e) {}
   return fortLocal(day);
 }
-function fortuneCall() { openSheet('fort'); return true; } // 예전 호출(빠른 버튼·자판기)은 운세 페이지로
+function fortuneCall() { openSheet(2); return true; } // 예전 호출(빠른 버튼·자판기)은 운세 페이지로
 let fortBusy = false;
 SH.fort = { t: '오늘의 운세', s: () => { const d = new Date(); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`; }, r: B => {
   S.fort = S.fort || {}; const day = dk(new Date()), f = S.fort[day];
   if (!f) {
     const sl = el('div', 'fslip sealed'), seal = el('img', 'fseal'); seal.src = 'assets/lena/st_heart.webp'; seal.alt = '';
-    sl.append(el('div', 'ftape'), seal, el('b', null, '오늘의 운세 쪽지'), el('p', null, fortBusy ? '레나가 쪽지를 펴는 중…' : '접혀 있어요. 동전 하나 넣으면 레나가 펴 줘요.')); B.appendChild(sl);
-    const go = el('button', 'btn wide'); go.innerHTML = `${ci('todo')}할 일 동전 1개 넣고 펴기`; go.disabled = fortBusy;
-    go.onclick = async () => { if ((S.coins || 0) < 1) { toast('할 일 동전이 없어요. 전단지 하나 떼고 와요.'); return; } S.coins--; save(); coinSound(); fortBusy = true; refreshSheet(); const data = await fortMake(day); S.fort[day] = data; S.fortDay = day; const ks = Object.keys(S.fort).sort(); while (ks.length > 14) delete S.fort[ks.shift()]; fortBusy = false; save(); tearSound(); refreshSheet(); renderHome(); };
-    B.appendChild(row(go)); B.appendChild(el('div', 'hint', `가진 할 일 동전 ${S.coins || 0}개 · 하루에 한 번, 오늘 안에는 몇 번이든 다시 볼 수 있어요.`));
+    sl.append(el('div', 'ftape'), seal, el('b', null, '오늘의 운세 쪽지'), el('p', null, fortBusy ? '레나가 쪽지를 펴는 중…' : '오늘 운세가 도착했어요. 눌러서 펴 봐요.')); B.appendChild(sl);
+    const go = el('button', 'btn wide'); go.textContent = '쪽지 펴기'; go.disabled = fortBusy;
+    go.onclick = async () => { if (fortBusy) return; fortBusy = true; refreshSheet(); const data = await fortMake(day); S.fort[day] = data; S.fortDay = day; const ks = Object.keys(S.fort).sort(); while (ks.length > 14) delete S.fort[ks.shift()]; fortBusy = false; save(); tearSound(); refreshSheet(); renderHome(); };
+    B.appendChild(row(go)); B.appendChild(el('div', 'hint', '운세는 하루에 한 번 새로 와요. 오늘 안에는 몇 번이든 다시 볼 수 있어요.'));
   } else B.appendChild(fortCard(f, true));
   const past = Object.keys(S.fort || {}).filter(k => k !== day).sort().reverse().slice(0, 7);
   if (past.length) { B.appendChild(lbl('지난 운세')); const L = el('div', 'fpast'); past.forEach(k => { const x = S.fort[k], r = el('button', 'fprow'); r.append(el('span', 'fpd', k.slice(5).replace('-', '.')), el('span', 'fps', '★'.repeat(x.total) + '☆'.repeat(5 - x.total)), el('span', 'fpl', x.line)); r.onclick = () => { const o = r.nextElementSibling; if (o && o.classList.contains('fslip')) { o.remove(); return; } r.after(fortCard(x, false)); }; L.appendChild(r); }); B.appendChild(L); }
 } };
+SH[2] = SH.fort; // 다이얼 2번
 function fortCard(f, today) {
   const sl = el('div', 'fslip' + (today ? ' open' : ''));
   sl.appendChild(el('div', 'ftape'));
