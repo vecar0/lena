@@ -353,9 +353,15 @@ SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
   B.appendChild(lbl('Gemini 키'));
   { const c = B.appendChild(el('div', 'card')), t = inp('password', S.key ? '••••' + S.key.slice(-4) : 'AIza로 시작하는 키'); t.autocomplete = 'off';
     c.append(row(t, btn('저장', '', () => { const v = t.value.trim(); if (!v) return; S.key = v; save(); loadModels().then(refreshSheet); refreshSheet(); say('키 받았어요. 이제 마음껏 떠들어요.', 'happy', false); })));
-    c.appendChild(el('div', 'hint', S.key ? '키 저장됨. 통화가 Gemini로 연결돼요.' : '키가 없으면 레나가 정해진 말만 해요. aistudio.google.com에서 무료로 받을 수 있어요.'));
-    const s = el('select', 'in'); s.appendChild(new Option('자동 (가장 빠른 것)', '')); (S.mlist || []).forEach(m => s.appendChild(new Option(m, m))); s.value = S.brain || ''; s.onchange = () => { S.brain = s.value; save(); };
-    c.append(el('div', 'hint', '대화 두뇌'), row(s)); if (S.model) c.appendChild(el('div', 'hint', '최근 대답한 두뇌: ' + S.model)); }
+    c.appendChild(el('div', 'hint', S.key ? '키 저장됨. 통화가 Gemini로 연결돼요.' : S.ckey ? 'Claude 키만 있어도 돼요. 노트 정리(사진·PDF)는 Gemini 키가 있어야 해요.' : '키가 없으면 레나가 정해진 말만 해요. aistudio.google.com에서 무료로 받을 수 있어요.'));
+    const s = el('select', 'in'); s.appendChild(new Option('자동 (가장 빠른 것)', '')); if (S.ckey) s.appendChild(new Option('Claude Haiku 5.5', CLM)); (S.mlist || []).forEach(m => s.appendChild(new Option(m, m))); s.value = S.brain || ''; s.onchange = () => { S.brain = s.value; save(); };
+    c.append(el('div', 'hint', '대화 두뇌'), row(s)); if (S.model) c.appendChild(el('div', 'hint', '최근 대답한 두뇌: ' + S.model));
+    const ml = S.mlat || {}, ks = Object.keys(ml).sort((a, b) => ml[a] - ml[b]); if (ks.length) c.appendChild(el('div', 'hint', '첫 글자까지 걸린 시간(평균): ' + ks.slice(0, 5).map(k => `${isCl(k) ? 'Claude Haiku' : k.replace('gemini-', 'Gemini ')} ${(ml[k] / 1000).toFixed(1)}초`).join(' · '))); }
+  B.appendChild(lbl('Claude 키 (선택)'));
+  { const c = B.appendChild(el('div', 'card')), t = inp('password', S.ckey ? '••••' + S.ckey.slice(-4) : 'sk-ant-로 시작하는 키'); t.autocomplete = 'off';
+    c.append(row(t, btn('저장', '', () => { const v = t.value.trim(); if (!v) return; if (!/^sk-ant-/.test(v)) { toast('sk-ant-로 시작하는 키를 넣어 주세요.'); return; } S.ckey = v; S.clErr = ''; delete COOL[CLM]; save(); refreshSheet(); say('Claude 키 받았어요. 누가 더 빠른지 제가 재 볼게요.', 'happy', false); })));
+    if (S.ckey) c.appendChild(row(btn('Claude 키 지우기', 'ghost', () => { if (!confirm('Claude 키를 지울까요?')) return; S.ckey = ''; if (isCl(S.brain || '')) S.brain = ''; save(); refreshSheet(); })));
+    c.appendChild(el('div', 'hint', S.ckey ? (S.clErr ? '⚠ ' + S.clErr + ' — console.anthropic.com에서 확인해 주세요.' : 'Claude Haiku 5.5도 두뇌로 써요. 자동이면 첫 글자가 더 빨리 오는 쪽을 먼저 써요(처음엔 하나씩 재 봐요). 한쪽이 막히면 다른 쪽으로 넘어가요.') : 'console.anthropic.com에서 키를 만들고 충전(5달러~)하면 Claude Haiku로도 대화해요. 하루 30번 쓰면 한 달 약 1,000원. 노트 정리는 Gemini로 해요.')); }
   B.appendChild(lbl('폰 알림'));
   { const c = B.appendChild(el('div', 'card')), t = inp('url', 'https://…workers.dev', S.srv);
     c.append(row(t, btn('저장', 'ghost', () => { let v = t.value.trim(); if (v && !/^https?:\/\//.test(v)) v = 'https://' + v; S.srv = v; save(); refreshSheet(); })));
@@ -364,8 +370,8 @@ SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
     c.appendChild(el('div', 'hint', perm === 'denied' ? '아이폰 설정 > 알림 > 레나에서 허용해 주세요.' : S.pushOn ? '켜짐 · 앱을 닫아도 예약 전화·모닝콜·전단지 시간에 알려요.' + (pstat ? ' · ' + pstat : '') : '홈 화면에 추가한 앱에서 켤 수 있어요 (iOS 16.4 이상).')); }
   B.appendChild(lbl('백업'));
   { const c = B.appendChild(el('div', 'card')), f = el('input'); f.type = 'file'; f.accept = '.json,application/json'; f.hidden = true;
-    f.onchange = async () => { const x = f.files[0]; if (!x) return; try { const d = JSON.parse(await x.text()); const keep = { key: S.key, sec: S.sec, uid: S.uid, sub: S.sub, pushOn: S.pushOn }; Object.assign(S, d, keep); save(); refreshSheet(); renderHome(); say('백업 불러왔어요.', 'happy', false); } catch (e) { say('파일을 못 읽었어요.', 'worry', false); } };
-    c.append(row(btn('내보내기', 'ghost wide', () => { const d = JSON.parse(JSON.stringify(S)); delete d.key; delete d.sec; const u = URL.createObjectURL(new Blob([JSON.stringify(d)], { type: 'application/json' })); const a = document.createElement('a'); a.href = u; a.download = 'lena-backup.json'; a.click(); }), btn('불러오기', 'ghost wide', () => f.click())), f); }
+    f.onchange = async () => { const x = f.files[0]; if (!x) return; try { const d = JSON.parse(await x.text()); const keep = { key: S.key, ckey: S.ckey, sec: S.sec, uid: S.uid, sub: S.sub, pushOn: S.pushOn }; Object.assign(S, d, keep); save(); refreshSheet(); renderHome(); say('백업 불러왔어요.', 'happy', false); } catch (e) { say('파일을 못 읽었어요.', 'worry', false); } };
+    c.append(row(btn('내보내기', 'ghost wide', () => { const d = JSON.parse(JSON.stringify(S)); delete d.key; delete d.ckey; delete d.sec; const u = URL.createObjectURL(new Blob([JSON.stringify(d)], { type: 'application/json' })); const a = document.createElement('a'); a.href = u; a.download = 'lena-backup.json'; a.click(); }), btn('불러오기', 'ghost wide', () => f.click())), f); }
 }, open: () => { if (S.key && !(S.mlist && S.mlist.length)) loadModels().then(refreshSheet); pushStatus().then(() => { if (curSheet === 0) refreshSheet(); }); } };
 
 
@@ -422,7 +428,7 @@ const QUICK = () => {
 };
 let warmAt = 0;
 function openCall() {
-  if (S.key && Date.now() - warmAt > 60e3) { warmAt = Date.now(); fetch('https://generativelanguage.googleapis.com/', { mode: 'no-cors' }).catch(() => {}); } // 연결 미리 열기
+  if (aiOn() && Date.now() - warmAt > 60e3) { warmAt = Date.now(); if (S.key) fetch('https://generativelanguage.googleapis.com/', { mode: 'no-cors' }).catch(() => {}); if (S.ckey) fetch('https://api.anthropic.com/', { mode: 'no-cors' }).catch(() => {}); } // 연결 미리 열기
   closePad(); if ($('sheet').classList.contains('open')) closeSheet();
   app.classList.add('calling'); callStart = Date.now(); clearInterval(callTimer);
   const up = () => { const s = (Date.now() - callStart) / 1000 | 0, t = `${pad(s / 60 | 0)}:${pad(s % 60)}`; $('callT').textContent = '통화 중 ' + t; $('aT').textContent = '통화 중 ' + t; }; up(); callTimer = setInterval(up, 1000);
@@ -430,7 +436,7 @@ function openCall() {
   tone([350, 440], .25, .04);
 }
 function hangUp() { if (app.classList.contains('outside')) return; stopVoice(); recStop(); app.classList.remove('calling'); clearInterval(callTimer); tone([480, 620], .12, .05); tone([480, 620], .12, .05, 'sine', .2); renderHome(); const last = S.history.filter(h => h.role === 'assistant').slice(-1)[0]; if (last && Date.now() - (last.at || 0) < 5 * 60e3) say(pick(['끊는다고 끝난 거 아니에요. …또 걸어요.', '들어가요. 저는 여기 있을게요.', '…벌써요? 아쉽다.']), 'tease', false); }
-$('pickBtn').onclick = () => { audio(); if (!S.name && !S.key) { incoming('first', true); return; } openCall(); if (!S.history.length || Date.now() - (S.history[S.history.length - 1].at || 0) > 30 * 60e3) addHer(pick([`${nmc()}여보세요? …목소리 듣고 싶었어요.`, `네, 레나예요. 무슨 일이에요?`, `${nmc()}이 시간에 웬일이에요? 좋아서 그래요.`]), true); };
+$('pickBtn').onclick = () => { audio(); if (!S.name && !aiOn()) { incoming('first', true); return; } openCall(); if (!S.history.length || Date.now() - (S.history[S.history.length - 1].at || 0) > 30 * 60e3) addHer(pick([`${nmc()}여보세요? …목소리 듣고 싶었어요.`, `네, 레나예요. 무슨 일이에요?`, `${nmc()}이 시간에 웬일이에요? 좋아서 그래요.`]), true); };
 $('hangBtn').onclick = hangUp;
 function renderLog() {
   const L = $('log'); L.innerHTML = '';
@@ -478,7 +484,7 @@ function fortLocal(day) { // 키가 없거나 연결이 안 될 때: 날짜·이
   return { total: st(), love: st(), work: st(), money: st(), line: pk(FORT.all), number: 1 + Math.floor(r() * 99), color: col[0], hex: col[1], item: pk(FORT.item), warn: pk(FORT.warn), advice: pk(FORT.say) };
 }
 async function fortMake(day) {
-  if (!S.key) return fortLocal(day);
+  if (!aiOn()) return fortLocal(day);
   const todo = openItems().slice(0, 6).map(t => t.text + (t.due ? ` (${t.due.slice(5, 16).replace('T', ' ')})` : '')).join(', ') || '없음';
   const sys = `너는 "레나". 장난스럽고 다정한 존댓말, 상대는 "${S.name || '당신'}님". 오늘(${day}) 운세를 만든다. 참고: 남은 일정·할 일 ${todo} / 기억 ${JSON.stringify(S.memory.slice(-8))}.
 JSON만 출력: {"total":1~5,"love":1~5,"work":1~5,"money":1~5,"line":"오늘 총운 한 문장(25자 안팎)","number":1~99,"color":"행운의 색 이름","hex":"#rrggbb","item":"행운의 물건","warn":"오늘 조심할 것(짧게)","advice":"레나의 한마디 1~2문장, 오늘 일정과 연결되면 좋음"}`;
@@ -522,12 +528,30 @@ function mRank(n) { if (BAD_M.test(n) || !/^gemini/.test(n) || !/flash|pro/.test
 function mAuto() { const fl = (S.mlist || []).filter(n => /flash/.test(n) && mRank(n) > 0).sort((a, b) => mRank(b) - mRank(a)); return fl[0] || 'gemini-flash-latest'; }
 // 붐비는(429·5xx·시간 초과) 모델은 잠깐 쉬게 하고 다음 모델로 넘어간다
 const COOL = {};
+// v82: Claude Haiku도 두뇌로 쓸 수 있음(S.ckey). '자동'이면 Gemini 후보들과 첫 글자 시간(S.mlat)으로 비교해 빠른 쪽부터.
+const CLM = 'claude-haiku-5-5', isCl = m => /^claude/.test(m), aiOn = () => !!(S.key || S.ckey);
+function toClaude(contents) { const out = [];
+  contents.forEach(c => { const role = c.role === 'model' ? 'assistant' : 'user', blk = [];
+    (c.parts || []).forEach(p => { if (p.text) blk.push({ type: 'text', text: p.text }); else if (p.inline_data) { const mt = p.inline_data.mime_type || ''; if (/^image\//.test(mt)) blk.push({ type: 'image', source: { type: 'base64', media_type: mt, data: p.inline_data.data } }); else if (/pdf/.test(mt)) blk.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: p.inline_data.data } }); } });
+    if (!blk.length) return; const last = out[out.length - 1]; if (last && last.role === role) last.content.push(...blk); else out.push({ role, content: blk }); });
+  while (out.length && out[0].role !== 'user') out.shift(); return out; }
+async function claudeCall(m, sys, contents, onPart, ac, t1) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal: ac.signal, headers: { 'content-type': 'application/json', 'x-api-key': S.ckey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: m, max_tokens: 2048, stream: true, system: sys + '\n(답은 JSON 객체 하나만. 앞뒤에 다른 글·코드블록 없이.)', messages: toClaude(contents), thinking: { type: 'disabled' }, output_config: { effort: 'low' } }) });
+  if (!r.ok || !r.body) { let x = ''; try { x = await r.text(); } catch (e) {} throw Object.assign(new Error('claude ' + r.status + ' ' + x.slice(0, 200)), { status: r.status, cl: 1 }); }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', acc = '', first = 0;
+  for (;;) { const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); let k;
+    while ((k = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1); if (!line.startsWith('data:')) continue;
+      try { const j = JSON.parse(line.slice(5)); if (j.type === 'content_block_delta' && j.delta && j.delta.type === 'text_delta') { clearTimeout(t1); if (!first) first = Date.now(); acc += j.delta.text; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } else if (j.type === 'error') throw Object.assign(new Error('claude stream'), { status: 529, cl: 1 }); } catch (e) { if (e.cl) throw e; } } }
+  return { acc, first }; }
 // 모델마다 첫 글자가 오기까지 걸린 시간(ms)을 기억(S.mlat, 평균). '자동'이면 후보 셋 중 가장 빠른 것부터.
 const TH = {};
 function lat(m, ms) { if (!S.mlat) S.mlat = {}; const o = S.mlat[m]; S.mlat[m] = o ? Math.round(o * .7 + ms * .3) : ms; }
 function mChain() {
-  const fast = S.brain ? [S.brain] : [...new Set([mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash'])].sort((a, b) => ((S.mlat || {})[a] ?? 0) - ((S.mlat || {})[b] ?? 0));
-  const all = [...new Set([...fast, mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-flash-lite-latest'])], ok = all.filter(m => !(COOL[m] > Date.now())); return ok.length ? ok : all; }
+  const G = S.key ? [mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash'] : [], C = S.ckey ? [CLM] : [];
+  const brain = S.brain && ((isCl(S.brain) && S.ckey) || (!isCl(S.brain) && S.key)) ? S.brain : '';
+  const fast = brain ? [brain] : [...new Set([...G, ...C])].sort((a, b) => ((S.mlat || {})[a] ?? 0) - ((S.mlat || {})[b] ?? 0));
+  const all = [...new Set([...fast, ...C, ...(S.key ? [mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-flash-lite-latest'] : [])])], ok = all.filter(m => !(COOL[m] > Date.now())); return ok.length ? ok : all; }
 async function loadModels() { if (!S.key) return; try { const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key=${encodeURIComponent(S.key)}`); if (!r.ok) return; const j = await r.json(); S.mlist = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, '')).filter(n => mRank(n) > 0).sort((a, b) => mRank(b) - mRank(a)); save(); } catch (e) {} }
 function unesc(s) { try { return JSON.parse('"' + s.replace(/\\$/, '') + '"'); } catch (e) { return s.replace(/\\n/g, '\n').replace(/\\"/g, '"'); } }
 function parseReply(t) { t = t.replace(/```json|```/g, '').trim(); try { return JSON.parse(t); } catch (e) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (x) {} } const m = t.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); return { reply: m ? unesc(m[1]) : t.slice(0, 400), mood: 'calm' }; } }
@@ -538,9 +562,11 @@ async function gemini(sys, contents, onPart) {
     const th = /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: TH[m] || 'minimal' } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: TH[m] != null ? TH[m] : (/pro/.test(m) ? 128 : 0) } } : /latest/.test(m) && TH[m] !== 'skip' ? { thinkingConfig: { thinkingBudget: 0 } } : {};
     const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents, generationConfig: Object.assign({ responseMimeType: 'application/json', temperature: 1, maxOutputTokens: 2048 }, th) });
     const ac = new AbortController(); const t1 = setTimeout(() => ac.abort(), 12000), t2 = setTimeout(() => ac.abort(), 45000); let acc = '', t0 = Date.now(), first = 0;
+    if (isCl(m)) { try { const o = await claudeCall(m, sys, contents, onPart, ac, t1); clearTimeout(t1); clearTimeout(t2); acc = o.acc; if (acc.trim()) { S.model = m; S.clErr = ''; lat(m, (o.first || Date.now()) - t0); return parseReply(acc); } break; }
+      catch (e) { clearTimeout(t1); clearTimeout(t2); lastErr = e; if (e.status === 401 || e.status === 403) { COOL[m] = Date.now() + 600e3; S.clErr = '키가 맞지 않거나 크레딧이 없어요'; } else if (e.status === 400 && /credit|billing/i.test(e.message)) { COOL[m] = Date.now() + 600e3; S.clErr = '크레딧(충전 금액)이 없어요'; } else if (e.status >= 500 && !tryN) { await sleep(1200); continue; } else COOL[m] = Date.now() + (e.status === 429 ? 90e3 : 30e3); console.warn(e.message); break; } }
     try {
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:streamGenerateContent?alt=sse&key=${encodeURIComponent(S.key)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: ac.signal });
-      if (r.status === 400 || r.status === 401 || r.status === 403) { let x = ''; try { x = await r.text(); } catch (e) {} if (r.status !== 400 || /API_KEY|api key/i.test(x)) { clearTimeout(t1); clearTimeout(t2); throw Object.assign(new Error('key'), { status: 403 }); } if (/think/i.test(x) && TH[m] == null && !tryN) { clearTimeout(t1); clearTimeout(t2); TH[m] = /gemini-3/.test(m) ? 'low' : /latest/.test(m) ? 'skip' : 512; continue; } }
+      if (r.status === 400 || r.status === 401 || r.status === 403) { let x = ''; try { x = await r.text(); } catch (e) {} if (r.status !== 400 || /API_KEY|api key/i.test(x)) { clearTimeout(t1); clearTimeout(t2); if (S.ckey) { COOL[m] = Date.now() + 600e3; lastErr = Object.assign(new Error('key'), { status: 403 }); break; } throw Object.assign(new Error('key'), { status: 403 }); } if (/think/i.test(x) && TH[m] == null && !tryN) { clearTimeout(t1); clearTimeout(t2); TH[m] = /gemini-3/.test(m) ? 'low' : /latest/.test(m) ? 'skip' : 512; continue; } }
       if (!r.ok || !r.body) { clearTimeout(t1); clearTimeout(t2); lastErr = Object.assign(new Error('http'), { status: r.status }); if (r.status >= 500 && !tryN) { await sleep(1200); continue; } if (r.status === 429 || r.status >= 500) COOL[m] = Date.now() + (r.status === 429 ? 90e3 : 30e3); break; }
       const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '';
       for (;;) { const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); let k;
@@ -583,8 +609,9 @@ async function sendText(raw, special) {
   const L = $('log'), shown = special ? '동전 1개 넣었어요 · 오늘의 운세' : text;
   S.history.push({ role: 'user', content: (img ? '(사진) ' : '') + shown, at: Date.now() }); L.appendChild(meEl((img ? '(사진) ' : '') + shown)); L.scrollTop = L.scrollHeight;
   // 처음 전화: 이름 → 키 순서로 받는다
-  if (!S.name) { const nmv = text.replace(/(이?라고|으로|로)?\s*(불러\s*줘|불러|해\s*줘|요)$/g, '').replace(/[.!~?]+$/, '').trim().slice(0, 12); if (nmv) { S.name = nmv; save(); addHer(`${S.name}님. …입에 착 붙네요. 앞으로 그렇게 부를게요.\n${S.key ? '자, 오늘 뭐 할지 말해 봐요.' : '저랑 제대로 떠들려면 Gemini 키가 필요해요. 키를 여기 붙여 넣거나, 다이얼 0번 설정에 넣어 줘요.'}`, true); return; } }
-  if (!S.key) { if (/^AIza[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.key = text; save(); loadModels(); addHer('키 받았어요. …이제 저 말 많아질 거예요. 각오해요.', true); return; } const [t] = pick(LOCAL); addHer(t, true); return; }
+  if (!S.name) { const nmv = text.replace(/(이?라고|으로|로)?\s*(불러\s*줘|불러|해\s*줘|요)$/g, '').replace(/[.!~?]+$/, '').trim().slice(0, 12); if (nmv) { S.name = nmv; save(); addHer(`${S.name}님. …입에 착 붙네요. 앞으로 그렇게 부를게요.\n${aiOn() ? '자, 오늘 뭐 할지 말해 봐요.' : '저랑 제대로 떠들려면 Gemini 키가 필요해요. 키를 여기 붙여 넣거나, 다이얼 0번 설정에 넣어 줘요.'}`, true); return; } }
+  if (!aiOn() && /^sk-ant-[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.ckey = text; save(); addHer('Claude 키 받았어요. …이제 저 말 많아질 거예요. 각오해요.', true); return; }
+  if (!aiOn()) { if (/^AIza[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.key = text; save(); loadModels(); addHer('키 받았어요. …이제 저 말 많아질 거예요. 각오해요.', true); return; } const [t] = pick(LOCAL); addHer(t, true); return; }
   busy = true; const her = herEl(''); her.lastChild.remove(); const dots = el('span', 'dots'); dots.innerHTML = '<i></i><i></i><i></i>'; her.appendChild(dots); L.appendChild(her); L.scrollTop = L.scrollHeight;
   const tnode = document.createTextNode('');
   const onPart = t => { if (dots.parentNode) { dots.remove(); her.appendChild(tnode); } tnode.textContent = t; L.scrollTop = L.scrollHeight; };
