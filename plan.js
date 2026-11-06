@@ -20,6 +20,21 @@ const css = `
 .tt .blk.play{background:repeating-linear-gradient(-45deg,rgba(47,224,200,.28) 0 6px,rgba(47,224,200,.08) 6px 12px);color:#9ff5e4;border:1px solid rgba(47,224,200,.5)}
 .ttlg{display:flex;flex-wrap:wrap;gap:6px 12px;margin:2px 2px 8px;font-size:11.5px;font-weight:700;color:#cfd8dc}.ttlg span{display:flex;align-items:center;gap:5px}.ttlg i{width:16px;height:11px;border-radius:3px}
 .ttlg i.fix{background:#ff8fc4;border:1.5px solid #000}.ttlg i.one{border:2px dashed #ff8fc4}.ttlg i.study{background:#7fecd9;border-left:4px solid #2fe0c8}.ttlg i.play{background:repeating-linear-gradient(-45deg,rgba(47,224,200,.5) 0 3px,transparent 3px 6px)}
+.ttp{padding:24px 8px 10px;transform:rotate(-.3deg)}
+.ttp .ttlg{color:rgba(0,0,0,.62);margin:0 2px 8px}
+.ttp .ttlg i.fix{background:#ff9ccb;border:1.5px solid #000}.ttp .ttlg i.one{border:2px dashed #17181a}.ttp .ttlg i.study{background:linear-gradient(transparent 30%,rgba(127,236,217,.9) 30%)}.ttp .ttlg i.play{background:repeating-linear-gradient(-45deg,rgba(47,224,200,.55) 0 3px,transparent 3px 6px);border:1px solid rgba(0,0,0,.25)}
+.ttp .tt{grid-template-columns:26px repeat(7,minmax(0,1fr));background:transparent;border:2px solid #17181a;border-radius:4px}
+.ttp .tt .hd{display:block;padding:5px 0 0;gap:0;justify-content:normal;color:#17181a;border-bottom:2px solid #17181a;font-family:'Black Han Sans';font-weight:400;font-size:14px}.ttp .tt .hd small{font-family:'Space Mono',monospace;font-size:9px;margin-top:1px}.ttp .tt .hd b{font:inherit}
+.ttp .tt .hd.td{background:linear-gradient(transparent 0,rgba(255,61,154,.9) 0);color:#fff}
+.ttp .tt .col{border-left:1px solid rgba(0,0,0,.2)}
+.ttp .tt .ax span{color:rgba(0,0,0,.5);font-weight:700}
+.ttp .tt .ln{border-top:1px dashed rgba(0,0,0,.14)}
+.ttp .tt .blk{border-radius:3px;box-shadow:1.5px 1.5px 0 rgba(0,0,0,.55)}
+.ttp .tt .blk.fix{background:color-mix(in srgb,var(--bc) 78%,#fff);border:1.5px solid #17181a}
+.ttp .tt .blk.one{background:rgba(255,255,255,.7);color:#17181a;border:2px dashed #17181a;box-shadow:none}
+.ttp .tt .blk.study{background:color-mix(in srgb,var(--bc) 45%,#f3efe6);color:#17181a;border:1.5px solid rgba(0,0,0,.55);border-left:5px solid var(--bc)}
+.ttp .tt .blk.play{background:repeating-linear-gradient(-45deg,rgba(47,224,200,.4) 0 6px,rgba(47,224,200,.12) 6px 12px);color:#0b6b5c;border:1.5px dashed rgba(0,0,0,.4);box-shadow:none}
+.ttp .tt .now{border-top:2px solid #d6204f}.ttp .tt .now::before{content:"";position:absolute;left:-3px;top:-5px;width:8px;height:8px;border-radius:50%;background:#d6204f}
 .brief{display:flex;flex-direction:column;gap:12px}
 .brief .bhead{display:flex;gap:12px;align-items:center}
 .brief .bhead i{flex:none;width:52px;height:52px;border-radius:50%;background:url(assets/lena/face.jpg) 50% 30%/cover;border:2px solid #000;box-shadow:3px 3px 0 var(--pink)}
@@ -62,7 +77,7 @@ const _br = boardRender; boardRender = function (B) {
   boardTabs(B);
   // v77: 이번 주(월~일) 한 장에 — 고정(매주) · 한 번만(일정) · 공부(과목 색) · 휴식 시간
   const R = (S.reps || []).slice(), LS = window.lenaStudy, SUBJ = /국어|영어|수학|사회|과학|한국사|역사|물리|화학|생명|지구|도덕|기술|가정|음악|미술|체육|정보|일본어|중국어/;
-  const colF = t => { const m = String(t || '').match(SUBJ); return m && LS && LS.colOf ? LS.colOf(m[0]) : '#d6dbe0'; };
+  const colF = t => { const m = String(t || '').match(SUBJ); return m && LS && LS.colOf ? LS.colOf(m[0]) : '#e6e1d3'; };
   const now0 = new Date(), mon = new Date(now0); mon.setHours(0, 0, 0, 0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
   const order = [1, 2, 3, 4, 5, 6, 0], dates = order.map((d, i) => { const x = new Date(mon); x.setDate(mon.getDate() + i); return x; });
   const ev = {}; dates.forEach(x => { ev[dk(x)] = []; });
@@ -71,7 +86,7 @@ const _br = boardRender; boardRender = function (B) {
   try { const P = LS && LS.plan(); (P ? P.days : []).forEach(D => { if (!ev[D.k]) return; D.blocks.forEach(b => ev[D.k].push({ s: b.s, e: b.e, t: `${b.sub} 공부`, k: 'study', c: LS.colOf(b.sub), sub: b.sub })); if (D.play) ev[D.k].push({ s: D.play.s, e: D.play.e, t: '휴식 시간', k: 'play' }); }); } catch (e) {}
   const all = Object.values(ev).flat(), lo = Math.min(9, ...all.map(x => Math.floor(x.s / 60))), hi = Math.max(18, ...all.map(x => Math.ceil(x.e / 60)));
   const PX = 34, H = (hi - lo) * PX, tdw = now0.getDay();
-  const LG = el('div', 'ttlg'); [['fix', '고정(매주)'], ['one', '한 번만'], ['study', '공부(과목 색)'], ['play', '휴식 시간']].forEach(([k, l]) => { const s = el('span', null, l); s.prepend(el('i', k)); LG.appendChild(s); }); B.appendChild(LG);
+  const LG = el('div', 'ttlg'); [['fix', '고정(매주)'], ['one', '한 번만'], ['study', '공부(과목 색)'], ['play', '휴식 시간']].forEach(([k, l]) => { const s = el('span', null, l); s.prepend(el('i', k)); LG.appendChild(s); }); const PP = el('div', 'sheetp ttp'); PP.append(el('i', 'tape'), el('i', 'tape r'), LG); B.appendChild(PP);
   const G = el('div', 'tt');
   G.appendChild(el('div', 'hd')); dates.forEach((x, i) => { const h = el('div', 'hd' + (order[i] === tdw ? ' td' : '')); h.append(WD[order[i]], el('small', null, `${x.getMonth() + 1}/${x.getDate()}`)); G.appendChild(h); });
   const ax = el('div', 'ax'); ax.style.height = H + 'px'; for (let h = lo; h <= hi; h++) { const s = el('span', null, String(h)); s.style.top = ((h - lo) * PX) + 'px'; if (h > lo && h < hi) ax.appendChild(s); } G.appendChild(ax);
@@ -91,7 +106,7 @@ const _br = boardRender; boardRender = function (B) {
       c.appendChild(b); });
     if (order[i] === tdw) { const m = now0.getHours() * 60 + now0.getMinutes(); if (m > lo * 60 && m < hi * 60) { const l = el('div', 'now'); l.style.top = ((m - lo * 60) / 60 * PX) + 'px'; c.appendChild(l); } }
     G.appendChild(c); });
-  B.appendChild(G);
+  PP.appendChild(G);
   if (!R.length) B.appendChild(el('div', 'hint', '아직 비어 있어요. 학원·수업·운동처럼 매주 정해진 걸 넣으면, 레나가 그 시간은 피해서 하루를 짜 줘요.'));
   // 넣기/고치기: 프리셋을 누르면 칸이 채워지고, 시간표 칸을 누르면 그 블록을 고친다
   const E = ttEd && (S.reps || []).includes(ttEd) ? ttEd : null; if (!E) ttEd = null;

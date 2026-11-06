@@ -13,6 +13,37 @@ const css = `
 .cal button.exd{border-color:rgba(255,46,110,.7)}
 .cal .ds{display:flex;gap:2px;flex-wrap:wrap}.cal .ds i{width:6px;height:6px;border-radius:50%}
 .cal .sb{position:absolute;left:3px;right:3px;bottom:3px;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}.cal .sb b{display:block;height:100%;background:var(--teal)}
+.calp{padding:24px 10px 12px;transform:rotate(.4deg)}
+.calp .calh{padding:0 2px 8px;margin-bottom:6px;border-bottom:2px solid #17181a}
+.calp .calh b{font-size:22px;color:#17181a}.calp .calh b em{font-style:normal;color:var(--pink)}
+.calp .calh .btn{width:40px;height:40px;padding:0;background:#fff;color:#111;border:2px solid #000;border-radius:10px;box-shadow:2px 2px 0 #000;font-size:18px;font-weight:900}
+.calp .cal{gap:0;border-left:1px solid rgba(0,0,0,.18)}
+.calp .cal .wd{color:rgba(0,0,0,.55);font-family:'Space Mono',monospace;border-right:1px solid rgba(0,0,0,.18);border-bottom:1.5px solid #17181a}.calp .cal .wd.su{color:#e0306e}.calp .cal .wd.sa{color:#3a72c8}
+.calp .cal button{min-height:56px;border:0;border-radius:0;background:transparent;border-right:1px solid rgba(0,0,0,.18);border-bottom:1px dashed rgba(0,0,0,.2)}
+.calp .cal button.out{opacity:.28}
+.calp .cal .dn{color:#17181a;font-size:12px;align-self:flex-start;min-width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%}
+.calp .cal button.td{box-shadow:none}.calp .cal button.td .dn{background:var(--pink);color:#fff;border:1.5px solid #000}
+.calp .cal button.sel{background:rgba(242,234,58,.45)}
+.calp .cal button.exd{border-color:rgba(0,0,0,.18)}
+.calp .cal .ex{position:absolute;right:2px;top:3px;background:transparent;color:#d6204f;border:2px solid #d6204f;border-radius:5px;padding:0 3px;font-size:10px;line-height:1.35;transform:rotate(-10deg);box-shadow:none;opacity:.9}
+.calp .cal .ds i{width:6px;height:6px;border:1px solid rgba(0,0,0,.35)}
+.calp .cal .sb{left:4px;right:4px;bottom:4px;height:6px;background:transparent;border-radius:0}.calp .cal .sb b{background:rgba(47,224,200,.75);border-radius:1px;transform:skewX(-12deg)}
+.calg{display:flex;flex-wrap:wrap;gap:4px 12px;padding:9px 2px 0;font-size:11.5px;font-weight:700;color:rgba(0,0,0,.6)}.calg span{display:flex;align-items:center;gap:4px}
+.calg i.dot{width:7px;height:7px;border-radius:50%;border:1px solid rgba(0,0,0,.35)}.calg i.ex{width:14px;height:10px;border:2px solid #d6204f;border-radius:3px;transform:rotate(-10deg)}.calg i.bar{width:16px;height:6px;background:rgba(47,224,200,.75);transform:skewX(-12deg)}
+.exp{padding:24px 14px 10px}
+.exp.sm{padding:20px 12px 10px;transform:rotate(.6deg)}.exp.sm .exd{font-size:22px}
+.exp .exh{display:flex;align-items:center;gap:12px;padding-bottom:10px;border-bottom:2px solid #17181a}
+.exp .exd{flex:none;font-family:'Black Han Sans';font-size:28px;line-height:1;padding:6px 8px 4px;color:#e0b000;border:3px solid currentColor;border-radius:8px;transform:rotate(-6deg);background:rgba(255,255,255,.4)}
+.exp .exd.hot{color:#d6204f}
+.exp .exn{flex:1;min-width:0}.exp .exn b{display:block;font-size:17px;font-weight:900;line-height:1.3;word-break:keep-all}.exp .exn small{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;opacity:.6}
+.exp .x{flex:none;width:40px;height:40px;border-radius:50%;color:rgba(0,0,0,.5);font-size:22px}
+.exp .exl{padding-top:2px}
+.exp .exr{display:flex;align-items:baseline;gap:10px;padding:10px 2px;border-bottom:1.5px dashed rgba(0,0,0,.2)}.exp .exr:last-child{border-bottom:0}
+.exp .exr i,.exp .exs i{flex:none;font-style:normal;font-weight:900;font-size:15px;padding:0 3px;background:linear-gradient(transparent 50%,var(--c) 50%)}
+.exp .exr .exk{flex:none;width:64px}
+.exp .exr span{flex:1;font-size:14px;font-weight:700;line-height:1.45;word-break:keep-all}.exp .exr span.ac{color:#6a3fd0}
+.exp .exr small{display:block;font-size:12px;font-weight:600;opacity:.6}
+.exp .exs{display:flex;flex-wrap:wrap;gap:6px 10px;padding-top:9px}
 .calh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .calh b{font-family:'Black Han Sans';font-weight:400;font-size:20px}
 .calh .btn{height:36px;padding:0 12px}
@@ -321,7 +352,8 @@ function renderCal(B) {
   boardTabs(B);
   const now = new Date(); calM = calM || new Date(now.getFullYear(), now.getMonth(), 1); calSel = calSel || dkey(now);
   const P = splan(), pm = {}; P.days.forEach(D => pm[D.k] = D);
-  const H = el('div', 'calh'); H.append(btn('‹', 'ghost', () => { calM = new Date(calM.getFullYear(), calM.getMonth() - 1, 1); refreshSheet(); }), el('b', null, `${calM.getFullYear()}년 ${calM.getMonth() + 1}월`), btn('›', 'ghost', () => { calM = new Date(calM.getFullYear(), calM.getMonth() + 1, 1); refreshSheet(); })); B.appendChild(H);
+  const PP = el('div', 'sheetp calp'); PP.append(el('i', 'tape'), el('i', 'tape r'));
+  const H = el('div', 'calh'); H.append(btn('‹', 'ghost', () => { calM = new Date(calM.getFullYear(), calM.getMonth() - 1, 1); refreshSheet(); }), (() => { const b = el('b'); b.innerHTML = `${calM.getMonth() + 1}월 <em>${calM.getFullYear()}</em>`; return b; })(), btn('›', 'ghost', () => { calM = new Date(calM.getFullYear(), calM.getMonth() + 1, 1); refreshSheet(); })); PP.appendChild(H);
   const G = el('div', 'cal'); [...'일월화수목금토'].forEach((w, i) => G.appendChild(el('div', 'wd' + (i === 0 ? ' su' : i === 6 ? ' sa' : ''), w)));
   const start = new Date(calM); start.setDate(1 - calM.getDay());
   for (let i = 0; i < 42; i++) {
@@ -331,16 +363,17 @@ function renderCal(B) {
     { const E = ST().exams.filter(e => e.date === k); if (E.length) { c.classList.add('exd'); c.appendChild(el('span', 'ex', exShort(E[0].name) + (E.length > 1 ? `+${E.length - 1}` : ''))); } }
     const ds = el('div', 'ds');
     S.items.filter(t => t.due && t.due.slice(0, 10) === k && !t.rid).slice(0, 4).forEach(() => { const x = el('i'); x.style.background = 'var(--pink)'; ds.appendChild(x); });
-    ST().mats.filter(m => m.kind === 'hw' && m.due === k && m.units.some(u => !u.done)).forEach(() => { const x = el('i'); x.style.background = 'var(--yel)'; ds.appendChild(x); });
-    if ((S.reps || []).some(r => !r.days.length || r.days.includes(d.getDay()))) { const x = el('i'); x.style.background = '#7fb6ff'; ds.appendChild(x); }
+    ST().mats.filter(m => m.kind === 'hw' && m.due === k && m.units.some(u => !u.done)).forEach(() => { const x = el('i'); x.style.background = '#e0b800'; ds.appendChild(x); });
+    if ((S.reps || []).some(r => !r.days.length || r.days.includes(d.getDay()))) { const x = el('i'); x.style.background = '#5b8fe0'; ds.appendChild(x); }
     c.appendChild(ds);
     const D = pm[k], lg = (ST().log[k] || []).reduce((a, b) => a + b.mins, 0), mins = (D ? D.mins : 0) + lg;
     if (mins) { const sb = el('div', 'sb'), bb = el('b'); bb.style.width = Math.min(100, mins / 300 * 100) + '%'; sb.appendChild(bb); c.appendChild(sb); }
     c.onclick = () => { calSel = k; refreshSheet(); };
     G.appendChild(c);
   }
-  B.appendChild(G);
-  B.appendChild(el('div', 'hint', '분홍 일정 · 노랑 숙제 · 파랑 학원 · 빨강 시험 · 청록 막대 = 공부량'));
+  PP.appendChild(G);
+  const LG = el('div', 'calg'); [['dot', 'var(--pink)', '일정'], ['dot', '#e0b800', '숙제'], ['dot', '#5b8fe0', '학원'], ['ex', '', '시험'], ['bar', '', '공부량']].forEach(([k, c, l]) => { const s = el('span', null, l), i = el('i', k); if (c) i.style.background = c; s.prepend(i); LG.appendChild(s); }); PP.appendChild(LG);
+  B.appendChild(PP);
   dayPaper(B, calSel, pm[calSel]);
 }
 // v79: 하루 종이 시간표(공부 오늘 화면과 같은 모양) — 시험·고정·일정·할 일·공부·휴식 시간, 같은 시각·같은 글은 한 번만
@@ -472,14 +505,19 @@ const xbtnS = fn => { const b = el('button', 'x', '×'); b.onclick = fn; b.setAt
 function stExam(B) {
   const today = todayK(), E = ST().exams.filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
   E.forEach((e, n) => {
-    const dd = dTo(e.date), c = el('div', 'mat'), h = el('div', 'h'), ch = el('span', 'sj', dd ? `D-${dd}` : 'D-DAY'); ch.style.background = dd <= 7 ? 'var(--hot)' : 'var(--yel)';
-    h.append(ch, el('b', null, `${e.name} · ${e.date.slice(5).replace('-', '/')}`), xbtnS(() => { if (!confirm(`'${e.name}' 지울까요?`)) return; ST().exams = ST().exams.filter(x => x !== e); save(); dirty(); refreshSheet(); })); c.appendChild(h);
-    const sp = el('div', 'hint'); exSubs(e).forEach(s => sp.append(chip(s), document.createTextNode(' '))); c.appendChild(sp);
-    e.ranges.forEach(r => { const m = matOf(r.mat); if (m) c.appendChild(el('div', 'hint', `${m.title} ${m.units[r.from] ? m.units[r.from].name : ''}~${m.units[r.to] ? m.units[r.to].name : ''}`)); });
+    // v81: 시험 = 종이 한 장(테이프·D-숫자 도장·과목 형광펜 줄)
+    const dd = dTo(e.date), c = el('div', 'sheetp exp' + (n ? ' sm' : '')), dt = pDate(e.date);
+    c.append(el('i', 'tape'), el('i', 'tape r'));
+    const h = el('div', 'exh'), dn = el('div', 'exd' + (dd <= 7 ? ' hot' : ''), dd ? `D-${dd}` : 'D-DAY'), nm = el('div', 'exn');
+    nm.append(el('b', null, e.name), el('small', null, `${dt.getMonth() + 1}월 ${dt.getDate()}일 ${WD[dt.getDay()]}요일`));
+    h.append(dn, nm, xbtnS(() => { if (!confirm(`'${e.name}' 지울까요?`)) return; ST().exams = ST().exams.filter(x => x !== e); save(); dirty(); refreshSheet(); })); c.appendChild(h);
     if (n === 0) { // 과목마다 기본으로 뭘 넣는지
-      const W = el('div', 'wkl'); exSubs(e).forEach(sb => { const r = el('div'), lb = el('b', null, sb), bk = ST().mats.filter(m => m.kind === 'book' && m.sub === sb && m.units.length); r.append(lb, el('span', null, acadSub(sb) && !bk.length ? '학원 숙제만' : bk.length ? bk.map(m => `${m.title} 풀기 → 오답`).join(' · ') : '문제집 풀기 → 오답')); W.appendChild(r); });
+      const W = el('div', 'exl'); exSubs(e).forEach(sb => { const r = el('div', 'exr'), lb = el('i', null, sb), lw = el('span', 'exk'), bk = ST().mats.filter(m => m.kind === 'book' && m.sub === sb && m.units.length), rg = e.ranges.map(x => [x, matOf(x.mat)]).filter(([, m]) => m && m.sub === sb);
+        lb.style.setProperty('--c', colOf(sb)); const ac = acadSub(sb) && !bk.length, tx = el('span', ac ? 'ac' : null, ac ? '학원 숙제만' : bk.length ? bk.map(m => `${m.title} 풀기 → 오답`).join(' · ') : '문제집 풀기 → 오답');
+        rg.forEach(([x, m]) => tx.appendChild(el('small', null, `${m.title} ${m.units[x.from] ? m.units[x.from].name : ''}~${m.units[x.to] ? m.units[x.to].name : ''}`)));
+        lw.appendChild(lb); r.append(lw, tx); W.appendChild(r); });
       c.appendChild(W);
-    }
+    } else { const sp = el('div', 'exs'); exSubs(e).forEach(sb => { const i = el('i', null, sb); i.style.setProperty('--c', colOf(sb)); sp.appendChild(i); }); c.appendChild(sp); }
     B.appendChild(c);
   });
   if (!E.length && !formOpen) B.appendChild(el('div', 'hint', '시험을 넣으면 오늘부터 시험까지 문제집 풀기·오답을 나눠 넣어요. 학원 다니는 과목은 학원 숙제만.'));
