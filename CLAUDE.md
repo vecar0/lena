@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v83). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v84). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 속도(v60): 생각 최소 — 3.x는 thinkingLevel `minimal`, 2.5 Flash는 thinkingBudget 0, `-latest`는 thinkingBudget 0(모델이 400으로 거절하면 `TH[m]`에 기억하고 3.x→low, 2.5→512, latest→설정 빼고 같은 모델로 한 번 더). 모델 '자동'은 후보 셋(가장 새 Flash·flash-latest·2.5-flash) 중 첫 글자까지 걸린 시간 평균 `S.mlat`이 가장 짧은 것부터(처음엔 각각 한 번씩 재 봄), 직접 고르면 그 모델 먼저. 첫 글자 12초 안 오면 다음 모델. 통화를 열 때 Gemini 서버 연결을 미리 열어 둠(`warmAt`, index.html preconnect). 노트 정리(`notes.js`)는 품질 위해 생각 low/1024 그대로. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. **Claude Haiku 5.5 (v82, 선택)**: 0번 설정 'Claude 키'(`S.ckey`, sk-ant-, 폰에만, 백업 내보내기에서 뺌). `gemini()` 안에서 모델 이름이 `claude`면 `claudeCall`(api.anthropic.com/v1/messages, 브라우저 직접 헤더 `anthropic-dangerous-direct-browser-access`, stream, `thinking:{type:'disabled'}`, `output_config.effort:'low'`, 대화 형식은 `toClaude`로 바꿈 — 사진·PDF도). '자동'이면 Gemini 후보 + `claude-haiku-5-5`를 첫 글자 시간 `S.mlat`으로 비교(처음엔 하나씩 재 봄), 설정에 모델별 평균 시간 표시. Claude 401/403·크레딧 없음이면 10분 쉬고 `S.clErr` 경고 + Gemini로, Gemini 키 오류여도 Claude 키가 있으면 넘어감. 키 있는지 확인은 `aiOn()`. 노트 정리(notes.js)는 Gemini만. 점검 scratchpad `cl.js`(가짜 응답). 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -33,6 +33,11 @@
 - 입력칸 글자 16px(아이폰 확대 방지), 버튼 높이 44 이상. 시트는 `openSheet(번호)`로 열고 `SH[번호]`에 내용 렌더러를 둔다.
 - 수정 후 확인: `node --check app.js`, 로컬 서버 + Playwright로 390×844 캡처.
 - 소리: `audio()`는 화면을 한 번 누르기 전엔 소리 엔진을 만들지 않음(시작하자마자 소리 내려다 경고 나던 것 막음). 빠른 버튼 줄 오른쪽 흐림 + 끝 여백 18%. 영상통화 대화는 적으면 아래부터 쌓임.
+
+## 시간표·레나 다듬기 (v84)
+- 시간표(다이얼 3): 위 ‹ 이번 주 › 로 주 넘기기(`ttW`), 일정 = 분홍 점선(`.blk.one`), 할 일 마감 = 그 시각에 얇은 노란 띠 '… 마감'(`.blk.dl`, 1시간 칸 안 차지), 같은 날 20분 안쪽으로 붙은 공부 블록은 한 칸으로 합침('국어·윤리 공부'), 45분 안 되는 칸은 한 줄(`.sh`). 범례 고정/일정/할 일 마감/공부/휴식.
+- 공부 계산: 할 일 마감은 시간을 막지 않음(`busyOn`은 일정·고정만), 30분 안 되는 빈 시간은 안 씀, 15분 미만 자투리는 앞 블록에 붙여 끝냄.
+- 레나 프롬프트: 고정 부분(성격·규칙)을 앞에, 매번 바뀌는 것(지금·전단지·기억 등)은 맨 뒤 '--- 지금 상황 ---'으로(같은 앞부분 재사용 → 빠르고 쌈). 15일 '날짜표'를 넣어 요일 계산 실수 막음, 전단지는 `k: e/t`(일정/할 일), 대화 기록은 최근 10마디(예전 14).
 
 ## 화면 다듬기 (v81)
 - 시작 스플래시 `#splash`(index.html 맨 앞, 흐린 고양이 배경 + 고양이 프사·울리는 고리 + '레나' + 연결 중…): 글꼴 준비되고 두 프레임 뒤 걷힘(최소 0.9초, 최대 3초), 위로 줄어들며 사라짐. `.app`은 HTML에서부터 `outside` 클래스라 영상 화면이 잠깐 보이지 않음.
