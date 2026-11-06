@@ -236,7 +236,7 @@ window.lenaNotes = {
 const _sys = sysPrompt; sysPrompt = function (sp) {
   const s = _sys(sp), N = ST().notes.slice().sort((a, b) => b.at - a.at).slice(0, 6);
   if (!N.length) return s;
-  return s.replace('JSON만 출력:', `- 공부 노트(송휘님 필기 정리, 퀴즈·설명할 때 근거로 쓴다): ${JSON.stringify(N.map(n => ({ 과목: n.sub, 단원: n.title, 핵심: n.keys.slice(0, 8).map(k => k.t + ': ' + k.d) })))}
+  return s.replace('JSON만 출력:', `- 공부 노트(송휘 필기 정리, 퀴즈·설명할 때 근거로 쓴다): ${JSON.stringify(N.map(n => ({ 과목: n.sub, 단원: n.title, 핵심: n.keys.slice(0, 8).map(k => k.t + ': ' + k.d) })))}
 JSON만 출력:`);
 };
 })();

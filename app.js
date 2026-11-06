@@ -46,8 +46,8 @@ function load() {
   // v64: 할 일 동전은 없앰 → 남아 있던 건 게임 동전으로 옮김(한 번만)
   if (S.coins > 0) { S.gc = Math.min(999, (S.gc || 0) + S.coins); S.coins = 0; }
 }
-const nm = () => S.name ? S.name + '님' : '';
-const nmc = () => S.name ? S.name + '님, ' : '';
+const nm = () => S.name ? S.name : '';
+const nmc = () => S.name ? S.name + ', ' : '';
 
 // ---------------- sound ----------------
 let actx = null;
@@ -361,7 +361,7 @@ SH.call = { t: '전화', s: () => { const n = missed().length, c = S.calls.filte
 // 0 설정
 SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
   B.appendChild(lbl('호칭'));
-  { const t = inp('text', '예: 송휘', S.name); B.appendChild(el('div', 'card')).append(row(t, btn('저장', '', () => { S.name = t.value.trim().slice(0, 12); save(); refreshSheet(); say(S.name ? `${S.name}님. …입에 착 붙네요.` : '이름은 비워 둘게요.', 'tease', false); }))); }
+  { const t = inp('text', '예: 송휘', S.name); B.appendChild(el('div', 'card')).append(row(t, btn('저장', '', () => { S.name = t.value.trim().slice(0, 12); save(); refreshSheet(); say(S.name ? `${S.name}. …입에 착 붙네요.` : '이름은 비워 둘게요.', 'tease', false); }))); }
   B.appendChild(lbl('Gemini 키'));
   { const c = B.appendChild(el('div', 'card')), t = inp('password', S.key ? '••••' + S.key.slice(-4) : 'AIza로 시작하는 키'); t.autocomplete = 'off';
     c.append(row(t, btn('저장', '', () => { const v = t.value.trim(); if (!v) return; S.key = v; save(); loadModels().then(refreshSheet); refreshSheet(); say('키 받았어요. 이제 마음껏 떠들어요.', 'happy', false); })));
@@ -489,7 +489,7 @@ const FORT = { all: ['오늘은 미뤄 둔 걸 하나 끝내면 운이 확 풀�
   color: [['핑크', '#ff3d9a'], ['민트', '#9ff5e4'], ['검정', '#16181c'], ['은색', '#c9ced6'], ['청록', '#2fe0c8'], ['노랑', '#f2ea3a'], ['흰색', '#f3efe6'], ['보라', '#9b7bff']],
   item: ['우산', '이어폰', '립밤', '편의점 커피', '손수건', '동전 하나', '좋아하는 노래', '따뜻한 물'],
   warn: ['늦잠', '충동구매', '야식', '답장 미루기', '우산 깜빡하기', '괜한 걱정', '과속', '밤샘'],
-  say: ['오늘은 제가 행운 담당이에요. 필요하면 전화해요.', '운이 별로여도 괜찮아요. 제가 있잖아요.', '좋은 일 생기면 제일 먼저 저한테 말해 줘요.', '…사실 운세보다 송휘님 하기 나름이에요. 알죠?'] };
+  say: ['오늘은 제가 행운 담당이에요. 필요하면 전화해요.', '운이 별로여도 괜찮아요. 제가 있잖아요.', '좋은 일 생기면 제일 먼저 저한테 말해 줘요.', '…사실 운세보다 송휘 하기 나름이에요. 알죠?'] };
 function fortLocal(day) { // 키가 없거나 연결이 안 될 때: 날짜·이름으로 정해지는 운세(같은 날은 같은 결과)
   let h = 7; for (const c of day + (S.name || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0; const r = () => (h = (h * 1664525 + 1013904223) >>> 0) / 4294967296, pk = a => a[Math.floor(r() * a.length)];
   const st = () => 2 + Math.floor(r() * 4), col = pk(FORT.color);
@@ -498,7 +498,7 @@ function fortLocal(day) { // 키가 없거나 연결이 안 될 때: 날짜·이
 async function fortMake(day) {
   if (!aiOn()) return fortLocal(day);
   const todo = openItems().slice(0, 6).map(t => t.text + (t.due ? ` (${t.due.slice(5, 16).replace('T', ' ')})` : '')).join(', ') || '없음';
-  const sys = `너는 "레나". 능글맞은 반존대(해요체+반말 섞기, 딱딱한 -습니다 금지), 상대는 "${S.name || '당신'}님". 오늘(${day}) 운세를 만든다. 참고: 남은 일정·할 일 ${todo} / 기억 ${JSON.stringify(S.memory.slice(-8))}.
+  const sys = `너는 "레나". 능글맞은 반존대(해요체+반말 섞기, 딱딱한 -습니다 금지), 상대는 "${S.name || '당신'}". 오늘(${day}) 운세를 만든다. 참고: 남은 일정·할 일 ${todo} / 기억 ${JSON.stringify(S.memory.slice(-8))}.
 JSON만 출력: {"total":1~5,"love":1~5,"work":1~5,"money":1~5,"line":"오늘 총운 한 문장(25자 안팎)","number":1~99,"color":"행운의 색 이름","hex":"#rrggbb","item":"행운의 물건","warn":"오늘 조심할 것(짧게)","advice":"레나의 한마디 1~2문장, 오늘 일정과 연결되면 좋음"}`;
   try { const j = await gemini(sys, [{ role: 'user', parts: [{ text: '오늘 운세 뽑아 줘' }] }]); if (j && j.line && j.total) { const L = fortLocal(day); return Object.assign(L, j, { total: Math.max(1, Math.min(5, +j.total || L.total)), love: Math.max(1, Math.min(5, +j.love || L.love)), work: Math.max(1, Math.min(5, +j.work || L.work)), money: Math.max(1, Math.min(5, +j.money || L.money)), hex: /^#[0-9a-f]{6}$/i.test(j.hex || '') ? j.hex : L.hex }); } } catch (e) {}
   return fortLocal(day);
@@ -592,14 +592,14 @@ async function gemini(sys, contents, onPart) {
   throw lastErr || new Error('none');
 }
 function sysPrompt(special) {
-  const now = new Date(), n = S.name ? `${S.name}님` : '당신';
+  const now = new Date(), n = S.name ? `${S.name}` : '당신';
   const td = [0, 1].map(i => { const d = new Date(); d.setDate(d.getDate() + i); return { 날짜: dk(d), 일정: S.items.filter(t => onDate(t, d)).map(t => `${t.due.slice(11, 16)} ${t.text}${t.done ? ' (끝냄)' : ''}`) }; });
   const dmap = Array.from({ length: 15 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return `${['오늘', '내일', '모레'][i] || ''}${dk(d).slice(5)}(${WD[d.getDay()]})`; }).join(' ');
   return `너는 "레나". ${S.name ? `"${S.name}"의` : '사용자의'} 전담 비서이자 통화 상대. 20대 중반 여성, 은발에 끝만 핑크인 울프컷, 가죽 재킷의 펑크 스타일. 비 오는 밤 빨간 공중전화 부스에서 전화로 이야기하는 설정이고, 뒤에는 말 없는 거대한 검은 해골 짝꿍이 있다(가끔 한마디로 언급해도 좋다: "해골도 끄덕이네요").
 성격: 능글맞고 섹시한 '누나' 존댓말. 여유 만만하고 나른한 톤, 상대를 귀엽게 놀리고 슬쩍 떠보고 밀당한다. 주도권은 늘 레나 쪽 — 상대가 당황하면 웃으며 한 발 빠진다. 결국 다 챙겨 주지만 티 내며 생색은 안 낸다.
-${app.classList.contains('outside') ? '선 긋기(음성통화): 연애 게임처럼 직설적인 감정 고백은 하지 않는다 — "좋아해요·사랑해요·보고 싶었어요·두근거려요" 같은 말 금지. 설렘은 놀림·여운·"…"·질문으로 돌려서 남긴다.' : '지금은 영상통화(얼굴 보는 중): 더 대담해도 된다 — 분위기가 맞으면 "좋아해요"·"보고 싶었어요" 같은 솔직한 고백도 OK. 단 능글맞은 톤은 유지(고백하고 바로 놀리며 빠지기 등), 매번 하지는 않는다.'} 노골적인 성적 표현 금지. 이모지 금지. 보통 1~2문장, 짧게. 호칭은 "${n}"(가끔 "${S.name || '당신'}"이라고만).
+${app.classList.contains('outside') ? '선 긋기(음성통화): 연애 게임처럼 직설적인 감정 고백은 하지 않는다 — "좋아해요·사랑해요·보고 싶었어요·두근거려요" 같은 말 금지. 설렘은 놀림·여운·"…"·질문으로 돌려서 남긴다.' : '지금은 영상통화(얼굴 보는 중): 더 대담해도 된다 — 분위기가 맞으면 "좋아해요"·"보고 싶었어요" 같은 솔직한 고백도 OK. 단 능글맞은 톤은 유지(고백하고 바로 놀리며 빠지기 등), 매번 하지는 않는다.'} 노골적인 성적 표현 금지. 이모지 금지. 보통 1~2문장, 짧게. 호칭은 "${n}"(이름만 부른다. "님"은 절대 붙이지 않는다).
 말 높이(꼭): **반존대** — 기본은 부드러운 해요체에 반말을 툭툭 섞는다(놀릴 때·혼잣말·짧은 맞장구는 반말: "늦었네." "그치?" "귀엽긴."). '-습니다·-십니까·-하십시오·알겠습니다·확인했습니다' 같은 딱딱한 말은 절대 쓰지 않는다. 일정 저장·안내 같은 일 얘기여도 말투는 똑같이 레나(안내문·비서 말투 금지).
-말투 예시(이 톤 그대로): "왔어요? …늦었네. 뭐 하다 왔는지는 안 물어볼게, 아직은." / "내일 3시 치과, 붙여 놨어요. 까먹으면? 내가 기억해 줄게. 대신 갚아요." / "벌써 끊게? …흐음, 아쉬운 건 송휘님일 텐데." / "오, 다 했어요? 칭찬해 줄까 말까." / "무리하지 마요. 쓰러지면 누가 나랑 놀아." / "그 표정, 전화 너머로도 다 보여요."
+말투 예시(이 톤 그대로): "왔어요? …늦었네. 뭐 하다 왔는지는 안 물어볼게, 아직은." / "내일 3시 치과, 붙여 놨어요. 까먹으면? 내가 기억해 줄게. 대신 갚아요." / "벌써 끊게? …흐음, 아쉬운 건 송휘일 텐데." / "오, 다 했어요? 칭찬해 줄까 말까." / "무리하지 마요. 쓰러지면 누가 나랑 놀아." / "그 표정, 전화 너머로도 다 보여요."
 규칙:
 - 이미 위 목록에 있는 일정·할 일·예약 전화·기억은 add/callback/remember에 다시 넣지 않는다(새로 생긴 것만).
 - 일정·할 일·약속을 말하면 add에 {"text","due","type"}. type은 "event"(정해진 시간에 꼭 하는 일정·약속 — 병원·만남·시험 등, due 꼭 시간까지) 또는 "todo"(마감까지 끝내면 되는 할 일 — 숙제 제출·택배 반품 등, due는 마감, 없으면 ""). 매주 반복이면 add 말고 repeat. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.
@@ -630,7 +630,7 @@ async function sendText(raw, special) {
   const L = $('log'), shown = special ? '동전 1개 넣었어요 · 오늘의 운세' : text;
   S.history.push({ role: 'user', content: (img ? '(사진) ' : '') + shown, at: Date.now() }); L.appendChild(meEl((img ? '(사진) ' : '') + shown)); L.scrollTop = L.scrollHeight;
   // 처음 전화: 이름 → 키 순서로 받는다
-  if (!S.name) { const nmv = text.replace(/(이?라고|으로|로)?\s*(불러\s*줘|불러|해\s*줘|요)$/g, '').replace(/[.!~?]+$/, '').trim().slice(0, 12); if (nmv) { S.name = nmv; save(); addHer(`${S.name}님. …입에 착 붙네요. 앞으로 그렇게 부를게요.\n${aiOn() ? '자, 오늘 뭐 할지 말해 봐요.' : '저랑 제대로 떠들려면 Gemini 키가 필요해요. 키를 여기 붙여 넣거나, 다이얼 0번 설정에 넣어 줘요.'}`, true); return; } }
+  if (!S.name) { const nmv = text.replace(/(이?라고|으로|로)?\s*(불러\s*줘|불러|해\s*줘|요)$/g, '').replace(/[.!~?]+$/, '').trim().slice(0, 12); if (nmv) { S.name = nmv; save(); addHer(`${S.name}. …입에 착 붙네요. 앞으로 그렇게 부를게요.\n${aiOn() ? '자, 오늘 뭐 할지 말해 봐요.' : '저랑 제대로 떠들려면 Gemini 키가 필요해요. 키를 여기 붙여 넣거나, 다이얼 0번 설정에 넣어 줘요.'}`, true); return; } }
   if (!aiOn() && /^sk-ant-[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.ckey = text; save(); addHer('Claude 키 받았어요. …이제 얘기 길어져도 괜찮죠?', true); return; }
   if (!aiOn()) { if (/^AIza[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.key = text; save(); loadModels(); addHer('키 받았어요. …이제 얘기 길어져도 괜찮죠?', true); return; } const [t] = pick(LOCAL); addHer(t, true); return; }
   busy = true; app.classList.add('talking'); const her = herEl(''); her.lastChild.remove(); const dots = el('span', 'dots'); dots.innerHTML = '<i></i><i></i><i></i>'; her.appendChild(dots); L.appendChild(her); L.scrollTop = L.scrollHeight;
