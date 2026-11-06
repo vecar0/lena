@@ -137,7 +137,7 @@ function renderHome() {
   const M = missed(), mb = $('missBtn');
   mb.classList.toggle('zero', !M.length); $('missTx').textContent = M.length ? `부재중 ${M.length}` : '부재중 없음';
   const F = $('flyers'); F.innerHTML = '';
-  const now = new Date(), up = S.items.filter(t => !t.done && t.due && new Date(t.due) > new Date(now - 30 * 60e3)).sort((a, b) => a.due.localeCompare(b.due));
+  const now = new Date(), up = S.items.filter(t => !t.done && isEv(t) && t.due && new Date(t.due) > new Date(now - 30 * 60e3)).sort((a, b) => a.due.localeCompare(b.due)); // v83: 분홍 = 일정만
   const nx = up[0];
   if (nx) {
     const f = el('button', 'fly f1'); f.append(el('div', 'tp'), el('small', null, when(nx.due).toUpperCase()), el('b', null, nx.text));
@@ -145,12 +145,14 @@ function renderHome() {
     { const more = up.slice(1).filter(t => t.due.slice(0, 10) === nx.due.slice(0, 10)).length; if (more) f.appendChild(el('small', null, `그날 ${more}개 더`)); }
     f.onclick = () => openBoard('today'); F.appendChild(f);
   }
-  const todo = openItems().filter(t => !t.due), doneToday = S.items.filter(t => t.done && t.doneAt && dk(new Date(t.doneAt)) === dk(now) && !t.due);
+  // v83: 노랑 = 할 일 전부(마감 가까운 것 먼저, 마감 없는 건 뒤), 줄마다 '~마감'
+  const todo = openItems().filter(t => !isEv(t) && !t.rid).sort((a, b) => (a.due || '9').localeCompare(b.due || '9')), doneToday = S.items.filter(t => t.done && !isEv(t) && t.doneAt && dk(new Date(t.doneAt)) === dk(now));
   if (todo.length || doneToday.length) {
-    const f = el('button', 'fly f2'); f.append(el('div', 'tp'), el('small', null, `할 일 ${todo.length}`));
+    const f = el('button', 'fly f2'); f.append(el('div', 'tp'), el('small', null, todo.length ? `할 일 ${todo.length}` : '할 일 끝!'));
     f.querySelector('.tp').style.backgroundImage = 'url(assets/lena/tape_teal1.webp)';
-    doneToday.slice(-1).forEach(t => f.appendChild(el('i', 'd', t.text)));
-    todo.slice(0, 3).forEach(t => f.appendChild(el('i', null, t.text)));
+    todo.slice(0, 3).forEach(t => { const i = el('i', t.due && new Date(t.due) < now ? 'late' : null, t.text); if (t.due) i.appendChild(el('em', null, '~' + when(t.due).replace(/ 00:00$/, ''))); f.appendChild(i); });
+    if (todo.length < 3) doneToday.slice(-1).forEach(t => f.appendChild(el('i', 'd', t.text)));
+    if (todo.length > 3) f.appendChild(el('u', null, `+${todo.length - 3}개 더`));
     f.onclick = () => openBoard('all'); F.appendChild(f);
   }
   // 영상 화면엔 동전 개수를 띄우지 않는다(자판기는 음성 화면 ♥ 배지·오락실에서)
@@ -220,7 +222,7 @@ function pills(opts, cur, fn) {
 let boardTab = 'today', addKind = 'todo';
 const TAPES = ['tape_pink1', 'tape_teal1', 'tape_yellow', 'tape_white', 'tape_teal2', 'tape_pink2'];
 function paper(t, i) {
-  const late = isLate(t), cls = t.done ? 'white' : t.due ? (late ? 'pink' : (onDate(t, new Date()) ? 'pink' : 'teal')) : 'yel';
+  const late = isLate(t), cls = t.done ? 'white' : isEv(t) ? 'pink' : 'yel'; // v83: 할 일 = 노랑, 일정 = 분홍 (홈 전단지와 같은 색)
   const p = el('div', `pp ${cls}${t.done ? ' done' : ''}${late ? ' late' : ''}`);
   const tp = el('div', 'tp'); tp.style.backgroundImage = `url(assets/lena/${TAPES[i % TAPES.length]}.webp)`; tp.style.transform = `rotate(${(i % 3 - 1) * 5}deg)`;
   const ev = isEv(t); if (ev) p.classList.add('evt');
@@ -236,8 +238,12 @@ function boardAdd(B) {
   t.enterKeyHint = 'done';
   const go = () => { const v = t.value.trim(); if (!v) { t.focus(); return; } if (addKind === 'event' && !d.value) { toast('일정은 시간을 넣어 주세요.'); d.focus(); return; } const it = addItem(v, d.value, addKind); save(); pushSync(true); t.value = ''; d.value = ''; refreshSheet(); say(isEv(it) ? `${when(it.due)} '${v}'. 그 시간에 꼭 알려 줄게요.` : it.due ? `'${v}', ${when(it.due)}까지. 끝나면 체크해요.` : `'${v}' 붙여 뒀어요. 까먹으면 혼나요.`, 'happy', false); };
   t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
-  c.classList.add('badd'); const dl = el('label', 'bwhen'); dl.append(el('span', null, addKind === 'event' ? '언제 (꼭 넣기)' : '마감 (비워도 돼요)'), d);
-  c.append(pills([['todo', '할 일 — 마감까지 체크'], ['event', '일정 — 정해진 시간']], addKind, v => { addKind = v; refreshSheet(); }), row(t, btn('붙이기', '', go)), dl); B.appendChild(c);
+  c.classList.add('badd'); const dl = el('label', 'bwhen'); dl.append(el('span', null, addKind === 'event' ? '언제 (꼭 넣기)' : '마감 시간'), d);
+  // v83: 할 일은 '마감 정하기'를 켜야 시간 칸이 나옴(안 켜면 시간 없이 붙음)
+  let dueOn = addKind === 'event'; const dsw = el('button', 'bdue', '마감 정하기'); dsw.type = 'button'; dsw.setAttribute('role', 'switch');
+  const syncDue = () => { dsw.classList.toggle('on', dueOn); dsw.setAttribute('aria-checked', dueOn); dl.hidden = !dueOn; if (!dueOn) d.value = ''; };
+  dsw.onclick = () => { dueOn = !dueOn; syncDue(); if (dueOn) setTimeout(() => d.focus(), 50); };
+  c.append(pills([['todo', '할 일 — 마감까지 체크'], ['event', '일정 — 정해진 시간']], addKind, v => { addKind = v; refreshSheet(); }), row(t, btn('붙이기', '', go)), ...(addKind === 'event' ? [] : [dsw]), dl); syncDue(); B.appendChild(c);
 }
 function boardTabs(B) { const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['all', '전체']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T); }
 function boardRender(B) {
