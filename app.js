@@ -647,8 +647,13 @@ async function sendText(raw, special) {
     const r = await gemini(sysPrompt(special), contents, onPart);
     const reply = String(r.reply || '…').trim(); onPart(reply);
     S.history.push({ role: 'assistant', content: reply, at: Date.now() }); if (S.history.length > 200) S.history = S.history.slice(-200);
-    const did = apply(r);
+    let did = apply(r);
+    // v100: 말로만 '넣었어·바꿨어' 하고 실제 칸이 비었으면, 한 번 더 물어서 실제로 적용(대화 ↔ 다이얼 끊김 막기)
+    if (!did && /(넣었|넣어\s?놨|바꿨|바꿔\s?놨|붙였|붙여\s?놨|저장했|추가했|옮겼|지웠|등록|반영|잡아\s?놨|짰어|짜\s?놨)/.test(reply)) {
+      try { const c2 = contents.concat([{ role: 'model', parts: [{ text: JSON.stringify(r).slice(0, 1500) }] }, { role: 'user', parts: [{ text: '(앱 확인) 방금 말한 변경이 JSON 칸(add·done·remove·callback·repeat·study 등)에 없어서 앱에 아무것도 안 바뀌었어. 같은 변경을 JSON 칸에 실제로 넣어서 다시 답해. reply는 짧게.' }] }]);
+        const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (!did) { did = el('div', 'note'); did.appendChild(el('span', null, '⚠ 레나가 말만 하고 앱엔 안 바뀌었어. 한 번 더 구체적으로 말해 줘(예: 역사 수능특강 1~3단원).')); } } catch (e) {} }
     if (did) L.appendChild(did);
+    try { if ($('sheet').classList.contains('open')) refreshSheet(); } catch (e) {}
     L.scrollTop = L.scrollHeight;
     speak(reply); popSticker(r.mood);
     $('line').textContent = reply;
