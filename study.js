@@ -117,7 +117,7 @@ document.head.appendChild(Object.assign(document.createElement('style'), { textC
 // ---------- 데이터 ----------
 const ST = () => { if (!S.study) S.study = {}; const s = S.study; s.mats = s.mats || []; s.exams = s.exams || []; s.log = s.log || {}; s.rev = s.rev || {}; s.fix = s.fix || {}; s.revq = s.revq || []; s.pl = s.pl || {};
   if (s.pref && s.pref.preset) { delete s.pref.preset; s.pref.wdMax = 0; s.pref.weMax = 0; delete s.presets; } // v54: 카드(프리셋) 없앰 → 자동
-  s.pref = Object.assign({ wdS: '17:00', weS: '10:00', end: '01:30', wdMax: 0, weMax: 0, block: 50, wdSubs: 2, weSubs: 4, focus: null, wdPlay: 60, wePlay: 120 }, s.pref || {}); return s; };
+  s.pref = Object.assign({ wdS: '17:00', weS: '10:00', end: '01:30', wdMax: 0, weMax: 0, block: 50, wdSubs: 2, weSubs: 4, focus: null, wdPlay: 60, wePlay: 120, schoolMin: 30 }, s.pref || {}); return s; };
 // 하루 최대(자동): 그날 빈 시간의 75%, 평일 4시간·주말 7시간까지. 직접 정하면(wdMax/weMax) 그 값.
 const AUTO_CAP = [240, 420];
 // 최근 7일 계획 대비 실제로 한 비율(최근에 덜 했으면 평소 양을 줄인다)
@@ -216,7 +216,11 @@ function freeIv(d, isToday, loose) {
   // v94: 학원 앞뒤로 1시간씩 비움(이동 시간), 다른 일정은 앞뒤 10분
   for (const [bs, be, tx] of busyOn(d)) { const g = isAcad(tx) && !loose ? 60 : 10; /* loose = 휴식 시간 자리 찾기(학원 앞뒤 1시간 규칙은 공부에만) */ if (be + g <= cur) continue; if (bs - g > cur) out.push([cur, Math.min(e, bs - g)]); cur = Math.max(cur, be + g); if (cur >= e) break; }
   if (cur < e) out.push([cur, e]);
-  return out.filter(([a, b]) => b - a >= 30); // v84: 30분 안 되는 자투리는 안 씀
+  const res = out.filter(([a, b]) => b - a >= 30); // v84: 30분 안 되는 자투리는 안 씀
+  // v102: 학교에서도 조금(기본 30분) 공부 — 학교(고정 일정) 끝나기 전 마지막 N분
+  const sm = +P.schoolMin || 0;
+  if (!loose && sm >= 10) { const now = isToday ? new Date().getHours() * 60 + new Date().getMinutes() + 5 : -1; busyOn(d).filter(y => /학교|등교/.test(y[2] || '') && y[1] - y[0] >= sm + 30).forEach(([bs, be]) => { const a = be - sm; if (a >= now && !res.some(([p, q]) => p < be && q > a)) res.unshift([a, be]); }); res.sort((x, y) => x[0] - y[0]); }
+  return res;
 }
 
 // ---------- 계산 ----------
@@ -257,8 +261,8 @@ function simulate(nDays, capMode) {
     const blocks = []; let last = '';
     for (const [a, b] of freeIv(d, di === 0)) {
       let cur = a;
-      while (cap >= 20 && b - cur >= 25) {
-        const len = Math.min(P.block, b - cur, cap); if (len < 20) break;
+      while (cap >= Math.min(20, b - a) && b - cur >= Math.min(25, b - a)) {
+        const len = Math.min(P.block, b - cur, cap); if (len < Math.min(20, b - a)) break;
         const parts = []; let left = len, bsub = '';
         while (left >= 10) {
           const head = new Map(); for (const o of T) if (o.seq && o.rem > 0 && (!head.has(o.m) || o.i < head.get(o.m))) head.set(o.m, o.i);
@@ -493,8 +497,9 @@ function timeEditor(B) {
   const time = (lab, key) => { const r = el('div', 'r'), i2 = inp('time', '', P[key]); i2.onchange = () => { if (i2.value) { P[key] = i2.value; up(); } }; r.append(el('span', null, lab), i2); return r; };
   const cap = (lab, key, we) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = P[key] ? (P[key] - 30 < 30 ? 0 : P[key] - 30) : 0; up(); }), el('b', null, P[key] ? hm(P[key]) : '자동'), btn('+', 'ghost', () => { P[key] = Math.min(we ? 720 : 600, (P[key] || AUTO_CAP[we ? 1 : 0]) + 30); up(); })); r.append(el('span', null, lab), S3); return r; };
   const play = (lab, key) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = Math.max(0, (P[key] || 0) - 30); up(); }), el('b', null, P[key] ? hm(P[key]) : '없음'), btn('+', 'ghost', () => { P[key] = Math.min(300, (P[key] || 0) + 30); up(); })); r.append(el('span', null, lab), S3); return r; };
+  const sch = () => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P.schoolMin = Math.max(0, (+P.schoolMin || 0) - 10); up(); }), el('b', null, P.schoolMin ? P.schoolMin + '분' : '안 함'), btn('+', 'ghost', () => { P.schoolMin = Math.min(120, (+P.schoolMin || 0) + 10); up(); })); r.append(el('span', null, '학교에서 공부'), S3); return r; };
   const cnt = (lab, key) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = Math.max(1, P[key] - 1); up(); }), el('b', null, `${P[key]}과목`), btn('+', 'ghost', () => { P[key] = Math.min(6, P[key] + 1); up(); })); r.append(el('span', null, lab), S3); return r; };
-  c.append(time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), cap('평일 하루 최대', 'wdMax', 0), cap('주말 하루 최대', 'weMax', 1), cnt('평일 과목 수', 'wdSubs'), cnt('주말 과목 수', 'weSubs'), play('평일 휴식 시간', 'wdPlay'), play('주말 휴식 시간', 'wePlay'));
+  c.append(time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), cap('평일 하루 최대', 'wdMax', 0), cap('주말 하루 최대', 'weMax', 1), cnt('평일 과목 수', 'wdSubs'), cnt('주말 과목 수', 'weSubs'), play('평일 휴식 시간', 'wdPlay'), play('주말 휴식 시간', 'wePlay'), sch());
   c.prepend(el('div', 'hint', `지금: 평일 ${P.wdS}~ · 주말 ${P.weS}~ · ${P.end}까지`));
   c.appendChild(el('div', 'hint', '하루 최대를 0까지 내리면 "자동"이에요. 자동은 그날 빈 시간과 마감까지 남은 양으로 레나가 정해요. 통화로 "주말엔 9시부터" "수학 먼저 해 줘"처럼 말해도 바꿔요.'));
   B.appendChild(c);

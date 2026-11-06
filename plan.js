@@ -18,6 +18,15 @@ const css = `
 .tt .blk.one{background:#0b0d10;color:#fff;border:2px dashed var(--bc);z-index:1}
 .tt .blk.study{background:color-mix(in srgb,var(--bc) 55%,#0b0d10);color:#fff;border:1.5px solid var(--bc);border-left:4px solid var(--bc)}
 .tt .blk.play{background:repeating-linear-gradient(-45deg,rgba(47,224,200,.28) 0 6px,rgba(47,224,200,.08) 6px 12px);color:#9ff5e4;border:1px solid rgba(47,224,200,.5)}
+.ttpop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+.ttpc{width:100%;max-width:420px;background:#f3efe6;color:#111;border:2px solid #000;border-radius:6px;padding:16px 16px 12px;box-shadow:4px 4px 0 #000;transform:rotate(-.6deg);animation:ttpIn .18s ease-out}
+@keyframes ttpIn{from{transform:translateY(30px) rotate(-.6deg);opacity:0}}
+.ttpc .tk{display:inline-block;font-size:12px;font-weight:800;padding:3px 8px;border:1.5px solid #000;border-radius:3px;background:var(--bc,#e6e1d3)}.ttpc .tk.play{background:repeating-linear-gradient(45deg,#e6e1d3 0 5px,#fff 5px 10px)}.ttpc .tk.one{background:#ffd0e6}.ttpc .tk.dl{background:#f2ea3a}
+.ttpc h3{font:22px 'Black Han Sans',sans-serif;margin:10px 0 4px;line-height:1.25;word-break:keep-all}
+.ttpc .tm{font:700 14px 'Space Mono',monospace;color:#333}
+.ttpc .tl{margin-top:10px;border-top:1.5px dashed rgba(0,0,0,.3);padding-top:8px;display:grid;gap:6px;max-height:40vh;overflow:auto}
+.ttpc .tr{display:flex;gap:8px;font-size:14px;line-height:1.35}.ttpc .tr b{font:700 12px 'Space Mono',monospace;flex:none;padding-top:2px}
+.ttpc .hint{color:#555;margin-top:6px}.ttpc .qrow{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}.ttpc .qrow button{flex:1;min-height:44px;color:#111;border-color:#000;background:#fff}
 .ttlg{display:flex;flex-wrap:wrap;gap:6px 12px;margin:2px 2px 8px;font-size:11.5px;font-weight:700;color:#cfd8dc}.ttlg span{display:flex;align-items:center;gap:5px}.ttlg i{width:16px;height:11px;border-radius:3px}
 .ttlg i.fix{background:#ff8fc4;border:1.5px solid #000}.ttlg i.one{border:2px dashed #ff8fc4}.ttlg i.study{background:#7fecd9;border-left:4px solid #2fe0c8}.ttlg i.play{background:repeating-linear-gradient(-45deg,rgba(47,224,200,.5) 0 3px,transparent 3px 6px)}
 .ttp{padding:24px 8px 10px;transform:rotate(-.3deg)}
@@ -73,6 +82,24 @@ let ttEd = null, ttAdd = false; let ttW = 0;
 const _bt = boardTabs; boardTabs = function (B) {
   const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['tt', '시간표'], ['all', '전체']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
 };
+// v102: 시간표 칸을 누르면 자세한 이름·시간 쪽지
+function ttPop(o, day) {
+  document.querySelectorAll('.ttpop').forEach(x => x.remove());
+  const WDN = ['일', '월', '화', '수', '목', '금', '토'], KN = { fix: '고정 (매주)', one: '일정', dl: '할 일 마감', study: '공부', play: '휴식 시간' };
+  const bg = el('div', 'ttpop'), P = el('div', 'ttpc'); bg.onclick = e => { if (e.target === bg) bg.remove(); };
+  const tag = el('span', 'tk ' + o.k, KN[o.k] || ''); if (o.c && o.k !== 'play') tag.style.setProperty('--bc', o.c);
+  P.append(tag, el('h3', null, o.t));
+  const mins = o.e - o.s, tm = o.k === 'dl' ? `${toT(o.e)} 마감` : `${toT(o.s)} ~ ${toT(o.e)} · ${mins >= 60 ? Math.floor(mins / 60) + '시간' + (mins % 60 ? ' ' + mins % 60 + '분' : '') : mins + '분'}`;
+  P.appendChild(el('div', 'tm', `${day.getMonth() + 1}/${day.getDate()} (${WDN[day.getDay()]}) ${tm}`));
+  if (o.raw) { const ul = el('div', 'tl'); o.raw.forEach(b => b.parts.forEach(p => { const r = el('div', 'tr'); r.append(el('b', null, `${toT(b.s)}~${toT(b.e)}`), el('span', null, `${p.t.sub} · ${p.t.label} (${p.mins}분)`)); ul.appendChild(r); })); P.appendChild(ul); }
+  if (o.k === 'fix' && o.r && o.r.days) P.appendChild(el('div', 'hint', '매주 ' + (o.r.days.length ? o.r.days.map(d => WDN[d]).join('·') : '매일')));
+  const row = el('div', 'qrow');
+  if (o.k === 'fix') row.append(btn(ttEd === o.r ? '고치기 닫기' : '고치기', 'ghost', () => { bg.remove(); ttEd = ttEd === o.r ? null : o.r; refreshSheet(); }));
+  if (o.k === 'study' || o.k === 'play') row.append(btn('공부 화면 열기', 'ghost', () => { bg.remove(); openSheet(6); }));
+  if (o.k === 'one' || o.k === 'dl') row.append(btn('전단지에서 보기', 'ghost', () => { bg.remove(); openBoard(o.k === 'one' ? 'today' : 'all'); }));
+  row.append(btn('닫기', 'ghost', () => bg.remove())); P.appendChild(row);
+  bg.appendChild(P); document.body.appendChild(bg);
+}
 const _br = boardRender; boardRender = function (B) {
   if (boardTab !== 'tt') {
     _br(B);
@@ -88,7 +115,7 @@ const _br = boardRender; boardRender = function (B) {
   const ev = {}; dates.forEach(x => { ev[dk(x)] = []; });
   dates.forEach((x, i) => { const d = order[i], k = dk(x); R.filter(r => (!r.days.length || r.days.includes(d)) && !(S.repSkip || {})[r.id + '_' + k]).forEach(r => ev[k].push({ s: toM(r.time), e: toM(repEnd(r)), t: r.text, k: 'fix', r, c: colF(r.text) })); });
   S.items.forEach(t => { if (t.done || t.rid || !t.due || !ev[t.due.slice(0, 10)]) return; const s = toM(t.due.slice(11, 16)); if (!s && t.due.slice(11, 16) !== '00:00') return; if (isEv(t)) ev[t.due.slice(0, 10)].push({ s, e: s + (t.mins || 60), t: t.text, k: 'one', c: '#ff5fa8' }); else ev[t.due.slice(0, 10)].push({ s: Math.max(0, s - 25), e: s, t: t.text + ' 마감', k: 'dl', c: '#f2ea3a' }); });
-  try { const P = LS && LS.plan(); (P ? P.days : []).forEach(D => { if (!ev[D.k]) return; { let cur = null; D.blocks.forEach(b => { if (cur && b.s - cur.e <= 20) { cur.e = b.e; if (!cur.subs.includes(b.sub)) cur.subs.push(b.sub); } else { cur = { s: b.s, e: b.e, subs: [b.sub] }; ev[D.k].push(cur); } }); ev[D.k].forEach(o => { if (o.subs) Object.assign(o, { t: `${o.subs.join('·')} 공부`, k: 'study', c: LS.colOf(o.subs[0]), sub: o.subs[0] }); }); } if (D.play) ev[D.k].push({ s: D.play.s, e: D.play.e, t: '휴식 시간', k: 'play' }); }); } catch (e) {}
+  try { const P = LS && LS.plan(); (P ? P.days : []).forEach(D => { if (!ev[D.k]) return; { let cur = null; D.blocks.forEach(b => { if (cur && b.s - cur.e <= 20) { cur.e = b.e; cur.raw.push(b); if (!cur.subs.includes(b.sub)) cur.subs.push(b.sub); } else { cur = { s: b.s, e: b.e, subs: [b.sub], raw: [b] }; ev[D.k].push(cur); } }); ev[D.k].forEach(o => { if (o.subs) Object.assign(o, { t: `${o.subs.join('·')} 공부`, k: 'study', c: LS.colOf(o.subs[0]), sub: o.subs[0] }); }); } if (D.play) ev[D.k].push({ s: D.play.s, e: D.play.e, t: '휴식 시간', k: 'play' }); }); } catch (e) {}
   const all = Object.values(ev).flat(), lo = Math.min(9, ...all.map(x => Math.floor(x.s / 60))), hi = Math.max(18, ...all.map(x => Math.ceil(x.e / 60)));
   const PX = 34, H = (hi - lo) * PX, tdw = now0.getDay();
   const WN = el('div', 'ttwk'); WN.append(btn('‹', 'ghost', () => { ttW--; refreshSheet(); }), el('b', null, ttW === 0 ? '이번 주' : ttW === 1 ? '다음 주' : ttW === -1 ? '지난 주' : `${mon.getMonth() + 1}/${mon.getDate()} 주`), btn('›', 'ghost', () => { ttW++; refreshSheet(); })); B.appendChild(WN);
@@ -106,9 +133,8 @@ const _br = boardRender; boardRender = function (B) {
       const b = el('button', 'blk ' + o.k); b.style.top = ((o.s - lo * 60) / 60 * PX) + 'px'; b.style.height = Math.max(16, (o.e - o.s) / 60 * PX - 2) + 'px';
       if (o.n > 1) { b.style.left = `calc(${o.lane / o.n * 100}% + 1px)`; b.style.right = 'auto'; b.style.width = `calc(${100 / o.n}% - 2px)`; b.style.fontSize = '9px'; }
       if (o.k !== 'play') b.style.setProperty('--bc', o.c); b.append(document.createTextNode(o.t)); if ((o.e - o.s) >= 45) b.appendChild(el('small', null, toT(o.s))); else b.classList.add('sh');
-      if (o.k === 'fix') { if (ttEd === o.r) b.style.outline = '3px solid #fff'; b.onclick = () => { ttEd = ttEd === o.r ? null : o.r; refreshSheet(); }; }
-      else if (o.k === 'study' || o.k === 'play') b.onclick = () => openSheet(6);
-      else b.onclick = () => toast(`${o.t} — 한 번만 있는 일정(전단지)이에요.`);
+      if (o.k === 'fix' && ttEd === o.r) b.style.outline = '3px solid #fff';
+      b.onclick = () => ttPop(o, x); /* v102: 누르면 이름·정확한 시간이 나오는 쪽지 */
       c.appendChild(b); });
     if (order[i] === tdw) { const m = now0.getHours() * 60 + now0.getMinutes(); if (m > lo * 60 && m < hi * 60) { const l = el('div', 'now'); l.style.top = ((m - lo * 60) / 60 * PX) + 'px'; c.appendChild(l); } }
     G.appendChild(c); });
