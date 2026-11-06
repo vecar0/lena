@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v89). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v90). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 속도(v60): 생각 최소 — 3.x는 thinkingLevel `minimal`, 2.5 Flash는 thinkingBudget 0, `-latest`는 thinkingBudget 0(모델이 400으로 거절하면 `TH[m]`에 기억하고 3.x→low, 2.5→512, latest→설정 빼고 같은 모델로 한 번 더). 모델 '자동'은 후보 셋(가장 새 Flash·flash-latest·2.5-flash) 중 첫 글자까지 걸린 시간 평균 `S.mlat`이 가장 짧은 것부터(처음엔 각각 한 번씩 재 봄), 직접 고르면 그 모델 먼저. 첫 글자 12초 안 오면 다음 모델. 통화를 열 때 Gemini 서버 연결을 미리 열어 둠(`warmAt`, index.html preconnect). 노트 정리(`notes.js`)는 품질 위해 생각 low/1024 그대로. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. **Claude Haiku 5.5 (v82, 선택)**: 0번 설정 'Claude 키'(`S.ckey`, sk-ant-, 폰에만, 백업 내보내기에서 뺌). `gemini()` 안에서 모델 이름이 `claude`면 `claudeCall`(api.anthropic.com/v1/messages, 브라우저 직접 헤더 `anthropic-dangerous-direct-browser-access`, stream, `thinking:{type:'disabled'}`, `output_config.effort:'low'`, 대화 형식은 `toClaude`로 바꿈 — 사진·PDF도). '자동'이면 Gemini 후보 + `claude-haiku-5-5`를 첫 글자 시간 `S.mlat`으로 비교(처음엔 하나씩 재 봄), 설정에 모델별 평균 시간 표시. Claude 401/403·크레딧 없음이면 10분 쉬고 `S.clErr` 경고 + Gemini로, Gemini 키 오류여도 Claude 키가 있으면 넘어감. 키 있는지 확인은 `aiOn()`. 노트 정리(notes.js)는 Gemini만. 점검 scratchpad `cl.js`(가짜 응답). 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -23,7 +23,7 @@
 - 처음 실행: 모르는 번호 전화 → 받으면 레나가 이름을 묻고, 키를 받는다.
 
 ## 캐릭터
-- 레나: 20대 중반, 은발+끝 핑크 울프컷, 머리 위 둥근 핑크 선글라스, 가죽 재킷+흰 크롭 셔츠, 초커. **말투(v88) = 능글맞고 섹시한 '누나' 존댓말**: 여유·나른한 톤, 놀리고 떠보고 밀당, 주도권은 레나. **선 긋기(v89: 음성통화에서만)**: 미연시처럼 직설적 고백 금지('좋아해요·사랑해요·보고 싶었어요·두근거려요' 등) — 설렘은 놀림·여운·'…'·질문으로. **영상통화(밖 모드 아님)에서는 고백 OK**(능글맞은 톤 유지, 매번은 아님) — `sysPrompt`가 `app.classList.contains('outside')`로 고름. 프롬프트에 말투 예시 6줄. shop.js 호감도 문구는 '고백은 위 규칙을 따름'. 호칭 "송휘님".
+- 레나: 20대 중반, 은발+끝 핑크 울프컷, 머리 위 둥근 핑크 선글라스, 가죽 재킷+흰 크롭 셔츠, 초커. **말투(v88) = 능글맞고 섹시한 '누나' 존댓말**: 여유·나른한 톤, 놀리고 떠보고 밀당, 주도권은 레나. **선 긋기(v89: 음성통화에서만)**: 미연시처럼 직설적 고백 금지('좋아해요·사랑해요·보고 싶었어요·두근거려요' 등) — 설렘은 놀림·여운·'…'·질문으로. **영상통화(밖 모드 아님)에서는 고백 OK**(능글맞은 톤 유지, 매번은 아님) — `sysPrompt`가 `app.classList.contains('outside')`로 고름. 프롬프트에 말투 예시 6줄. **말 높이(v90) = 반존대**: 해요체 기본에 반말을 툭툭 섞음(놀림·맞장구), '-습니다·알겠습니다' 같은 딱딱한 말 금지, 일 얘기(일정 저장 안내)도 같은 말투. 운세·손편지·시간표 짜기 같은 다른 프롬프트도 '능글맞은 반존대'. shop.js 호감도 문구는 '고백은 위 규칙을 따름'. 호칭 "송휘님".
 - 해골: 말 없는 짝꿍. 몸짓으로만 반응.
 - 그림 원본: `art/new/lena_base.webp`(기준 그림), `art/new/lena_loop_src.mp4`(영상 원본). 컨셉·프롬프트 기록은 `CONCEPT.md`.
 - UI 그림(`assets/lena/` 스티커·테이프·종이·해골 손)은 Higgsfield GPT Image 2.5로 만들어 잘라 씀.

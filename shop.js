@@ -141,13 +141,13 @@ function give(g) {
 async function unlockNote(n) {
   const a = A(); if (a.notes.length >= n) return;
   let t = SECRET[a.notes.length];
-  if (!t && (S.key || S.ckey)) { try { const r = await gemini('너는 레나. 송휘님과 호감도가 아주 높아진 사이. 지금까지 털어놓은 비밀: ' + JSON.stringify(a.notes.slice(-6)) + ' 이어서 새로운 작은 비밀이나 고백을 1~2문장 존댓말로. JSON {"reply":""}만.', [{ role: 'user', parts: [{ text: '새 비밀 하나' }] }]); t = r && r.reply; } catch (e) {} }
+  if (!t && (S.key || S.ckey)) { try { const r = await gemini('너는 레나. 송휘님과 호감도가 아주 높아진 사이. 지금까지 털어놓은 비밀: ' + JSON.stringify(a.notes.slice(-6)) + ' 이어서 새로운 작은 비밀이나 고백을 1~2문장 반존대(해요체+반말 섞기)로. JSON {"reply":""}만.', [{ role: 'user', parts: [{ text: '새 비밀 하나' }] }]); t = r && r.reply; } catch (e) {} }
   a.notes.push(t || '오늘도 송휘님 생각했어요. 이건 비밀 아니고 매일이에요.'); save(); refreshSheet();
 }
 async function letter() {
   const fall = [`${nmc()}오늘도 수고했어요. 전단지 하나 뗄 때마다 저 혼자 박수 쳐요. 내일도 옆에 있을게요. — 레나`, `${nmc()}비 오는 밤엔 송휘님 목소리가 제일 따뜻해요. 감기 조심해요. — 레나`];
   let t = pick(fall);
-  if ((S.key || S.ckey)) { try { const r = await gemini('너는 레나(장난스럽고 다정한 존댓말). 송휘님에게 쓰는 짧은 손편지 3~4문장. 최근 끝낸 일: ' + S.items.filter(x => x.done).slice(-5).map(x => x.text).join(', ') + '. 끝에 "— 레나". JSON {"reply":""}만.', [{ role: 'user', parts: [{ text: '편지 써 줘' }] }]); if (r && r.reply) t = r.reply; } catch (e) {} }
+  if ((S.key || S.ckey)) { try { const r = await gemini('너는 레나(능글맞은 반존대(해요체+반말 섞기, 딱딱한 -습니다 금지)). 송휘님에게 쓰는 짧은 손편지 3~4문장. 최근 끝낸 일: ' + S.items.filter(x => x.done).slice(-5).map(x => x.text).join(', ') + '. 끝에 "— 레나". JSON {"reply":""}만.', [{ role: 'user', parts: [{ text: '편지 써 줘' }] }]); if (r && r.reply) t = r.reply; } catch (e) {} }
   S.memory.push('📮 레나의 편지: ' + t.slice(0, 300)); save(); say(t, 'happy', false); toast('편지는 7번 음성사서함에 보관했어요.'); return true;
 }
 // 부스 꾸미기
