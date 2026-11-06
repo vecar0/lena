@@ -49,7 +49,7 @@ async function gotFiles(list) {
     } catch (e) {} }
   if (!boxFiles.length) return;
   S.boxIn = Date.now(); S.boxInN = (S.boxInN || 0) + boxFiles.length; save();
-  if (!S.key) { toast(`공유한 파일 ${boxFiles.length}개를 받았어요. 0번 설정에 Gemini 키가 있어야 레나가 볼 수 있어요.`); boxFiles = []; return; }
+  if (!(S.key || S.ckey)) { toast(`공유한 파일 ${boxFiles.length}개를 받았어요. 0번 설정에 Gemini 키가 있어야 레나가 볼 수 있어요.`); boxFiles = []; return; }
   if (!app.classList.contains('calling')) openCall();
   setTimeout(fileAsk, 500);
 }
@@ -67,7 +67,7 @@ window.lenaBox = { gotFiles, files: () => boxFiles };
 function handle(list) {
   S.boxIn = Date.now(); S.boxInN = (S.boxInN || 0) + list.length; save();
   const text = list.map(x => x.text).join('\n---\n');
-  if (!S.key) { list.forEach(x => addItem(x.text.split('\n')[0].slice(0, 80), '')); save(); renderHome(); toast(`단축어로 온 ${list.length}개를 할 일로 붙였어요.`); return; }
+  if (!(S.key || S.ckey)) { list.forEach(x => addItem(x.text.split('\n')[0].slice(0, 80), '')); save(); renderHome(); toast(`단축어로 온 ${list.length}개를 할 일로 붙였어요.`); return; }
   if (!app.classList.contains('calling')) openCall();
   setTimeout(() => sendText(`(단축어로 보낸 메모${list.length > 1 ? ' ' + list.length + '개' : ''}) ${text}\n— 여기서 일정·할 일·예약이 있으면 정리해서 저장하고, 없으면 기억할 것만 남겨 줘. 짧게 대답해.`), 600);
 }

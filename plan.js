@@ -146,7 +146,7 @@ async function makeDraft() {
   const todos = openItems().filter(t => !t.due).slice(0, 8);
   if (!todos.length) return { list: [], say: '시간 정할 할 일이 없어요. 오늘은 이미 다 정리돼 있네요.' };
   let say = '';
-  if (S.key) { try {
+  if (S.key || S.ckey) { try {
     const sys = `너는 비서 "레나"(장난스럽고 다정한 존댓말). 오늘(${today()}) 할 일들의 순서와 걸리는 시간(분)을 정해. 이미 잡힌 일정: ${JSON.stringify(busyToday().map(([s, e, x]) => `${toT(s)}~${toT(e)} ${x}`))}. 지금 ${hm(new Date())}. 급하거나 짧은 걸 앞에, 머리 쓰는 일은 오전·이른 오후에.
 JSON만: {"order":[{"id":"할 일 id","mins":15~180}],"say":"레나의 한두 문장 코멘트"}`;
     const j = await gemini(sys, [{ role: 'user', parts: [{ text: JSON.stringify(todos.map(t => ({ id: t.id, text: t.text }))) }] }]);
