@@ -288,10 +288,18 @@ function simulate(nDays, capMode) {
 }
 function horizon() { let far = dkey(dAdd(new Date(), 31)); ST().mats.forEach(m => m.units.forEach((u, i) => { const d = dueOf(m, u, i); if (d && d > far) far = d; })); ST().exams.forEach(e => { if (e.date > far) far = e.date; }); return Math.min(70, dTo(far) + 1); }
 let cache = null;
+// v93: 대화로 들어온 반복 일정·교재·시험에 빈 칸이 있어도 계산이 멈추지 않게 정리
+function tidy() { (S.reps || []).forEach(r => { r.text = String(r.text || '일정'); if (!Array.isArray(r.days)) r.days = []; if (!/^\d\d:\d\d$/.test(r.time || '')) r.time = '00:00'; });
+  const st = ST(); st.mats = (st.mats || []).filter(Boolean); st.mats.forEach(m => { m.sub = String(m.sub || '기타'); m.title = String(m.title || (m.kind === 'hw' ? '숙제' : '문제집')); if (!Array.isArray(m.units)) m.units = []; });
+  st.exams = (st.exams || []).filter(e => e && e.date); st.exams.forEach(e => { if (!Array.isArray(e.subs)) e.subs = []; if (!Array.isArray(e.ranges)) e.ranges = []; }); }
+const EMPTY = { days: [], late: [] };
 function splan() {
+  try { tidy(); } catch (e) {}
   const sig = JSON.stringify([S.study, S.reps, S.items.filter(t => t.due && !t.done).map(t => t.due), todayK(), Math.floor(Date.now() / 300000)]);
   if (cache && cache.sig === sig) return cache;
-  const n = horizon(); let r = simulate(n), strained = false;
+  let r, strained = false; const n = (() => { try { return horizon(); } catch (e) { return 31; } })();
+  try { r = simulate(n); } catch (e) { console.warn('plan', e); S.planErr = String(e && e.message || e).slice(0, 120); cache = { sig, ...EMPTY, strained }; return cache; }
+  S.planErr = '';
   if (r.late.length) { const r2 = simulate(n, 'max'); if (r2.late.length < r.late.length) { r = r2; strained = true; } }
   cache = { sig, ...r, strained };
   try { const k = todayK(), D = r.days[0], tot = (D ? D.mins : 0) + (ST().log[k] || []).reduce((a, b) => a + b.mins, 0); if (tot > (ST().pl[k] || 0)) { ST().pl[k] = tot; const ks = Object.keys(ST().pl).sort(); while (ks.length > 14) delete ST().pl[ks.shift()]; } } catch (e) {}

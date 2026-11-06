@@ -112,7 +112,7 @@ const _br = boardRender; boardRender = function (B) {
       c.appendChild(b); });
     if (order[i] === tdw) { const m = now0.getHours() * 60 + now0.getMinutes(); if (m > lo * 60 && m < hi * 60) { const l = el('div', 'now'); l.style.top = ((m - lo * 60) / 60 * PX) + 'px'; c.appendChild(l); } }
     G.appendChild(c); });
-  PP.appendChild(G);
+  PP.appendChild(G); if (S.planErr) B.appendChild(el('div', 'warn', '공부 계획을 못 만들었어요: ' + S.planErr + ' — 이 화면을 캡처해서 보내 주세요.'));
   if (!R.length) B.appendChild(el('div', 'hint', '아직 비어 있어요. 학원·수업·운동처럼 매주 정해진 걸 넣으면, 레나가 그 시간은 피해서 하루를 짜 줘요.'));
   // 넣기/고치기: 프리셋을 누르면 칸이 채워지고, 시간표 칸을 누르면 그 블록을 고친다
   const E = ttEd && (S.reps || []).includes(ttEd) ? ttEd : null; if (!E) ttEd = null;
@@ -153,7 +153,7 @@ async function makeDraft() {
   if (!todos.length) return { list: [], say: '시간 정할 할 일이 없어요. 오늘은 이미 다 정리돼 있네요.' };
   let say = '';
   if (S.key || S.ckey) { try {
-    const sys = `너는 비서 "레나"(능글맞은 반존대(해요체+반말 섞기, 딱딱한 -습니다 금지)). 오늘(${today()}) 할 일들의 순서와 걸리는 시간(분)을 정해. 이미 잡힌 일정: ${JSON.stringify(busyToday().map(([s, e, x]) => `${toT(s)}~${toT(e)} ${x}`))}. 지금 ${hm(new Date())}. 급하거나 짧은 걸 앞에, 머리 쓰는 일은 오전·이른 오후에.
+    const sys = `너는 비서 "레나"(능글맞은 누나 반말(존댓말 금지)). 오늘(${today()}) 할 일들의 순서와 걸리는 시간(분)을 정해. 이미 잡힌 일정: ${JSON.stringify(busyToday().map(([s, e, x]) => `${toT(s)}~${toT(e)} ${x}`))}. 지금 ${hm(new Date())}. 급하거나 짧은 걸 앞에, 머리 쓰는 일은 오전·이른 오후에.
 JSON만: {"order":[{"id":"할 일 id","mins":15~180}],"say":"레나의 한두 문장 코멘트"}`;
     const j = await gemini(sys, [{ role: 'user', parts: [{ text: JSON.stringify(todos.map(t => ({ id: t.id, text: t.text }))) }] }]);
     if (j && Array.isArray(j.order)) { const o = j.order.map(x => { const t = todos.find(y => y.id === x.id); if (t) t.mins = Math.max(15, Math.min(180, Math.round((+x.mins || 45) / 15) * 15)); return t; }).filter(Boolean); todos.splice(0, todos.length, ...o, ...todos.filter(t => !o.includes(t))); say = j.say || ''; }

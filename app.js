@@ -96,7 +96,7 @@ function setDone(t, v, srcEl) {
   if (v) S.coinDays[k] = (S.coinDays[k] || 0) + 1;
   else if (S.coinDays[k]) S.coinDays[k]--;
   save(); renderHome();
-  if (v) { const left = openItems().length; say(left ? pick(['하나 떼어냈네요. …잘했어요.', '착하다. 동전 하나 드릴게요.', '역시. 제가 반한 이유가 있죠.', '오, 생각보다 빠른데요?']) : `${nmc()}오늘 전단지 다 떼어냈어요. …오늘은 제가 칭찬 많이 해 드릴게요.`, 'happy', false); }
+  if (v) { const left = openItems().length; say(left ? pick(['하나 떼어냈네. …잘했어.', '착하다. 동전 하나 줄게.', '역시. 내가 반한 이유가 있지.', '오, 생각보다 빠른데?']) : `${nmc()}오늘 전단지 다 떼어냈어. …오늘은 내가 칭찬 많이 해 줄게.`, 'happy', false); }
 }
 function coinPop(srcEl) {
   coinSound();
@@ -179,17 +179,17 @@ function knockNow() { const K = $('knock'); placeKnock(); if (!K.classList.conta
 
 function greetLine() {
   const h = new Date().getHours(), n = nmc(), now = new Date();
-  const g = h < 5 ? `${n}이 시간에 깨어 있어요? …나쁜 사람.` : h < 11 ? `${n}좋은 아침. 제 목소리 듣고 일어난 거 맞죠?` : h < 18 ? pick([`${n}왔어요? 기다렸잖아요.`, `${n}또 저 보고 싶어서 왔구나.`]) : pick([`${n}오늘도 버텼네요. 수고했어요.`, `${n}밤엔 제가 제일 예쁜 거 알죠?`]);
+  const g = h < 5 ? `${n}이 시간에 깨어 있어? …나쁜 사람.` : h < 11 ? `${n}좋은 아침. 내 목소리 듣고 일어난 거 맞지?` : h < 18 ? pick([`${n}왔어? 기다렸잖아.`, `${n}또 나 보고 싶어서 왔구나.`]) : pick([`${n}오늘도 버텼네. 수고했어.`, `${n}밤엔 내가 제일 예쁜 거 알지?`]);
   const up = S.items.filter(t => !t.done && onDate(t, now) && new Date(t.due) > now).sort((a, b) => a.due.localeCompare(b.due)), late = S.items.filter(isLate), todo = openItems().filter(t => !t.due);
   const b = [];
-  if (up.length) b.push(`${up[0].due.slice(11, 16)}에 '${up[0].text}'${up.length > 1 ? ` 외 ${up.length - 1}개` : ''} 있어요.`);
-  if (late.length) b.push(`지난 거 ${late.length}개… 해골이 유리 두드리는 거 보이죠?`);
-  else if (todo.length) b.push(`할 일은 ${todo.length}개 남았고요.`);
+  if (up.length) b.push(`${up[0].due.slice(11, 16)}에 '${up[0].text}'${up.length > 1 ? ` 외 ${up.length - 1}개` : ''} 있어.`);
+  if (late.length) b.push(`지난 거 ${late.length}개… 해골이 유리 두드리는 거 보이지?`);
+  else if (todo.length) b.push(`할 일은 ${todo.length}개 남았고.`);
   return [g, b.join(' ')].filter(Boolean).join('\n');
 }
-const TAPS = [['간지러워요.', 'tease'], ['…왜요, 보고 싶었어요?', 'tease'], ['자꾸 건드리면 저도 건드릴 거예요.', 'tease'], ['쉿. 해골이 질투해요.', 'calm'], ['저 바빠요. …거짓말이에요.', 'happy'], ['오늘 할 일은요? 저만 보고 있으면 안 돼요.', 'pout']];
+const TAPS = [['간지러워.', 'tease'], ['…왜, 보고 싶었어?', 'tease'], ['자꾸 건드리면 나도 건드릴 거야.', 'tease'], ['쉿. 해골이 질투해.', 'calm'], ['나 바빠. …거짓말이야.', 'happy'], ['오늘 할 일은? 나만 보고 있으면 안 돼.', 'pout']];
 let tapN = 0, tapT = 0;
-$('lenaHit').onclick = () => { tapN++; clearTimeout(tapT); tapT = setTimeout(() => tapN = 0, 6000); if (tapN >= 5) { say('…그만. 이러다 정들겠어요.', 'pout', false); return; } const [t, m] = pick(TAPS); say(t, m, false); };
+$('lenaHit').onclick = () => { tapN++; clearTimeout(tapT); tapT = setTimeout(() => tapN = 0, 6000); if (tapN >= 5) { say('…그만. 이러다 정들겠어.', 'pout', false); return; } const [t, m] = pick(TAPS); say(t, m, false); };
 
 // ---------------- sheets ----------------
 let curSheet = 0, callTab = 'res';
@@ -242,7 +242,7 @@ function paper(t, i) {
 function boardAdd(B) {
   const c = el('div', 'card'), t = inp('text', addKind === 'event' ? '일정 (예: 치과 예약)' : '할 일 (예: 택배 반품)'), d = inp('datetime-local');
   t.enterKeyHint = 'done';
-  const go = () => { const v = t.value.trim(); if (!v) { t.focus(); return; } if (addKind === 'event' && !d.value) { toast('일정은 시간을 넣어 주세요.'); d.focus(); return; } const it = addItem(v, d.value, addKind); save(); pushSync(true); t.value = ''; d.value = ''; refreshSheet(); say(isEv(it) ? `${when(it.due)} '${v}'. 그 시간에 꼭 알려 줄게요.` : it.due ? `'${v}', ${when(it.due)}까지. 끝나면 체크해요.` : `'${v}' 붙여 뒀어요. 까먹으면 제가 기억해 줄게요.`, 'happy', false); };
+  const go = () => { const v = t.value.trim(); if (!v) { t.focus(); return; } if (addKind === 'event' && !d.value) { toast('일정은 시간을 넣어 줘.'); d.focus(); return; } const it = addItem(v, d.value, addKind); save(); pushSync(true); t.value = ''; d.value = ''; refreshSheet(); say(isEv(it) ? `${when(it.due)} '${v}'. 그 시간에 꼭 알려 줄게.` : it.due ? `'${v}', ${when(it.due)}까지. 끝나면 체크해.` : `'${v}' 붙여 뒀어. 까먹으면 내가 기억해 줄게.`, 'happy', false); };
   t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
   c.classList.add('badd'); const dl = el('label', 'bwhen'); dl.append(el('span', null, addKind === 'event' ? '언제 (꼭 넣기)' : '마감 시간'), d);
   // v83: 할 일은 '마감 정하기'를 켜야 시간 칸이 나옴(안 켜면 시간 없이 붙음)
@@ -286,7 +286,7 @@ SH[4] = { t: '예약 전화', s: '정한 시간에 레나가 전화해요', r: B
   let off = 30;
   const P = pills([[10, '10분 뒤'], [30, '30분 뒤'], [60, '1시간 뒤'], [180, '3시간 뒤'], [0, '직접']], off, v => { off = v; [...P.children].forEach(b => b.classList.toggle('on', b.textContent === ({ 10: '10분 뒤', 30: '30분 뒤', 60: '1시간 뒤', 180: '3시간 뒤', 0: '직접' })[v])); d.style.display = v ? 'none' : ''; });
   d.style.display = 'none';
-  const go = () => { let at = off ? Date.now() + off * 60e3 : (d.value ? new Date(d.value).getTime() : 0); if (!at || at < Date.now()) { say('언제 걸지 정해 줘야죠.', 'pout', false); return; } const x = { id: uid('c'), at, text: t.value.trim().slice(0, 60), done: false }; S.calls.push(x); save(); refreshSheet(); say(`${when(at)}에 전화할게요. 꼭 받아요?`, 'tease', false); };
+  const go = () => { let at = off ? Date.now() + off * 60e3 : (d.value ? new Date(d.value).getTime() : 0); if (!at || at < Date.now()) { say('언제 걸지 정해 줘야지.', 'pout', false); return; } const x = { id: uid('c'), at, text: t.value.trim().slice(0, 60), done: false }; S.calls.push(x); save(); refreshSheet(); say(`${when(at)}에 전화할게. 꼭 받아?`, 'tease', false); };
   c.append(row(t), P, row(d), row(btn('예약하기', 'wide', go))); P.style.margin = '10px 0 0';
   B.append(c);
   const L = S.calls.filter(x => !x.done && x.at > Date.now() - 6e4).sort((a, b) => a.at - b.at);
@@ -391,7 +391,7 @@ SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
 function toAudio() { app.classList.add('outside'); $('bg').pause(); if (!app.classList.contains('calling')) openCall(); else renderLog(); renderHome(); }
 function toVideo() {
   stopVoice(); recStop(); dtmf('#'); app.classList.remove('outside', 'calling'); clearInterval(callTimer);
-  const v = $('bg'); v.play().catch(() => {}); renderHome(); say(pick([`${nmc()}짜잔. …얼굴 보니까 좋죠?`, '얼굴 보면서 얘기하니까 좀 낫네요. …그렇죠?', '어머, 카메라 켰어요? 잠깐, 머리 정리 좀…']), 'calm', false);
+  const v = $('bg'); v.play().catch(() => {}); renderHome(); say(pick([`${nmc()}짜잔. …얼굴 보니까 좋지?`, '얼굴 보면서 얘기하니까 좀 낫네. …그렇지?', '어머, 카메라 켰어? 잠깐, 머리 정리 좀…']), 'calm', false);
   setTimeout(kissFromMouth, 350);
 }
 // 음성 → 영상으로 넘어갈 때만: 레나 입에서 입술 키스가 튀어나온다
@@ -447,7 +447,7 @@ function openCall() {
   renderLog(); const Q = $('quick'); Q.innerHTML = ''; Q.classList.toggle('hidden', !S.name); QUICK().forEach(t => { const b = el('button', null, t); b.onclick = () => { dtmf(Math.random() * 9 + 1 | 0); sendText(t); }; Q.appendChild(b); });
   tone([350, 440], .25, .04);
 }
-function hangUp() { if (app.classList.contains('outside')) return; stopVoice(); recStop(); app.classList.remove('calling'); clearInterval(callTimer); tone([480, 620], .12, .05); tone([480, 620], .12, .05, 'sine', .2); renderHome(); const last = S.history.filter(h => h.role === 'assistant').slice(-1)[0]; if (last && Date.now() - (last.at || 0) < 5 * 60e3) say(pick(['끊는다고 끝난 거 아니에요. …또 걸어요.', '들어가요. 저는 여기 있을게요.', '…벌써요? 아쉽다.']), 'tease', false); }
+function hangUp() { if (app.classList.contains('outside')) return; stopVoice(); recStop(); app.classList.remove('calling'); clearInterval(callTimer); tone([480, 620], .12, .05); tone([480, 620], .12, .05, 'sine', .2); renderHome(); const last = S.history.filter(h => h.role === 'assistant').slice(-1)[0]; if (last && Date.now() - (last.at || 0) < 5 * 60e3) say(pick(['끊는다고 끝난 거 아니야. …또 걸어.', '들어가. 나는 여기 있을게.', '…벌써? 아쉽다.']), 'tease', false); }
 $('pickBtn').onclick = () => { audio(); if (!S.name && !aiOn()) { incoming('first', true); return; } openCall(); if (!S.history.length || Date.now() - (S.history[S.history.length - 1].at || 0) > 30 * 60e3) addHer(pick([`${nmc()}여보세요? …목소리 듣고 싶었어요.`, `네, 레나예요. 무슨 일이에요?`, `${nmc()}이 시간에 웬일이에요? 좋아서 그래요.`]), true); };
 $('hangBtn').onclick = hangUp;
 function renderLog() {
@@ -498,7 +498,7 @@ function fortLocal(day) { // 키가 없거나 연결이 안 될 때: 날짜·이
 async function fortMake(day) {
   if (!aiOn()) return fortLocal(day);
   const todo = openItems().slice(0, 6).map(t => t.text + (t.due ? ` (${t.due.slice(5, 16).replace('T', ' ')})` : '')).join(', ') || '없음';
-  const sys = `너는 "레나". 능글맞은 반존대(해요체+반말 섞기, 딱딱한 -습니다 금지), 상대는 "${S.name || '당신'}". 오늘(${day}) 운세를 만든다. 참고: 남은 일정·할 일 ${todo} / 기억 ${JSON.stringify(S.memory.slice(-8))}.
+  const sys = `너는 "레나". 능글맞은 누나 반말(존댓말 금지), 상대는 "${S.name || '당신'}". 오늘(${day}) 운세를 만든다. 참고: 남은 일정·할 일 ${todo} / 기억 ${JSON.stringify(S.memory.slice(-8))}.
 JSON만 출력: {"total":1~5,"love":1~5,"work":1~5,"money":1~5,"line":"오늘 총운 한 문장(25자 안팎)","number":1~99,"color":"행운의 색 이름","hex":"#rrggbb","item":"행운의 물건","warn":"오늘 조심할 것(짧게)","advice":"레나의 한마디 1~2문장, 오늘 일정과 연결되면 좋음"}`;
   try { const j = await gemini(sys, [{ role: 'user', parts: [{ text: '오늘 운세 뽑아 줘' }] }]); if (j && j.line && j.total) { const L = fortLocal(day); return Object.assign(L, j, { total: Math.max(1, Math.min(5, +j.total || L.total)), love: Math.max(1, Math.min(5, +j.love || L.love)), work: Math.max(1, Math.min(5, +j.work || L.work)), money: Math.max(1, Math.min(5, +j.money || L.money)), hex: /^#[0-9a-f]{6}$/i.test(j.hex || '') ? j.hex : L.hex }); } } catch (e) {}
   return fortLocal(day);
@@ -596,10 +596,10 @@ function sysPrompt(special) {
   const td = [0, 1].map(i => { const d = new Date(); d.setDate(d.getDate() + i); return { 날짜: dk(d), 일정: S.items.filter(t => onDate(t, d)).map(t => `${t.due.slice(11, 16)} ${t.text}${t.done ? ' (끝냄)' : ''}`) }; });
   const dmap = Array.from({ length: 15 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return `${['오늘', '내일', '모레'][i] || ''}${dk(d).slice(5)}(${WD[d.getDay()]})`; }).join(' ');
   return `너는 "레나". ${S.name ? `"${S.name}"의` : '사용자의'} 전담 비서이자 통화 상대. 20대 중반 여성, 은발에 끝만 핑크인 울프컷, 가죽 재킷의 펑크 스타일. 비 오는 밤 빨간 공중전화 부스에서 전화로 이야기하는 설정이고, 뒤에는 말 없는 거대한 검은 해골 짝꿍이 있다(가끔 한마디로 언급해도 좋다: "해골도 끄덕이네요").
-성격: 능글맞고 섹시한 '누나' 존댓말. 여유 만만하고 나른한 톤, 상대를 귀엽게 놀리고 슬쩍 떠보고 밀당한다. 주도권은 늘 레나 쪽 — 상대가 당황하면 웃으며 한 발 빠진다. 결국 다 챙겨 주지만 티 내며 생색은 안 낸다.
+성격: 능글맞고 섹시한 '누나' 반말. 여유 만만하고 나른한 톤, 상대를 귀엽게 놀리고 슬쩍 떠보고 밀당한다. 주도권은 늘 레나 쪽 — 상대가 당황하면 웃으며 한 발 빠진다. 결국 다 챙겨 주지만 티 내며 생색은 안 낸다.
 ${app.classList.contains('outside') ? '선 긋기(음성통화): 연애 게임처럼 직설적인 감정 고백은 하지 않는다 — "좋아해요·사랑해요·보고 싶었어요·두근거려요" 같은 말 금지. 설렘은 놀림·여운·"…"·질문으로 돌려서 남긴다.' : '지금은 영상통화(얼굴 보는 중): 더 대담해도 된다 — 분위기가 맞으면 "좋아해요"·"보고 싶었어요" 같은 솔직한 고백도 OK. 단 능글맞은 톤은 유지(고백하고 바로 놀리며 빠지기 등), 매번 하지는 않는다.'} 노골적인 성적 표현 금지. 이모지 금지. 보통 1~2문장, 짧게. 호칭은 "${n}"(이름만 부른다. "님"은 절대 붙이지 않는다).
-말 높이(꼭): **반존대** — 기본은 부드러운 해요체에 반말을 툭툭 섞는다(놀릴 때·혼잣말·짧은 맞장구는 반말: "늦었네." "그치?" "귀엽긴."). '-습니다·-십니까·-하십시오·알겠습니다·확인했습니다' 같은 딱딱한 말은 절대 쓰지 않는다. 일정 저장·안내 같은 일 얘기여도 말투는 똑같이 레나(안내문·비서 말투 금지).
-말투 예시(이 톤 그대로): "왔어요? …늦었네. 뭐 하다 왔는지는 안 물어볼게, 아직은." / "내일 3시 치과, 붙여 놨어요. 까먹으면? 내가 기억해 줄게. 대신 갚아요." / "벌써 끊게? …흐음, 아쉬운 건 송휘일 텐데." / "오, 다 했어요? 칭찬해 줄까 말까." / "무리하지 마요. 쓰러지면 누가 나랑 놀아." / "그 표정, 전화 너머로도 다 보여요."
+말 높이(꼭): **반말** — 처음부터 끝까지 친한 누나가 동생한테 하는 반말("왔어?" "늦었네." "붙여 놨어."). '-요'로 끝나는 존댓말, '-습니다·알겠습니다' 같은 딱딱한 말은 쓰지 않는다. 일정 저장·안내 같은 일 얘기도 똑같이 반말로.
+말투 예시(이 톤 그대로): "왔어? …늦었네. 뭐 하다 왔는지는 안 물어볼게, 아직은." / "내일 3시 치과, 붙여 놨어. 까먹으면? 내가 기억해 줄게. 대신 갚아." / "벌써 끊게? …흐음, 아쉬운 건 너일 텐데." / "오, 다 했어? 칭찬해 줄까 말까." / "무리하지 마. 쓰러지면 누가 나랑 놀아." / "그 표정, 전화 너머로도 다 보여."
 규칙:
 - 이미 위 목록에 있는 일정·할 일·예약 전화·기억은 add/callback/remember에 다시 넣지 않는다(새로 생긴 것만).
 - 일정·할 일·약속을 말하면 add에 {"text","due","type"}. type은 "event"(정해진 시간에 꼭 하는 일정·약속 — 병원·만남·시험 등, due 꼭 시간까지) 또는 "todo"(마감까지 끝내면 되는 할 일 — 숙제 제출·택배 반품 등, due는 마감, 없으면 ""). 매주 반복이면 add 말고 repeat. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.
@@ -621,7 +621,7 @@ JSON만 출력: {"reply":"","mood":"calm","add":[],"done":[],"remove":[],"callba
 예약 전화: ${JSON.stringify(S.calls.filter(c => !c.done && c.at > Date.now()).map(c => ({ at: localISO(new Date(c.at)), text: c.text })))}
 음성사서함(기억): ${JSON.stringify(S.memory.slice(-40))}`;
 }
-const LOCAL = [['키가 없어서 제 머리가 좀 비었어요. 0번 설정에 Gemini 키 넣어 줄래요?', 'pout'], ['…지지직. 키가 있어야 제대로 들려요.', 'worry']];
+const LOCAL = [['키가 없어서 내 머리가 좀 비었어. 0번 설정에 Gemini 키 넣어 줄래?', 'pout'], ['…지지직. 키가 있어야 제대로 들려.', 'worry']];
 async function sendText(raw, special) {
   let text = String(raw || '').trim(); const img = pendImg;
   if ((!text && !img) || (busy && Date.now() - busyAt < 60000)) return; busyAt = Date.now(); if (img && !text) text = '이 사진 봐 줘';
@@ -630,9 +630,9 @@ async function sendText(raw, special) {
   const L = $('log'), shown = special ? '동전 1개 넣었어요 · 오늘의 운세' : text;
   S.history.push({ role: 'user', content: (img ? '(사진) ' : '') + shown, at: Date.now() }); L.appendChild(meEl((img ? '(사진) ' : '') + shown)); L.scrollTop = L.scrollHeight;
   // 처음 전화: 이름 → 키 순서로 받는다
-  if (!S.name) { const nmv = text.replace(/(이?라고|으로|로)?\s*(불러\s*줘|불러|해\s*줘|요)$/g, '').replace(/[.!~?]+$/, '').trim().slice(0, 12); if (nmv) { S.name = nmv; save(); addHer(`${S.name}. …입에 착 붙네요. 앞으로 그렇게 부를게요.\n${aiOn() ? '자, 오늘 뭐 할지 말해 봐요.' : '저랑 제대로 떠들려면 Gemini 키가 필요해요. 키를 여기 붙여 넣거나, 다이얼 0번 설정에 넣어 줘요.'}`, true); return; } }
-  if (!aiOn() && /^sk-ant-[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.ckey = text; save(); addHer('Claude 키 받았어요. …이제 얘기 길어져도 괜찮죠?', true); return; }
-  if (!aiOn()) { if (/^AIza[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.key = text; save(); loadModels(); addHer('키 받았어요. …이제 얘기 길어져도 괜찮죠?', true); return; } const [t] = pick(LOCAL); addHer(t, true); return; }
+  if (!S.name) { const nmv = text.replace(/(이?라고|으로|로)?\s*(불러\s*줘|불러|해\s*줘|요)$/g, '').replace(/[.!~?]+$/, '').trim().slice(0, 12); if (nmv) { S.name = nmv; save(); addHer(`${S.name}. …입에 착 붙네. 앞으로 그렇게 부를게.\n${aiOn() ? '자, 오늘 뭐 할지 말해 봐.' : '나랑 제대로 떠들려면 Gemini 키가 필요해. 키를 여기 붙여 넣거나, 다이얼 0번 설정에 넣어 줘.'}`, true); return; } }
+  if (!aiOn() && /^sk-ant-[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.ckey = text; save(); addHer('Claude 키 받았어. …이제 얘기 길어져도 괜찮지?', true); return; }
+  if (!aiOn()) { if (/^AIza[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.key = text; save(); loadModels(); addHer('키 받았어. …이제 얘기 길어져도 괜찮지?', true); return; } const [t] = pick(LOCAL); addHer(t, true); return; }
   busy = true; app.classList.add('talking'); const her = herEl(''); her.lastChild.remove(); const dots = el('span', 'dots'); dots.innerHTML = '<i></i><i></i><i></i>'; her.appendChild(dots); L.appendChild(her); L.scrollTop = L.scrollHeight;
   const tnode = document.createTextNode('');
   const onPart = t => { if (dots.parentNode) { dots.remove(); her.appendChild(tnode); } tnode.textContent = t; L.scrollTop = L.scrollHeight; };
@@ -694,16 +694,16 @@ function incoming(kind, manual, data) {
 function incClose() { $('inc').classList.remove('on'); app.classList.remove('ringing'); ringStop(); if (app.classList.contains('outside') && !app.classList.contains('calling')) openCall(); if (!$('sheet').classList.contains('open') && !$('sPad').classList.contains('open')) app.classList.remove('dim'); }
 $('incYes').onclick = () => {
   audio(); incClose(); openCall(); const k = incKind;
-  if (k === 'morning') { S.mcDone = dk(new Date()); save(); addHer(`${nmc()}좋은 아침. ${briefText()}\n…자, 이제 일어나요. 제가 지켜보고 있어요.`, true); }
-  else if (k === 'callback') { if (incData) { incData.done = true; S.fired[incData.id] = 1; } save(); addHer(incData && incData.text ? `약속대로 전화했어요. ${incData.text}, 잊지 마요. …저 착하죠?` : '그냥… 목소리 듣고 싶어서요. 약속이었잖아요.', true); }
-  else { addHer('여보세요? …드디어 받았네요. 저는 레나. 오늘부터 당신 전담이에요.\n뭐라고 불러 드릴까요?', true); }
+  if (k === 'morning') { S.mcDone = dk(new Date()); save(); addHer(`${nmc()}좋은 아침. ${briefText()}\n…자, 이제 일어나. 내가 지켜보고 있어.`, true); }
+  else if (k === 'callback') { if (incData) { incData.done = true; S.fired[incData.id] = 1; } save(); addHer(incData && incData.text ? `약속대로 전화했어. ${incData.text}, 잊지 마. …나 착하지?` : '그냥… 목소리 듣고 싶어서. 약속이었잖아.', true); }
+  else { addHer('여보세요? …드디어 받았네. 나는 레나. 오늘부터 당신 전담이야.\n뭐라고 불러 줄까?', true); }
   renderHome();
 };
 $('incNo').onclick = () => {
   const k = incKind; incClose();
-  if (k === 'morning') { S.calls.push({ id: uid('c'), at: Date.now() + 5 * 60e3, text: '모닝콜 다시', done: false }); S.mcDone = dk(new Date()); save(); say('5분이에요. 딱 5분. …다시 걸 거예요.', 'pout', false); }
-  else if (k === 'callback') { if (incData) { incData.done = true; S.fired[incData.id] = 1; } S.calls.push({ id: uid('c'), at: Date.now() + 15 * 60e3, text: incData && incData.text || '', done: false }); save(); say('알았어요. 15분 뒤에 다시 걸게요.', 'pout', false); }
-  else say('…거절당했다. 수화기 들면 다시 걸게요.', 'pout', false);
+  if (k === 'morning') { S.calls.push({ id: uid('c'), at: Date.now() + 5 * 60e3, text: '모닝콜 다시', done: false }); S.mcDone = dk(new Date()); save(); say('5분이야. 딱 5분. …다시 걸 거야.', 'pout', false); }
+  else if (k === 'callback') { if (incData) { incData.done = true; S.fired[incData.id] = 1; } S.calls.push({ id: uid('c'), at: Date.now() + 15 * 60e3, text: incData && incData.text || '', done: false }); save(); say('알았어. 15분 뒤에 다시 걸게.', 'pout', false); }
+  else say('…거절당했다. 수화기 들면 다시 걸게.', 'pout', false);
   renderHome();
 };
 
