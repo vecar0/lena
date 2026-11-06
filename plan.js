@@ -60,7 +60,7 @@ const _br = boardRender; boardRender = function (B) {
     return;
   }
   boardTabs(B);
-  // v77: 이번 주(월~일) 한 장에 — 고정(매주) · 한 번만(일정) · 공부(과목 색) · 노는 시간
+  // v77: 이번 주(월~일) 한 장에 — 고정(매주) · 한 번만(일정) · 공부(과목 색) · 휴식 시간
   const R = (S.reps || []).slice(), LS = window.lenaStudy, SUBJ = /국어|영어|수학|사회|과학|한국사|역사|물리|화학|생명|지구|도덕|기술|가정|음악|미술|체육|정보|일본어|중국어/;
   const colF = t => { const m = String(t || '').match(SUBJ); return m && LS && LS.colOf ? LS.colOf(m[0]) : '#d6dbe0'; };
   const now0 = new Date(), mon = new Date(now0); mon.setHours(0, 0, 0, 0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
@@ -68,10 +68,10 @@ const _br = boardRender; boardRender = function (B) {
   const ev = {}; dates.forEach(x => { ev[dk(x)] = []; });
   dates.forEach((x, i) => { const d = order[i], k = dk(x); R.filter(r => (!r.days.length || r.days.includes(d)) && !(S.repSkip || {})[r.id + '_' + k]).forEach(r => ev[k].push({ s: toM(r.time), e: toM(repEnd(r)), t: r.text, k: 'fix', r, c: colF(r.text) })); });
   S.items.forEach(t => { if (t.done || t.rid || !t.due || !ev[t.due.slice(0, 10)]) return; const s = toM(t.due.slice(11, 16)); if (!s && t.due.slice(11, 16) !== '00:00') return; ev[t.due.slice(0, 10)].push({ s, e: s + (t.mins || 60), t: t.text, k: 'one', c: colF(t.text) }); });
-  try { const P = LS && LS.plan(); (P ? P.days : []).forEach(D => { if (!ev[D.k]) return; D.blocks.forEach(b => ev[D.k].push({ s: b.s, e: b.e, t: `${b.sub} 공부`, k: 'study', c: LS.colOf(b.sub), sub: b.sub })); if (D.play) ev[D.k].push({ s: D.play.s, e: D.play.e, t: '노는 시간', k: 'play' }); }); } catch (e) {}
+  try { const P = LS && LS.plan(); (P ? P.days : []).forEach(D => { if (!ev[D.k]) return; D.blocks.forEach(b => ev[D.k].push({ s: b.s, e: b.e, t: `${b.sub} 공부`, k: 'study', c: LS.colOf(b.sub), sub: b.sub })); if (D.play) ev[D.k].push({ s: D.play.s, e: D.play.e, t: '휴식 시간', k: 'play' }); }); } catch (e) {}
   const all = Object.values(ev).flat(), lo = Math.min(9, ...all.map(x => Math.floor(x.s / 60))), hi = Math.max(18, ...all.map(x => Math.ceil(x.e / 60)));
   const PX = 34, H = (hi - lo) * PX, tdw = now0.getDay();
-  const LG = el('div', 'ttlg'); [['fix', '고정(매주)'], ['one', '한 번만'], ['study', '공부(과목 색)'], ['play', '노는 시간']].forEach(([k, l]) => { const s = el('span', null, l); s.prepend(el('i', k)); LG.appendChild(s); }); B.appendChild(LG);
+  const LG = el('div', 'ttlg'); [['fix', '고정(매주)'], ['one', '한 번만'], ['study', '공부(과목 색)'], ['play', '휴식 시간']].forEach(([k, l]) => { const s = el('span', null, l); s.prepend(el('i', k)); LG.appendChild(s); }); B.appendChild(LG);
   const G = el('div', 'tt');
   G.appendChild(el('div', 'hd')); dates.forEach((x, i) => { const h = el('div', 'hd' + (order[i] === tdw ? ' td' : '')); h.append(WD[order[i]], el('small', null, `${x.getMonth() + 1}/${x.getDate()}`)); G.appendChild(h); });
   const ax = el('div', 'ax'); ax.style.height = H + 'px'; for (let h = lo; h <= hi; h++) { const s = el('span', null, String(h)); s.style.top = ((h - lo) * PX) + 'px'; if (h > lo && h < hi) ax.appendChild(s); } G.appendChild(ax);
