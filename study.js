@@ -179,11 +179,14 @@ function busyOn(d) {
   (S.reps || []).forEach(r => { if (r.days.length && !r.days.includes(wd)) return; if ((S.repSkip || {})[r.id + '_' + k]) return; L.push([toM(r.time), toM(r.end || toT(toM(r.time) + 60)), r.text]); });
   return L.sort((a, b) => a[0] - b[0]);
 }
+const ACAD = /학원|클리닉|과외|수업/;
 function freeIv(d, isToday) {
   const P = ST().pref, we = d.getDay() === 0 || d.getDay() === 6; let s = toM(we ? P.weS : P.wdS); const e = toM(P.end);
   if (isToday) { const n = new Date(); s = Math.max(s, Math.ceil((n.getHours() * 60 + n.getMinutes() + 5) / 5) * 5); }
   const out = []; let cur = s;
-  for (const [bs, be] of busyOn(d)) { if (be + 10 <= cur) continue; if (bs - 10 > cur) out.push([cur, Math.min(e, bs - 10)]); cur = Math.max(cur, be + 10); if (cur >= e) break; }
+  const eve = ST().exams.some(x => dkey(dAdd(pDate(x.date), -1)) === dkey(d)), wd5 = !eve && d.getDay() >= 1 && d.getDay() <= 5; // v77: 평일엔 학원 끝나고 2시간쯤 쉬고 시작(되도록, 시험 전날은 빼고)
+  if (wd5) { const ae = Math.max(0, ...busyOn(d).filter(x => ACAD.test(x[2] || '')).map(x => x[1])); if (ae && e - (ae + (P.acadGap || 120)) >= 50) cur = Math.max(cur, ae + (P.acadGap || 120)); }
+  for (const [bs, be, tx] of busyOn(d)) { if (be + 10 <= cur) continue; if (bs - 10 > cur) out.push([cur, Math.min(e, bs - 10)]); let gap = 10; if (wd5 && ACAD.test(tx || '')) { gap = P.acadGap || 120; if (e - (be + gap) < 50) gap = 30; } cur = Math.max(cur, be + gap); if (cur >= e) break; }
   if (cur < e) out.push([cur, e]);
   return out.filter(([a, b]) => b - a >= 25);
 }
@@ -204,7 +207,7 @@ function tasks() {
 function simulate(nDays, capMode) {
   const st = ST(), P = st.pref, T = tasks().map(t => ({ ...t })), days = [], today = new Date(); today.setHours(0, 0, 0, 0);
   const fm = new Map(), freeMin = x => { const kk = dkey(x); if (!fm.has(kk)) fm.set(kk, freeIv(x, false).reduce((a, [p1, p2]) => a + p2 - p1, 0)); return fm.get(kk); };
-  const eveSet = new Set(st.exams.map(e => dkey(dAdd(pDate(e.date), -1)))), playOf = x => eveSet.has(dkey(x)) ? 0 : (x.getDay() === 0 || x.getDay() === 6) ? (P.wePlay || 0) : (P.wdPlay || 0); /* 시험 전날은 노는 시간 없이 필승노트 */ const dmax = x => { const we = x.getDay() === 0 || x.getDay() === 6, u = we ? P.weMax : P.wdMax, room = Math.max(0, freeMin(x) - playOf(x)); return Math.min(room, u || Math.min(AUTO_CAP[we ? 1 : 0], Math.floor(room * .85 / 10) * 10)); };
+  const eveSet = new Set(st.exams.map(e => dkey(dAdd(pDate(e.date), -1)))), acadEnd = x => (x.getDay() >= 1 && x.getDay() <= 5 && !eveSet.has(dkey(x))) ? Math.max(0, ...busyOn(x).filter(y => ACAD.test(y[2] || '')).map(y => y[1])) : 0, playOf = x => eveSet.has(dkey(x)) || acadEnd(x) ? 0 : (x.getDay() === 0 || x.getDay() === 6) ? (P.wePlay || 0) : (P.wdPlay || 0); /* 시험 전날은 노는 시간 없이 필승노트 */ const dmax = x => { const we = x.getDay() === 0 || x.getDay() === 6, u = we ? P.weMax : P.wdMax, room = Math.max(0, freeMin(x) - playOf(x)); return Math.min(room, u || Math.min(AUTO_CAP[we ? 1 : 0], Math.floor(room * .85 / 10) * 10)); };
   const kr = keepRate(), habit = we => Math.round((we ? 120 : 90) * (kr == null ? 1 : Math.max(.6, kr + .15)) / 10) * 10, adj = st.adj && st.adj.d === dkey(today) ? st.adj.mul : 1, focus = P.focus && P.focus.until >= dkey(today) ? P.focus.sub : '';
   for (let di = 0; di < nDays; di++) {
     const d = dAdd(today, di), k = dkey(d), we = d.getDay() === 0 || d.getDay() === 6;
@@ -247,7 +250,7 @@ function simulate(nDays, capMode) {
       }
     }
     // 노는 시간: 공부 블록 사이 빈 곳 중 가장 늦은 곳에 넣는다
-    let play = null; const pl = playOf(d); if (pl >= 20) { const gaps = []; for (const [a, b] of freeIv(d, di === 0)) { let c0 = a; blocks.filter(x => x.s >= a && x.e <= b).sort((x, y) => x.s - y.s).forEach(x => { if (x.s - 10 - c0 >= 20) gaps.push([c0, x.s - 10]); c0 = x.e + 10; }); if (b - c0 >= 20) gaps.push([c0, b]); } const g = gaps.sort((x, y) => (y[1] - y[0] >= pl) - (x[1] - x[0] >= pl) || y[0] - x[0])[0]; if (g) play = { s: g[0], e: Math.min(g[1], g[0] + pl) }; }
+    let play = null; const ae = acadEnd(d), pl = playOf(d); if (ae) { const fs = (freeIv(d, di === 0)[0] || [0])[0]; if (fs - ae >= 60) play = { s: ae + 10, e: fs - 10, rest: 1 }; } /* 학원 끝나고 쉬는 시간 = 노는 시간 */ if (pl >= 20) { const gaps = []; for (const [a, b] of freeIv(d, di === 0)) { let c0 = a; blocks.filter(x => x.s >= a && x.e <= b).sort((x, y) => x.s - y.s).forEach(x => { if (x.s - 10 - c0 >= 20) gaps.push([c0, x.s - 10]); c0 = x.e + 10; }); if (b - c0 >= 20) gaps.push([c0, b]); } const g = gaps.sort((x, y) => (y[1] - y[0] >= pl) - (x[1] - x[0] >= pl) || y[0] - x[0])[0]; if (g) play = { s: g[0], e: Math.min(g[1], g[0] + pl) }; }
     days.push({ k, blocks, play, mins: blocks.reduce((a, b) => a + (b.e - b.s), 0) });
   }
   const left = T.filter(t => t.rem > 0 && t.due), late = [];
@@ -311,7 +314,7 @@ const _br = boardRender; boardRender = function (B) {
 
 // ---------- 2 캘린더 · 3 시간표 (따로 번호) ----------
 SH.cal = { t: '캘린더', s: () => '시험·숙제·학원·일정·공부량을 한눈에', r: B => { boardTab = 'cal'; renderCal(B); } };
-SH.tt = { t: '시간표', s: () => `매주 반복 ${(S.reps || []).length}개 · 이 시간은 피해서 짜요`, r: B => { boardTab = 'tt'; _br(B); } };
+SH.tt = { t: '시간표', s: () => '이번 주 — 고정·한 번만·공부를 한 장에', r: B => { boardTab = 'tt'; _br(B); } };
 const _ob = openBoard; openBoard = function (tab) { if (tab === 'cal' || tab === 'week') return openSheet('cal'); if (tab === 'tt') return openSheet('tt'); if (tab === 'study') return openSheet(6); _ob(tab); };
 
 // 달력 칸이 좁아서 시험 이름은 짧게(중간·기말·수행…), 전체 이름은 아래 그날 목록에
@@ -504,22 +507,23 @@ function stMat(B) {
   if (ST().mats.length && !formOpen) B.appendChild(el('div', 'hint', '누르면 단원이 펼쳐져요. 끝낸 단원을 누르면 체크돼요.'));
   if (!ST().mats.length && !formOpen) B.appendChild(el('div', 'hint', '문제집·교과서·학원 숙제를 넣으면 진도에 맞춰 나눠 넣어요.'));
   if (!formOpen) { B.appendChild(row(btn('+ 교재·숙제 넣기', 'teal wide', () => { formOpen = true; refreshSheet(); }))); return; }
-  const f = el('div', 'card frm'); let kind = 'book', sb = '', days = [];
+  const f = el('div', 'card frm'); let kind = 'book', sb = '', days = [], other = false;
   const sbIn = inp('text', '과목 직접 쓰기'), tt = inp('text', ''), mn = inp('number', '분', '60'), du = inp('date', '', '');
   const kinds = el('div'), sp = el('div', 'pills'), box = el('div', 'frm');
   const draw = () => {
     kinds.innerHTML = ''; kinds.appendChild(pills([['book', '문제집'], ['hw', '학원 숙제'], ['perf', '수행평가']], kind, v => { kind = v; mn.value = v === 'book' ? '60' : '40'; draw(); }));
-    sp.innerHTML = ''; [...new Set([...subs(), ...SUBP])].forEach(x => { const b = el('button', sb === x ? 'on' : '', x); b.onclick = () => { sb = x; sbIn.value = ''; draw(); }; sp.appendChild(b); });
-    box.innerHTML = '';
-    if (kind === 'book') { tt.placeholder = '문제집 이름 (예: 쎈 수학)'; box.append(row(el('span', 'hint', '단원 하나 대충'), mn, el('span', 'hint', '분')), el('div', 'hint', '단원은 안 넣어도 돼요. 시험 탭에서 범위(몇~몇 단원)를 넣으면 레나가 단원을 만들어 시험까지 나눠요.')); }
-    else if (kind === 'hw') { tt.placeholder = '숙제 (예: 단어 외우기)'; const W2 = el('div', 'pills'); [1, 2, 3, 4, 5, 6, 0].forEach(d => { const b = el('button', days.includes(d) ? 'on' : '', WD[d]); b.onclick = () => { days = days.includes(d) ? days.filter(x => x !== d) : [...days, d]; draw(); }; W2.appendChild(b); }); box.append(el('div', 'hint', '학원 가는 요일 (매주 반복, 숙제는 그 전날까지)'), W2, row(el('span', 'hint', '숙제 한 번에 대충'), mn, el('span', 'hint', '분'))); }
+    sp.innerHTML = ''; [...new Set([...subs(), ...SUBP])].filter(x => x !== '학원').forEach(x => { const b = el('button', sb === x ? 'on' : '', x); b.onclick = () => { sb = sb === x ? '' : x; other = false; sbIn.value = ''; draw(); }; sp.appendChild(b); }); const ob = el('button', other ? 'on' : '', '다른 과목'); ob.onclick = () => { other = !other; sb = ''; draw(); }; sp.appendChild(ob); sbIn.style.display = other ? '' : 'none';
+    box.innerHTML = ''; tt.style.display = kind === 'perf' ? 'none' : '';
+    if (kind === 'book') { tt.placeholder = '문제집 이름 (안 써도 돼요)'; box.append(row(el('span', 'hint', '단원 하나 대충'), mn, el('span', 'hint', '분')), el('div', 'hint', '단원은 안 넣어도 돼요. 시험 탭에서 범위(몇~몇 단원)를 넣으면 레나가 단원을 만들어 시험까지 나눠요.')); }
+    else if (kind === 'hw') { tt.placeholder = '숙제 이름 (예: 수학 클리닉 숙제)'; const W2 = el('div', 'pills'); [1, 2, 3, 4, 5, 6, 0].forEach(d => { const b = el('button', days.includes(d) ? 'on' : '', WD[d]); b.onclick = () => { days = days.includes(d) ? days.filter(x => x !== d) : [...days, d]; draw(); }; W2.appendChild(b); }); box.append(el('div', 'hint', '무슨 요일까지 해야 돼요? (매주 반복 — 그 요일 전날까지 끝내게 넣어요)'), W2); }
     else { tt.placeholder = '수행평가 (예: 국어 발표 준비)'; box.append(row(el('span', 'hint', '대충 걸리는 시간'), mn, el('span', 'hint', '분')), row(el('span', 'hint', '수행평가 날'), du)); }
   };
   f.append(kinds, sp, row(sbIn), row(tt), box, row(btn('취소', 'ghost', () => { formOpen = false; refreshSheet(); }), btn('넣기', 'teal wide', () => {
-    const x = sbIn.value.trim() || sb; if (!x || !tt.value.trim()) { toast('과목과 이름을 넣어 주세요.'); return; }
-    if (kind === 'hw' && !days.length) { toast('학원 가는 요일을 골라 주세요.'); return; }
+    const x = sbIn.value.trim() || sb || (kind === 'hw' ? '학원' : ''); if (!x) { toast('과목을 골라 주세요.'); return; } if (kind === 'hw' && !tt.value.trim()) { toast('숙제 이름을 넣어 주세요.'); return; }
+    const title = tt.value.trim() || (kind === 'perf' ? '수행평가' : '문제집');
+    if (kind === 'hw' && !days.length) { toast('무슨 요일까지 해야 하는지 골라 주세요.'); return; }
     if (kind === 'perf' && !du.value) { toast('수행평가 날짜를 넣어 주세요.'); return; }
-    const m = addMat({ sub: x, title: tt.value.trim(), kind, mins: +mn.value || (kind === 'book' ? 60 : 40), days: kind === 'hw' ? days : null, due: kind === 'perf' ? du.value : '' }); formOpen = false; dirty(); pushSync(true); refreshSheet(); toast(kind === 'book' ? `${m.title} 넣었어요. 시험 범위를 넣으면 나눠 줄게요.` : `${m.sub} · ${m.title} 넣었어요.`); })));
+    const m = addMat({ sub: x, title, kind, mins: kind === 'hw' ? 40 : +mn.value || 60, days: kind === 'hw' ? days : null, due: kind === 'perf' ? du.value : '' }); formOpen = false; dirty(); pushSync(true); refreshSheet(); toast(kind === 'book' ? `${m.title} 넣었어요. 시험 범위를 넣으면 나눠 줄게요.` : `${m.sub} · ${m.title} 넣었어요.`); })));
   draw(); B.appendChild(f);
 }
 
@@ -563,5 +567,5 @@ const _ap = apply; apply = function (r) {
   if (res) { res.querySelector('span').textContent += ' · ' + txt; return res; } return noteEl(txt);
 };
 try { dedupExams(); if (window.dedupItems && dedupItems()) save(); } catch (e) {}
-window.lenaStudy = { dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, plan: () => splan(), splan: () => { dirty(); return splan(); }, tasks, parseOutline, simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
+window.lenaStudy = { dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, colOf, plan: () => splan(), splan: () => { dirty(); return splan(); }, tasks, parseOutline, simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
 })();
