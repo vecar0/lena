@@ -63,7 +63,7 @@ const css = `
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 const today = () => dk(new Date());
 const toM = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
-const toT = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+const toT = m => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 const repEnd = r => r.end || toT(Math.min(24 * 60 - 1, toM(r.time) + 60));
 const durOf = t => { if (t.rid) { const r = (S.reps || []).find(x => x.id === t.rid); if (r) return toM(repEnd(r)) - toM(r.time); } return t.mins || 60; };
 const B0 = () => { if (!S.pro) S.pro = {}; if (S.pro.brief === undefined) S.pro.brief = true; return S.pro; };
@@ -95,7 +95,7 @@ const _br = boardRender; boardRender = function (B) {
   const LG = el('div', 'ttlg'); [['fix', '고정(매주)'], ['one', '일정'], ['dl', '할 일 마감'], ['study', '공부(과목 색)'], ['play', '휴식']].forEach(([k, l]) => { const s = el('span', null, l); s.prepend(el('i', k)); LG.appendChild(s); }); const PP = el('div', 'sheetp ttp'); PP.append(el('i', 'tape'), el('i', 'tape r'), LG); B.appendChild(PP);
   const G = el('div', 'tt');
   G.appendChild(el('div', 'hd')); dates.forEach((x, i) => { const h = el('div', 'hd' + (order[i] === tdw ? ' td' : '')); h.append(WD[order[i]], el('small', null, `${x.getMonth() + 1}/${x.getDate()}`)); G.appendChild(h); });
-  const ax = el('div', 'ax'); ax.style.height = H + 'px'; for (let h = lo; h <= hi; h++) { const s = el('span', null, String(h)); s.style.top = ((h - lo) * PX) + 'px'; if (h > lo && h < hi) ax.appendChild(s); } G.appendChild(ax);
+  const ax = el('div', 'ax'); ax.style.height = H + 'px'; for (let h = lo; h <= hi; h++) { const s = el('span', null, String(h % 24)); s.style.top = ((h - lo) * PX) + 'px'; if (h > lo && h < hi) ax.appendChild(s); } G.appendChild(ax);
   dates.forEach((x, i) => {
     const c = el('div', 'col'); c.style.height = H + 'px';
     for (let h = lo + 1; h < hi; h++) { const l = el('div', 'ln'); l.style.top = ((h - lo) * PX) + 'px'; c.appendChild(l); }
