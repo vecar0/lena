@@ -13,6 +13,13 @@ const css = `
 .tt .blk{position:absolute;left:2px;right:2px;border-radius:6px;padding:2px 3px;font-size:10.5px;font-weight:800;line-height:1.2;color:#111;overflow:hidden;word-break:keep-all;border:1.5px solid #000;text-align:left}
 .tt .blk small{display:block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;opacity:.7}
 .tt .now{position:absolute;left:0;right:0;border-top:2px solid var(--hot);z-index:2}
+.tt .hd{height:36px;line-height:1.05;text-align:center}.tt .hd small{display:block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;opacity:.7}
+.tt .blk.fix{background:var(--bc)}
+.tt .blk.one{background:#0b0d10;color:#fff;border:2px dashed var(--bc);z-index:1}
+.tt .blk.study{background:color-mix(in srgb,var(--bc) 55%,#0b0d10);color:#fff;border:1.5px solid var(--bc);border-left:4px solid var(--bc)}
+.tt .blk.play{background:repeating-linear-gradient(-45deg,rgba(47,224,200,.28) 0 6px,rgba(47,224,200,.08) 6px 12px);color:#9ff5e4;border:1px solid rgba(47,224,200,.5)}
+.ttlg{display:flex;flex-wrap:wrap;gap:6px 12px;margin:2px 2px 8px;font-size:11.5px;font-weight:700;color:#cfd8dc}.ttlg span{display:flex;align-items:center;gap:5px}.ttlg i{width:16px;height:11px;border-radius:3px}
+.ttlg i.fix{background:#ff8fc4;border:1.5px solid #000}.ttlg i.one{border:2px dashed #ff8fc4}.ttlg i.study{background:#7fecd9;border-left:4px solid #2fe0c8}.ttlg i.play{background:repeating-linear-gradient(-45deg,rgba(47,224,200,.5) 0 3px,transparent 3px 6px)}
 .brief{display:flex;flex-direction:column;gap:12px}
 .brief .bhead{display:flex;gap:12px;align-items:center}
 .brief .bhead i{flex:none;width:52px;height:52px;border-radius:50%;background:url(assets/lena/face.jpg) 50% 30%/cover;border:2px solid #000;box-shadow:3px 3px 0 var(--pink)}
@@ -53,22 +60,32 @@ const _br = boardRender; boardRender = function (B) {
     return;
   }
   boardTabs(B);
-  const R = (S.reps || []).slice();
-  const lo = Math.min(9, ...R.map(r => Math.floor(toM(r.time) / 60))), hi = Math.max(18, ...R.map(r => Math.ceil(toM(repEnd(r)) / 60)));
-  const PX = 34, H = (hi - lo) * PX, order = [1, 2, 3, 4, 5, 6, 0], tdw = new Date().getDay();
+  // v77: 이번 주(월~일) 한 장에 — 고정(매주) · 한 번만(일정) · 공부(과목 색) · 노는 시간
+  const R = (S.reps || []).slice(), LS = window.lenaStudy, SUBJ = /국어|영어|수학|사회|과학|한국사|역사|물리|화학|생명|지구|도덕|기술|가정|음악|미술|체육|정보|일본어|중국어/;
+  const colF = t => { const m = String(t || '').match(SUBJ); return m && LS && LS.colOf ? LS.colOf(m[0]) : '#d6dbe0'; };
+  const now0 = new Date(), mon = new Date(now0); mon.setHours(0, 0, 0, 0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+  const order = [1, 2, 3, 4, 5, 6, 0], dates = order.map((d, i) => { const x = new Date(mon); x.setDate(mon.getDate() + i); return x; });
+  const ev = {}; dates.forEach(x => { ev[dk(x)] = []; });
+  dates.forEach((x, i) => { const d = order[i], k = dk(x); R.filter(r => (!r.days.length || r.days.includes(d)) && !(S.repSkip || {})[r.id + '_' + k]).forEach(r => ev[k].push({ s: toM(r.time), e: toM(repEnd(r)), t: r.text, k: 'fix', r, c: colF(r.text) })); });
+  S.items.forEach(t => { if (t.done || t.rid || !t.due || !ev[t.due.slice(0, 10)]) return; const s = toM(t.due.slice(11, 16)); if (!s && t.due.slice(11, 16) !== '00:00') return; ev[t.due.slice(0, 10)].push({ s, e: s + (t.mins || 60), t: t.text, k: 'one', c: colF(t.text) }); });
+  try { const P = LS && LS.plan(); (P ? P.days : []).forEach(D => { if (!ev[D.k]) return; D.blocks.forEach(b => ev[D.k].push({ s: b.s, e: b.e, t: `${b.sub} 공부`, k: 'study', c: LS.colOf(b.sub), sub: b.sub })); if (D.play) ev[D.k].push({ s: D.play.s, e: D.play.e, t: '노는 시간', k: 'play' }); }); } catch (e) {}
+  const all = Object.values(ev).flat(), lo = Math.min(9, ...all.map(x => Math.floor(x.s / 60))), hi = Math.max(18, ...all.map(x => Math.ceil(x.e / 60)));
+  const PX = 34, H = (hi - lo) * PX, tdw = now0.getDay();
+  const LG = el('div', 'ttlg'); [['fix', '고정(매주)'], ['one', '한 번만'], ['study', '공부(과목 색)'], ['play', '노는 시간']].forEach(([k, l]) => { const s = el('span', null, l); s.prepend(el('i', k)); LG.appendChild(s); }); B.appendChild(LG);
   const G = el('div', 'tt');
-  G.appendChild(el('div', 'hd')); order.forEach(d => G.appendChild(el('div', 'hd' + (d === tdw ? ' td' : ''), WD[d])));
+  G.appendChild(el('div', 'hd')); dates.forEach((x, i) => { const h = el('div', 'hd' + (order[i] === tdw ? ' td' : '')); h.append(WD[order[i]], el('small', null, `${x.getMonth() + 1}/${x.getDate()}`)); G.appendChild(h); });
   const ax = el('div', 'ax'); ax.style.height = H + 'px'; for (let h = lo; h <= hi; h++) { const s = el('span', null, String(h)); s.style.top = ((h - lo) * PX) + 'px'; if (h > lo && h < hi) ax.appendChild(s); } G.appendChild(ax);
-  const cols = ['#ff8fc4', '#7fecd9', '#f2ea3a', '#b89cff', '#ffb27a', '#9ff5e4'];
-  order.forEach(d => {
+  dates.forEach((x, i) => {
     const c = el('div', 'col'); c.style.height = H + 'px';
     for (let h = lo + 1; h < hi; h++) { const l = el('div', 'ln'); l.style.top = ((h - lo) * PX) + 'px'; c.appendChild(l); }
-    R.filter(r => !r.days.length || r.days.includes(d)).forEach(r => {
-      const s = toM(r.time), e = toM(repEnd(r)), b = el('button', 'blk'); b.style.top = ((s - lo * 60) / 60 * PX) + 'px'; b.style.height = Math.max(18, (e - s) / 60 * PX - 2) + 'px';
-      b.style.background = cols[S.reps.indexOf(r) % cols.length]; b.append(document.createTextNode(r.text), el('small', null, r.time));
-      if (ttEd === r) b.style.outline = '3px solid #fff'; b.onclick = () => { ttEd = ttEd === r ? null : r; refreshSheet(); };
+    ev[dk(x)].sort((a, b) => a.s - b.s).forEach(o => {
+      const b = el('button', 'blk ' + o.k); b.style.top = ((o.s - lo * 60) / 60 * PX) + 'px'; b.style.height = Math.max(16, (o.e - o.s) / 60 * PX - 2) + 'px';
+      if (o.k !== 'play') b.style.setProperty('--bc', o.c); b.append(document.createTextNode(o.t), el('small', null, toT(o.s)));
+      if (o.k === 'fix') { if (ttEd === o.r) b.style.outline = '3px solid #fff'; b.onclick = () => { ttEd = ttEd === o.r ? null : o.r; refreshSheet(); }; }
+      else if (o.k === 'study' || o.k === 'play') b.onclick = () => openSheet(6);
+      else b.onclick = () => toast(`${o.t} — 한 번만 있는 일정(전단지)이에요.`);
       c.appendChild(b); });
-    if (d === tdw) { const n = new Date(), m = n.getHours() * 60 + n.getMinutes(); if (m > lo * 60 && m < hi * 60) { const l = el('div', 'now'); l.style.top = ((m - lo * 60) / 60 * PX) + 'px'; c.appendChild(l); } }
+    if (order[i] === tdw) { const m = now0.getHours() * 60 + now0.getMinutes(); if (m > lo * 60 && m < hi * 60) { const l = el('div', 'now'); l.style.top = ((m - lo * 60) / 60 * PX) + 'px'; c.appendChild(l); } }
     G.appendChild(c); });
   B.appendChild(G);
   if (!R.length) B.appendChild(el('div', 'hint', '아직 비어 있어요. 학원·수업·운동처럼 매주 정해진 걸 넣으면, 레나가 그 시간은 피해서 하루를 짜 줘요.'));
