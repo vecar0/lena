@@ -155,6 +155,12 @@ function renderHome() {
     if (todo.length > 3) f.appendChild(el('u', null, `+${todo.length - 3}개 더`));
     f.onclick = () => openBoard('all'); F.appendChild(f);
   }
+  // v87: 음성통화 화면 이름 아래 오늘 요약 칩(다음 일정·할 일·날씨·공부)
+  { const A = $('aInfo'); if (A) { A.innerHTML = ''; const chip = (c, t, f) => { const b = el('button', c, t); b.onclick = f; A.appendChild(b); };
+    if (nx) chip('ev', `${when(nx.due).replace(/^오늘 /, '')} ${nx.text}`, () => openBoard('today'));
+    if (todo.length) chip('td', `할 일 ${todo.length}`, () => openBoard('all'));
+    try { const w = S.wx, dd = w && w.on && w.data && (w.data.days || []).find(x => x.d === dk(now)); if (dd) chip('wx', `${dd.pop >= 40 ? '비 ' : ''}${Math.round(dd.min)}~${Math.round(dd.max)}°`, () => openSheet(0)); } catch (e) {}
+    try { const P = window.lenaStudy && lenaStudy.plan(), D = P && P.days[0]; if (D && D.mins) chip('st', `공부 ${D.mins >= 60 ? Math.floor(D.mins / 60) + '시간' + (D.mins % 60 ? ' ' + D.mins % 60 + '분' : '') : D.mins + '분'}`, () => openSheet(6)); } catch (e) {} } }
   // 영상 화면엔 동전 개수를 띄우지 않는다(자판기는 음성 화면 ♥ 배지·오락실에서)
   const late = S.items.filter(isLate);
   const K = $('knock'); placeKnock(); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openBoard('today'); };
@@ -625,7 +631,7 @@ async function sendText(raw, special) {
   if (!S.name) { const nmv = text.replace(/(이?라고|으로|로)?\s*(불러\s*줘|불러|해\s*줘|요)$/g, '').replace(/[.!~?]+$/, '').trim().slice(0, 12); if (nmv) { S.name = nmv; save(); addHer(`${S.name}님. …입에 착 붙네요. 앞으로 그렇게 부를게요.\n${aiOn() ? '자, 오늘 뭐 할지 말해 봐요.' : '저랑 제대로 떠들려면 Gemini 키가 필요해요. 키를 여기 붙여 넣거나, 다이얼 0번 설정에 넣어 줘요.'}`, true); return; } }
   if (!aiOn() && /^sk-ant-[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.ckey = text; save(); addHer('Claude 키 받았어요. …이제 얘기 길어져도 괜찮죠?', true); return; }
   if (!aiOn()) { if (/^AIza[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.key = text; save(); loadModels(); addHer('키 받았어요. …이제 얘기 길어져도 괜찮죠?', true); return; } const [t] = pick(LOCAL); addHer(t, true); return; }
-  busy = true; const her = herEl(''); her.lastChild.remove(); const dots = el('span', 'dots'); dots.innerHTML = '<i></i><i></i><i></i>'; her.appendChild(dots); L.appendChild(her); L.scrollTop = L.scrollHeight;
+  busy = true; app.classList.add('talking'); const her = herEl(''); her.lastChild.remove(); const dots = el('span', 'dots'); dots.innerHTML = '<i></i><i></i><i></i>'; her.appendChild(dots); L.appendChild(her); L.scrollTop = L.scrollHeight;
   const tnode = document.createTextNode('');
   const onPart = t => { if (dots.parentNode) { dots.remove(); her.appendChild(tnode); } tnode.textContent = t; L.scrollTop = L.scrollHeight; };
   const contents = S.history.slice(-10).filter(h => h.content).map(h => ({ role: h.role === 'assistant' ? 'model' : 'user', parts: [{ text: h.content }] }));
@@ -647,7 +653,7 @@ async function sendText(raw, special) {
     her.appendChild(document.createTextNode(e.status === 403 ? '키가 안 맞는 것 같아요. 0번 설정에서 확인해 줘요.' : (e.status === 429 || e.status >= 500) ? '지금 회선이 붐벼요. 조금 있다 다시 걸어 줘요.' : !navigator.onLine ? '신호가 안 잡혀요. 인터넷 확인해 줘요.' : '…지지직. 잘 못 들었어요. 한 번만 더요.'));
     msg.value = special ? '' : text;
   }
-  busy = false; save(); renderHome();
+  busy = false; app.classList.remove('talking'); save(); renderHome();
 }
 function apply(r) {
   const snap = JSON.stringify({ items: S.items, calls: S.calls, memory: S.memory, diary: S.diary }), out = [];
