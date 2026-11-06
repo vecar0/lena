@@ -116,13 +116,13 @@ document.head.appendChild(Object.assign(document.createElement('style'), { textC
 // ---------- 데이터 ----------
 const ST = () => { if (!S.study) S.study = {}; const s = S.study; s.mats = s.mats || []; s.exams = s.exams || []; s.log = s.log || {}; s.rev = s.rev || {}; s.fix = s.fix || {}; s.revq = s.revq || []; s.pl = s.pl || {};
   if (s.pref && s.pref.preset) { delete s.pref.preset; s.pref.wdMax = 0; s.pref.weMax = 0; delete s.presets; } // v54: 카드(프리셋) 없앰 → 자동
-  s.pref = Object.assign({ wdS: '17:00', weS: '10:00', end: '23:00', wdMax: 0, weMax: 0, block: 50, wdSubs: 2, weSubs: 4, focus: null, wdPlay: 60, wePlay: 120 }, s.pref || {}); return s; };
+  s.pref = Object.assign({ wdS: '17:00', weS: '10:00', end: '01:30', wdMax: 0, weMax: 0, block: 50, wdSubs: 2, weSubs: 4, focus: null, wdPlay: 60, wePlay: 120 }, s.pref || {}); return s; };
 // 하루 최대(자동): 그날 빈 시간의 75%, 평일 4시간·주말 7시간까지. 직접 정하면(wdMax/weMax) 그 값.
 const AUTO_CAP = [240, 420];
 // 최근 7일 계획 대비 실제로 한 비율(최근에 덜 했으면 평소 양을 줄인다)
 function keepRate() { const st = ST(); let P = 0, D = 0; for (let i = 1; i <= 7; i++) { const k = dkey(dAdd(new Date(), -i)); if (!st.pl[k]) continue; P += st.pl[k]; D += (st.log[k] || []).reduce((a, b) => a + b.mins, 0); } return P >= 60 ? Math.min(1, D / P) : null; }
 const toM = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + (m || 0); };
-const toT = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.round(m % 60)).padStart(2, '0')}`;
+const toT = m => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(Math.round(m % 60)).padStart(2, '0')}`;
 const dAdd = (d, n) => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() + n); return x; };
 const dkey = d => dk(d);
 const pDate = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
@@ -209,7 +209,7 @@ const isAcad = tx => ACAD.test(tx || '') || SUBJN.test(String(tx || '').replace(
 // 학원 다니는 과목: 시간표(고정) 이름에 '과목+학원/클리닉/과외'가 있거나 그 과목 학원 숙제가 있으면
 const acadSub = sub => (S.reps || []).some(r => r.text.includes(sub) && (ACAD.test(r.text) || r.text.replace(/[\s\d:~·-]/g, '').length <= sub.length + 1)) /* v86: 시간표에 '국어'처럼 과목 이름만 있어도 학원으로 봄 */ || ST().mats.some(m => m.kind === 'hw' && (m.sub === sub || (m.title || '').includes(sub)));
 function freeIv(d, isToday, loose) {
-  const P = ST().pref, we = d.getDay() === 0 || d.getDay() === 6; let s = toM(we ? P.weS : P.wdS); const e = toM(P.end);
+  const P = ST().pref, we = d.getDay() === 0 || d.getDay() === 6; let s = toM(we ? P.weS : P.wdS); let e = toM(P.end); if (e <= s) e += 1440; /* v98: 끝이 자정 넘으면(예 01:30) 다음 날 새벽까지 */
   if (isToday) { const n = new Date(); s = Math.max(s, Math.ceil((n.getHours() * 60 + n.getMinutes() + 5) / 5) * 5); }
   const out = []; let cur = s;
   // v94: 학원 앞뒤로 1시간씩 비움(이동 시간), 다른 일정은 앞뒤 10분
@@ -290,7 +290,7 @@ function simulate(nDays, capMode) {
 function horizon() { let far = dkey(dAdd(new Date(), 31)); ST().mats.forEach(m => m.units.forEach((u, i) => { const d = dueOf(m, u, i); if (d && d > far) far = d; })); ST().exams.forEach(e => { if (e.date > far) far = e.date; }); return Math.min(70, dTo(far) + 1); }
 let cache = null;
 // v93: 대화로 들어온 반복 일정·교재·시험에 빈 칸이 있어도 계산이 멈추지 않게 정리
-function tidy() { const st0 = ST(); if (!st0.hw120) { st0.hw120 = 1; (st0.mats || []).forEach(m => { if (m && m.kind === 'hw') { if (m.rep && (+m.rep.mins || 40) <= 40) m.rep.mins = 120; (m.units || []).forEach(u => { if ((+u.mins || 40) <= 40 && !u.prog) u.mins = 120; }); } }); } (S.reps || []).forEach(r => { r.text = String(r.text || '일정'); if (!Array.isArray(r.days)) r.days = []; if (!/^\d\d:\d\d$/.test(r.time || '')) r.time = '00:00'; });
+function tidy() { const sp = ST(); if (!sp.end130) { sp.end130 = 1; sp.pref.end = '01:30'; } const st0 = ST(); if (!st0.hw120) { st0.hw120 = 1; (st0.mats || []).forEach(m => { if (m && m.kind === 'hw') { if (m.rep && (+m.rep.mins || 40) <= 40) m.rep.mins = 120; (m.units || []).forEach(u => { if ((+u.mins || 40) <= 40 && !u.prog) u.mins = 120; }); } }); } (S.reps || []).forEach(r => { r.text = String(r.text || '일정'); if (!Array.isArray(r.days)) r.days = []; if (!/^\d\d:\d\d$/.test(r.time || '')) r.time = '00:00'; });
   const st = ST(); st.mats = (st.mats || []).filter(Boolean); st.mats.forEach(m => { m.sub = String(m.sub || '기타'); m.title = String(m.title || (m.kind === 'hw' ? '숙제' : '문제집')); if (!Array.isArray(m.units)) m.units = []; });
   st.exams = (st.exams || []).filter(e => e && e.date); st.exams.forEach(e => { if (!Array.isArray(e.subs)) e.subs = []; if (!Array.isArray(e.ranges)) e.ranges = []; }); }
 const EMPTY = { days: [], late: [] };
