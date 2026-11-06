@@ -204,7 +204,7 @@ function tasks() {
 function simulate(nDays, capMode) {
   const st = ST(), P = st.pref, T = tasks().map(t => ({ ...t })), days = [], today = new Date(); today.setHours(0, 0, 0, 0);
   const fm = new Map(), freeMin = x => { const kk = dkey(x); if (!fm.has(kk)) fm.set(kk, freeIv(x, false).reduce((a, [p1, p2]) => a + p2 - p1, 0)); return fm.get(kk); };
-  const eveSet = new Set(st.exams.map(e => dkey(dAdd(pDate(e.date), -1)))), acadEnd = x => (x.getDay() >= 1 && x.getDay() <= 5 && !eveSet.has(dkey(x))) ? Math.max(0, ...busyOn(x).filter(y => ACAD.test(y[2] || '')).map(y => y[1])) : 0, playOf = x => eveSet.has(dkey(x)) || acadEnd(x) ? 0 : (x.getDay() === 0 || x.getDay() === 6) ? (P.wePlay || 0) : (P.wdPlay || 0); /* 시험 전날은 노는 시간 없이 필승노트 */ const dmax = x => { const we = x.getDay() === 0 || x.getDay() === 6, u = we ? P.weMax : P.wdMax, room = Math.max(0, freeMin(x) - playOf(x)); return Math.min(room, u || Math.min(AUTO_CAP[we ? 1 : 0], Math.floor(room * .85 / 10) * 10)); };
+  const eveSet = new Set(st.exams.map(e => dkey(dAdd(pDate(e.date), -1)))), acadEnd = x => (x.getDay() >= 1 && x.getDay() <= 5 && !eveSet.has(dkey(x))) ? Math.max(0, ...busyOn(x).filter(y => ACAD.test(y[2] || '')).map(y => y[1])) : 0, playOf = x => eveSet.has(dkey(x)) || acadEnd(x) ? 0 : (x.getDay() === 0 || x.getDay() === 6) ? (P.wePlay || 0) : (P.wdPlay || 0); /* 시험 전날은 휴식 시간 없이 필승노트 */ const dmax = x => { const we = x.getDay() === 0 || x.getDay() === 6, u = we ? P.weMax : P.wdMax, room = Math.max(0, freeMin(x) - playOf(x)); return Math.min(room, u || Math.min(AUTO_CAP[we ? 1 : 0], Math.floor(room * .85 / 10) * 10)); };
   const kr = keepRate(), habit = we => Math.round((we ? 120 : 90) * (kr == null ? 1 : Math.max(.6, kr + .15)) / 10) * 10, adj = st.adj && st.adj.d === dkey(today) ? st.adj.mul : 1, focus = P.focus && P.focus.until >= dkey(today) ? P.focus.sub : '';
   for (let di = 0; di < nDays; di++) {
     const d = dAdd(today, di), k = dkey(d), we = d.getDay() === 0 || d.getDay() === 6;
@@ -246,8 +246,8 @@ function simulate(nDays, capMode) {
         blocks.push({ s: cur, e: end, sub: bsub, parts }); cap -= used; last = bsub; cur = end + 10;
       }
     }
-    // 노는 시간: 공부 블록 사이 빈 곳 중 가장 늦은 곳에 넣는다
-    let play = null; const ae = acadEnd(d), pl = playOf(d); if (ae) { const fs = (freeIv(d, di === 0)[0] || [0])[0]; if (fs - ae >= 60) play = { s: ae + 10, e: fs - 10, rest: 1 }; } /* 학원 끝나고 쉬는 시간 = 노는 시간 */ if (pl >= 20) { const gaps = []; for (const [a, b] of freeIv(d, di === 0)) { let c0 = a; blocks.filter(x => x.s >= a && x.e <= b).sort((x, y) => x.s - y.s).forEach(x => { if (x.s - 10 - c0 >= 20) gaps.push([c0, x.s - 10]); c0 = x.e + 10; }); if (b - c0 >= 20) gaps.push([c0, b]); } const g = gaps.sort((x, y) => (y[1] - y[0] >= pl) - (x[1] - x[0] >= pl) || y[0] - x[0])[0]; if (g) play = { s: g[0], e: Math.min(g[1], g[0] + pl) }; }
+    // 휴식 시간: 공부 블록 사이 빈 곳 중 가장 늦은 곳에 넣는다
+    let play = null; const ae = acadEnd(d), pl = playOf(d); if (ae) { const fs = (freeIv(d, di === 0)[0] || [0])[0]; if (fs - ae >= 60) play = { s: ae + 10, e: fs - 10, rest: 1 }; } /* 학원 끝나고 쉬는 시간 = 휴식 시간 */ if (pl >= 20) { const gaps = []; for (const [a, b] of freeIv(d, di === 0)) { let c0 = a; blocks.filter(x => x.s >= a && x.e <= b).sort((x, y) => x.s - y.s).forEach(x => { if (x.s - 10 - c0 >= 20) gaps.push([c0, x.s - 10]); c0 = x.e + 10; }); if (b - c0 >= 20) gaps.push([c0, b]); } const g = gaps.sort((x, y) => (y[1] - y[0] >= pl) - (x[1] - x[0] >= pl) || y[0] - x[0])[0]; if (g) play = { s: g[0], e: Math.min(g[1], g[0] + pl) }; }
     days.push({ k, blocks, play, mins: blocks.reduce((a, b) => a + (b.e - b.s), 0) });
   }
   const left = T.filter(t => t.rem > 0 && t.due), late = [];
@@ -343,7 +343,7 @@ function renderCal(B) {
   B.appendChild(el('div', 'hint', '분홍 일정 · 노랑 숙제 · 파랑 학원 · 빨강 시험 · 청록 막대 = 공부량'));
   dayPaper(B, calSel, pm[calSel]);
 }
-// v79: 하루 종이 시간표(공부 오늘 화면과 같은 모양) — 시험·고정·일정·할 일·공부·노는 시간, 같은 시각·같은 글은 한 번만
+// v79: 하루 종이 시간표(공부 오늘 화면과 같은 모양) — 시험·고정·일정·할 일·공부·휴식 시간, 같은 시각·같은 글은 한 번만
 function dayPaper(B, k, D) {
   const d = pDate(k), isT = k === todayK(), lg = ST().log[k] || [], rows = [], seen = new Set();
   const add = (s, o) => { const key = s + '|' + (o.txt || '') + '|' + (o.sub || ''); if (seen.has(key)) return; seen.add(key); rows.push({ s, ...o }); };
@@ -352,7 +352,7 @@ function dayPaper(B, k, D) {
   S.items.filter(t => !t.rid && t.due && t.due.slice(0, 10) === k).forEach(t => add(toM(t.due.slice(11, 16)), { kind: t.kind === 'event' ? 'ev' : 'todo', txt: t.kind === 'event' ? t.text : `${t.text} (마감)`, done: t.done }));
   lg.forEach(l => add(l.s, { kind: 'log', sub: l.sub, txt: l.label, mins: l.mins }));
   (D ? D.blocks : []).forEach(b => add(b.s, { kind: 'st', sub: b.sub, txt: b.parts.map(p => p.t.label).join(' + '), mins: b.e - b.s, b }));
-  if (D && D.play) add(D.play.s, { kind: 'play', txt: `노는 시간 ${D.play.e - D.play.s}분`, mins: D.play.e - D.play.s });
+  if (D && D.play) add(D.play.s, { kind: 'play', txt: `휴식 시간 ${D.play.e - D.play.s}분`, mins: D.play.e - D.play.s });
   const tot = (D ? D.mins : 0) + lg.reduce((a, x) => a + x.mins, 0);
   const sp = el('div', 'sheetp'); sp.style.marginTop = '12px'; sp.append(el('i', 'tape'), el('i', 'tape r'));
   const hd = el('div', 'hd'); hd.append(el('b', null, `${d.getMonth() + 1}월 ${d.getDate()}일 ${WD[d.getDay()]}요일`), el('span', null, tot ? hm(tot) : '공부 없음')); sp.appendChild(hd);
@@ -424,7 +424,7 @@ function stToday(B) {
   const list = [...lg.map(l => ({ s: l.s, lg: l })), ...D.blocks.map((b, i) => ({ s: b.s, b, i })), ...fixd.map(f => ({ s: f[0], fx: f })), ...(D.play ? [{ s: D.play.s, pl: D.play }] : [])].sort((a, b) => a.s - b.s);
   const subWord = (sb, txt) => { const w = el('span'), i2 = el('i', null, sb); i2.style.setProperty('--c', colOf(sb)); w.append(i2, document.createTextNode(txt)); return w; };
   list.forEach(x => {
-    if (x.pl) { const r = el('div', 'pr pplay'); r.append(el('span', 't', toT(x.pl.s)), el('span', 'w', `노는 시간 ${x.pl.e - x.pl.s}분 — 게임·유튜브·산책, 마음대로`)); sp.appendChild(r); return; }
+    if (x.pl) { const r = el('div', 'pr pplay'); r.append(el('span', 't', toT(x.pl.s)), el('span', 'w', `휴식 시간 ${x.pl.e - x.pl.s}분 — 푹 쉬어요`)); sp.appendChild(r); return; }
     if (x.fx) { const r = el('div', 'pr pfx'); r.append(el('span', 't', toT(x.fx[0])), el('span', 'w', `${x.fx[2] || '일정'} ~${toT(x.fx[1])}`)); sp.appendChild(r); return; }
     if (x.lg) { const r = el('div', 'pr done'), t = el('span', 't'); t.append(document.createTextNode(toT(x.lg.s)), el('small', null, `${x.lg.mins}분`)); const w = el('span', 'w'); w.appendChild(subWord(x.lg.sub, x.lg.label)); const st2 = el('span', 'st', '✓'); st2.setAttribute('aria-label', '끝냄'); r.append(t, w, st2); sp.appendChild(r); return; }
     const b = x.b, i = x.i, r = el('div', 'pr' + (ed === i ? ' ed' : '')), t = el('span', 't'); t.append(document.createTextNode(toT(b.s)), el('small', null, `${b.e - b.s}분`));
@@ -448,7 +448,7 @@ function timeEditor(B) {
   const cap = (lab, key, we) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = P[key] ? (P[key] - 30 < 30 ? 0 : P[key] - 30) : 0; up(); }), el('b', null, P[key] ? hm(P[key]) : '자동'), btn('+', 'ghost', () => { P[key] = Math.min(we ? 720 : 600, (P[key] || AUTO_CAP[we ? 1 : 0]) + 30); up(); })); r.append(el('span', null, lab), S3); return r; };
   const play = (lab, key) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = Math.max(0, (P[key] || 0) - 30); up(); }), el('b', null, P[key] ? hm(P[key]) : '없음'), btn('+', 'ghost', () => { P[key] = Math.min(300, (P[key] || 0) + 30); up(); })); r.append(el('span', null, lab), S3); return r; };
   const cnt = (lab, key) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = Math.max(1, P[key] - 1); up(); }), el('b', null, `${P[key]}과목`), btn('+', 'ghost', () => { P[key] = Math.min(6, P[key] + 1); up(); })); r.append(el('span', null, lab), S3); return r; };
-  c.append(time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), cap('평일 하루 최대', 'wdMax', 0), cap('주말 하루 최대', 'weMax', 1), cnt('평일 과목 수', 'wdSubs'), cnt('주말 과목 수', 'weSubs'), play('평일 노는 시간', 'wdPlay'), play('주말 노는 시간', 'wePlay'));
+  c.append(time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), cap('평일 하루 최대', 'wdMax', 0), cap('주말 하루 최대', 'weMax', 1), cnt('평일 과목 수', 'wdSubs'), cnt('주말 과목 수', 'weSubs'), play('평일 휴식 시간', 'wdPlay'), play('주말 휴식 시간', 'wePlay'));
   c.prepend(el('div', 'hint', `지금: 평일 ${P.wdS}~ · 주말 ${P.weS}~ · ${P.end}까지`));
   c.appendChild(el('div', 'hint', '하루 최대를 0까지 내리면 "자동"이에요. 자동은 그날 빈 시간과 마감까지 남은 양으로 레나가 정해요. 통화로 "주말엔 9시부터" "수학 먼저 해 줘"처럼 말해도 바꿔요.'));
   B.appendChild(c);
