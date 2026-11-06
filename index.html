@@ -57,6 +57,13 @@ body{position:fixed;inset:0;overflow:hidden}
 .fly i{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;word-break:keep-all}
 .fly i{display:block;font-style:normal;font-size:12.5px;font-weight:600;line-height:1.45}
 .fly i.d{text-decoration:line-through;opacity:.45}
+.fly i{padding:2px 0;border-top:1px dashed rgba(0,0,0,.18)}.fly small+i{border-top:0}
+.fly i em{display:block;font-style:normal;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;opacity:.6;letter-spacing:0}
+.fly i.late em{color:#c2185b;opacity:1}
+.fly u{display:block;text-decoration:none;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;opacity:.6;margin-top:2px}
+.bdue{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;height:40px;margin-top:8px;padding:0 12px 0 6px;border-radius:20px;border:1px solid var(--line);background:#0b0d10;font-size:13.5px;font-weight:700;color:#cfd8dc}
+.bdue::before{content:"";width:26px;height:26px;border-radius:50%;border:2px solid #556;background:transparent;transition:background .2s}
+.bdue.on{color:#fff;border-color:var(--yel)}.bdue.on::before{background:var(--yel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12l5 5 9-10' fill='none' stroke='%23111' stroke-width='3'/%3E%3C/svg%3E") center/16px no-repeat;border-color:#000}
 .f1{right:12px;top:calc(var(--st) + 92px);width:136px;transform:rotate(5deg);--r:5deg;background-image:url(assets/lena/paper_pink.webp);color:#fff}
 .f2{left:12px;top:calc(var(--st) + 200px);width:124px;transform:rotate(-5deg);--r:-5deg;background-image:url(assets/lena/paper_yellow.webp);padding-bottom:20px}
 .coinb{position:absolute;right:16px;top:calc(var(--st) + 206px);display:flex;align-items:center;gap:4px;pointer-events:auto;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;text-shadow:1px 1px 0 #000}
@@ -251,10 +258,10 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .pp.yel{background-image:url(assets/lena/paper_yellow.webp)}
 .pp.teal{background-image:url(assets/lena/paper_teal.webp);padding-bottom:30px}
 .pp.white{background-image:url(assets/lena/paper_white.webp)}
-.pp.late b::after{content:" · 지남";color:var(--hot);font-size:12px}
+.pp.late b::after{content:" · 지남";color:#d6204f;font-size:12px;font-weight:900}
 .pp.pink.late b::after{color:#fff;text-decoration:underline}
 .pp .acts{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
-.pp.evt{background-image:url(assets/lena/paper_teal.webp)}.pp.evt small{font-weight:900}
+.pp.evt:not(.white){background-image:url(assets/lena/paper_pink.webp);color:#fff}.pp.evt small{font-weight:900}
 .pp .evk{display:inline-flex;align-items:center;height:30px;padding:0 10px;border-radius:15px;border:2px solid #000;background:#111;color:#9ff5e4;font-size:12px;font-weight:800}
 .ck{width:34px;height:34px;border-radius:50%;border:2.5px solid currentColor;display:grid;place-items:center;opacity:.85}
 .ck svg{width:18px;height:18px;stroke:currentColor;stroke-width:3;fill:none;opacity:0}
