@@ -92,7 +92,7 @@ const _br = boardRender; boardRender = function (B) {
   const all = Object.values(ev).flat(), lo = Math.min(9, ...all.map(x => Math.floor(x.s / 60))), hi = Math.max(18, ...all.map(x => Math.ceil(x.e / 60)));
   const PX = 34, H = (hi - lo) * PX, tdw = now0.getDay();
   const WN = el('div', 'ttwk'); WN.append(btn('‹', 'ghost', () => { ttW--; refreshSheet(); }), el('b', null, ttW === 0 ? '이번 주' : ttW === 1 ? '다음 주' : ttW === -1 ? '지난 주' : `${mon.getMonth() + 1}/${mon.getDate()} 주`), btn('›', 'ghost', () => { ttW++; refreshSheet(); })); B.appendChild(WN);
-  const LG = el('div', 'ttlg'); [['fix', '고정(매주)'], ['one', '일정'], ['dl', '할 일 마감'], ['study', '공부(과목 색)'], ['play', '휴식']].forEach(([k, l]) => { const s = el('span', null, l); s.prepend(el('i', k)); LG.appendChild(s); }); const PP = el('div', 'sheetp ttp'); PP.append(el('i', 'tape'), el('i', 'tape r'), LG); B.appendChild(PP);
+  const LG = el('div', 'ttlg'); [['fix', '고정(매주)'], ['one', '일정'], ['dl', '할 일 마감'], ['study', '공부(과목 색)']].forEach(([k, l]) => { const s = el('span', null, l); s.prepend(el('i', k)); LG.appendChild(s); }); const PP = el('div', 'sheetp ttp'); PP.append(el('i', 'tape'), el('i', 'tape r'), LG); B.appendChild(PP);
   const G = el('div', 'tt');
   G.appendChild(el('div', 'hd')); dates.forEach((x, i) => { const h = el('div', 'hd' + (order[i] === tdw ? ' td' : '')); h.append(WD[order[i]], el('small', null, `${x.getMonth() + 1}/${x.getDate()}`)); G.appendChild(h); });
   const ax = el('div', 'ax'); ax.style.height = H + 'px'; for (let h = lo; h <= hi; h++) { const s = el('span', null, String(h)); s.style.top = ((h - lo) * PX) + 'px'; if (h > lo && h < hi) ax.appendChild(s); } G.appendChild(ax);
