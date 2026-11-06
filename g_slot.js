@@ -386,7 +386,7 @@ function callUI(B) {
 }
 function winUI(B) {
   const M = meta(); if (!R.counted) { R.counted = 1; M.wins++; ach('a_win'); persist(); }
-  talk(B, 'l', '…진짜 다 갚았어요? 해골이 장부를 덮었어요. 송휘님, 오늘 밤은 제 거예요.');
+  talk(B, 'l', '…진짜 다 갚았어요? 해골이 장부를 덮었어요. 송휘, 오늘 밤은 제 거예요.');
   const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, '빚을 다 갚았어요 🎉'));
   P.appendChild(el('div', 'hint', `여기서 끝내면 게임 동전 +${Math.min(60, R.dl * 2 + 20)}. 끝없는 밤으로 가면 빚이 계속 커지고, 넘긴 마감마다 동전이 더 붙어요.`));
   const r = el('div', 'bp-row'); r.append(btn('끝없는 밤으로', 'teal', () => { goEndless(R); persist(); draw(); }), btn('여기서 끝내기', 'ghost', () => { R.ph = 'over'; finish(); })); P.appendChild(r); B.appendChild(P);
@@ -480,7 +480,7 @@ async function go() {
       else if (res.tot >= debtOf(R) * .1 || res.wins.length >= 4) burst(Math.min(30, 8 + res.wins.length * 2));
     }
     else if (tray) tray.textContent = res.consol ? `꽝 +${res.tot}` : '꽝';
-    R.say = jack ? '잭팟!! …기계가 송휘님한테 반했나 봐요.' : res.tot >= debtOf(R) * .3 ? pick(['대박. 지금 저 보고 웃은 거 맞죠?', '해골이 장부를 떨어뜨렸어요.']) : res.tot ? pick(['좋아요, 그 손맛.', '조금씩이라도 모아요.', '티끌 모아 빚 갚기.']) : pick(['꽝. …괜찮아요, 저 아직 여기 있어요.', '(해골이 어깨를 으쓱한다)', '다음 거 당겨요.']); R.sayW = res.tot ? 'l' : 'sk';
+    R.say = jack ? '잭팟!! …기계가 송휘한테 반했나 봐요.' : res.tot >= debtOf(R) * .3 ? pick(['대박. 지금 저 보고 웃은 거 맞죠?', '해골이 장부를 떨어뜨렸어요.']) : res.tot ? pick(['좋아요, 그 손맛.', '조금씩이라도 모아요.', '티끌 모아 빚 갚기.']) : pick(['꽝. …괜찮아요, 저 아직 여기 있어요.', '(해골이 어깨를 으쓱한다)', '다음 거 당겨요.']); R.sayW = res.tot ? 'l' : 'sk';
     await wait(res.tot ? 700 : 350);
   }
   win && win.closest('.abody') && win.closest('.abody').removeEventListener('pointerdown', tapSkip);

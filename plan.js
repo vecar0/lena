@@ -185,7 +185,7 @@ SH.brief = { t: '오늘 브리핑', s: () => { const d = new Date(); return `${d
   const n = new Date(), h = n.getHours(), wrap = el('div', 'brief');
   const ev = S.items.filter(t => !t.done && t.due && onDate(t, n)).sort((a, b) => a.due.localeCompare(b.due)), late = S.items.filter(t => isLate(t) && !onDate(t, n)), und = openItems().filter(t => !t.due);
   const w = S.wx && S.wx.on && S.wx.data && S.wx.data.days.find(x => x.d === today());
-  const greet = h < 11 ? `좋은 아침이에요, ${S.name || ''}님.` : h < 17 ? `${S.name || ''}님, 오늘 반 지났어요.` : `${S.name || ''}님, 오늘 남은 거 볼까요?`;
+  const greet = h < 11 ? `좋은 아침이에요, ${S.name || ''}.` : h < 17 ? `${S.name || ''}, 오늘 반 지났어요.` : `${S.name || ''}, 오늘 남은 거 볼까요?`;
   const sum = ev.length ? `오늘 일정 ${ev.length}개${late.length ? `, 밀린 거 ${late.length}개` : ''}예요.` : late.length ? `오늘 일정은 없고 밀린 게 ${late.length}개 있어요.` : '오늘은 잡힌 일정이 없어요.';
   const hd = el('div', 'bhead'); hd.append(el('i', app.classList.contains('outside') ? 'cat' : ''), el('p', null, `${greet} ${sum}`)); wrap.appendChild(hd);
   if (w) { const s = el('div', 'bsec'); s.append(el('h5', null, '날씨'), el('div', 'r', `${w.code === 0 ? '맑음' : w.pop >= 50 ? '비 소식' : '구름'} · ${w.min}~${w.max}° · 강수 ${w.pop}%${w.pop >= 50 ? ' — 우산 챙겨요' : ''}`)); wrap.appendChild(s); }

@@ -140,7 +140,7 @@ function pop(t, c) { const p = el('div', 'se-pop' + (c ? ' ' + c : ''), t); docu
 function lobby() {
   frame(NAME, B => {
     const M = meta(), nm = el('div', 'bp-name'); nm.style.setProperty('--pc', '#ffc9de'); nm.style.setProperty('--pk', '#2fe0c8'); nm.innerHTML = `${NAME}<small>주사위를 끼워 독촉 해골을 이겨요</small>`; B.appendChild(nm);
-    talk(B, 'l', '주사위는 제가 굴려 줄게요. 어디에 끼울지는 송휘님 몫. …6 나오면 저 보고 웃어요.');
+    talk(B, 'l', '주사위는 제가 굴려 줄게요. 어디에 끼울지는 송휘 몫. …6 나오면 저 보고 웃어요.');
     const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, '하는 법'));
     P.appendChild(el('div', 'hint', '내 차례마다 주사위를 굴려요. 주사위를 누르고 → 장비 칸을 누르면 끼워져요(칸마다 조건: 짝수만·4 이상 등). 다 쓰면 "차례 끝". 해골도 주사위와 장비가 보여요. 6층을 내려가 해골 사장을 이기면 끝. 이길 때마다 새 장비·강화·쉬기 중 하나.'));
     B.appendChild(P);
@@ -162,7 +162,7 @@ function draw() {
     F.append(im, t); B.appendChild(F);
     { const lg = el('div', 'se-log' + (busy ? ' foe' : '')); lg.append(el('i'), el('span', null, msg || (sel != null ? `[${run.hand[sel]}] 어디에 끼울까요? 빛나는 칸을 눌러요` : `${run.fl + 1}층 · ${run.turn}번째 차례 — 주사위를 골라요`))); B.appendChild(lg); }
     // 내 상태
-    const me = el('div', 'se-me'); me.appendChild(el('i')); const mw = el('div'); me.appendChild(mw); const mb = el('div', 'se-bar me'), mu = el('u'); mu.style.width = Math.max(0, run.hp / run.max * 100) + '%'; mb.append(mu, el('span', null, `송휘님 ${run.hp}/${run.max}`)); mw.appendChild(mb);
+    const me = el('div', 'se-me'); me.appendChild(el('i')); const mw = el('div'); me.appendChild(mw); const mb = el('div', 'se-bar me'), mu = el('u'); mu.style.width = Math.max(0, run.hp / run.max * 100) + '%'; mb.append(mu, el('span', null, `송휘 ${run.hp}/${run.max}`)); mw.appendChild(mb);
     const ms = el('div', 'se-st'); if (run.me.blk) ms.appendChild(el('i', 'b', `막기 ${run.me.blk}`)); if (run.me.poi) ms.appendChild(el('i', 'p', `독 ${run.me.poi}`)); ms.appendChild(el('i', null, `주사위 ${run.dice} · 레벨 ${run.lv}`)); mw.appendChild(ms); B.appendChild(me);
     const H = el('div', 'se-hand'); run.hand.forEach((v, i) => { const d = die(v); if (sel === i) d.classList.add('sel'); d.style.animationDelay = i * .05 + 's'; d.onclick = () => { if (busy) return; sel = sel === i ? null : i; dtmf(v); draw(); }; H.appendChild(d); });
     if (!run.hand.length) H.appendChild(el('div', 'hint', '주사위를 다 썼어요'));
@@ -195,8 +195,8 @@ async function endTurn() {
 function mapUI() {
   frame(NAME, B => {
     const m = el('div', 'se-map'); FOES.forEach((f, i) => m.appendChild(el('i', i < run.fl ? 'on' : i === run.fl ? 'now' : f[0].boss ? 'boss' : '', f[0].boss ? '☠' : String(i + 1)))); B.appendChild(m);
-    talk(B, run.fl === 5 ? 'sk' : 'l', run.fl === 5 ? '(해골 사장이 빚 장부를 펼친다)' : pick([`${run.fl + 1}층이에요. 계단 밑에서 뼈 소리 나요.`, '조심해요. 송휘님 다치면 저 화낼 거예요.', '주사위 운도 실력이에요.']));
-    const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, `송휘님 · 체력 ${run.hp}/${run.max} · 레벨 ${run.lv} · 주사위 ${run.dice}개`)); P.appendChild(el('div', 'hint', run.eq.map(s => EQ[s.id].n + (s.up ? '+' + s.up : '')).join(' · '))); B.appendChild(P);
+    talk(B, run.fl === 5 ? 'sk' : 'l', run.fl === 5 ? '(해골 사장이 빚 장부를 펼친다)' : pick([`${run.fl + 1}층이에요. 계단 밑에서 뼈 소리 나요.`, '조심해요. 송휘 다치면 저 화낼 거예요.', '주사위 운도 실력이에요.']));
+    const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, `송휘 · 체력 ${run.hp}/${run.max} · 레벨 ${run.lv} · 주사위 ${run.dice}개`)); P.appendChild(el('div', 'hint', run.eq.map(s => EQ[s.id].n + (s.up ? '+' + s.up : '')).join(' · '))); B.appendChild(P);
     const r = el('div', 'bp-row'), g = el('button', 'bp-go'); g.innerHTML = `${run.fl + 1}층 내려가기<small>${run.fl === 5 ? '해골 사장' : '해골이 기다려요'}</small>`; g.onclick = () => { startFight(run); msg = ''; persist(); draw(); }; r.appendChild(g); B.appendChild(r);
     B.appendChild(el('div', 'bp-row')).appendChild(btn('그만두기', 'ghost wide', () => { if (confirm('그만둘까요?')) { run.ph = 'over'; endUI(); } }));
   }, true);
@@ -216,7 +216,7 @@ function rewardUI() {
 function endUI() {
   const M = meta(), w = run.ph === 'win', fl = run.fl, g = fl * 2 + (w ? 15 : 0); if (!run.paid) { run.paid = 1; M.best = Math.max(M.best, fl); if (w) M.wins++; if (g) gcAdd(g); S.dice2 = null; save(); }
   frame(NAME, B => {
-    talk(B, w ? 'l' : 'sk', w ? '해골 사장이 장부를 찢었어요. …송휘님 진짜 멋있었어요.' : '(해골이 주사위를 주머니에 넣는다)');
+    talk(B, w ? 'l' : 'sk', w ? '해골 사장이 장부를 찢었어요. …송휘 진짜 멋있었어요.' : '(해골이 주사위를 주머니에 넣는다)');
     const P = el('div', 'bp-panel'); P.append(el('h4', null, w ? '클리어!' : `${fl + 1}층에서 쓰러졌어요`), el('div', 'hint', `게임 동전 +${g}`)); B.appendChild(P);
     B.appendChild(el('div', 'bp-row')).appendChild(btn('처음으로', 'teal wide', lobby));
   }, true);
