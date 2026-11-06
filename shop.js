@@ -302,7 +302,7 @@ SH[3] = SH.shop; // 다이얼 9번
 const _rh = renderHome; renderHome = function () { _rh(); const c = document.querySelector('.coinb'); if (c) c.onclick = () => { dtmf(9); openSheet('shop'); }; renderAff(); };
 // 오락실의 운세 버튼 → 자판기
 // 레나 대화에 호감도 반영
-const _sys = sysPrompt; sysPrompt = function (sp) { const a = A(), [m] = mood(); return _sys(sp).replace('JSON만 출력:', `- 지금 레나의 호감도 ${lv(a.pt)}단계(「${tierOf(lv(a.pt)).name}」), 기분 "${m}". 단계가 높을수록 더 다정하고 솔직하게, 서운/삐침이면 장난스럽게 투정한다(선물 얘기는 가끔만).\nJSON만 출력:`); };
+const _sys = sysPrompt; sysPrompt = function (sp) { const a = A(), [m] = mood(); return _sys(sp).replace('JSON만 출력:', `- 지금 레나의 호감도 ${lv(a.pt)}단계(「${tierOf(lv(a.pt)).name}」), 기분 "${m}". 단계가 높을수록 더 편하고 능글맞게(그래도 좋아한다는 고백은 절대 하지 않음), 서운/삐침이면 장난스럽게 투정한다(선물 얘기는 가끔만).\nJSON만 출력:`); };
 decay(); D(); setTimeout(() => { renderDecor(); renderAff(); }, 0);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { decay(); renderAff(); } });
 window.openShop = () => openSheet('shop');
