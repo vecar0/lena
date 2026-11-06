@@ -253,7 +253,7 @@ function boardRender(B) {
       ev.forEach(t => { const r = el('div', 'ev' + (t.done ? ' d' : '')); r.append(el('span', null, t.due.slice(11, 16)), document.createTextNode(t.text)); box.appendChild(r); });
       W.appendChild(box);
     }
-    B.appendChild(W); B.appendChild(lbl('새 전단지')); boardAdd(B); return;
+    B.appendChild(W); return; // v79: 붙이는 칸은 오늘·전체 탭에만
   }
   let L;
   if (boardTab === 'today') L = S.items.filter(t => (onDate(t, now) || isLate(t)) && !repOver(t) && (!t.done || dk(new Date(t.doneAt || 0)) === dk(now))).sort((a, b) => a.done - b.done || a.due.localeCompare(b.due));
