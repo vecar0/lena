@@ -22,14 +22,8 @@ const dayAdd = (n) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(
 // ---------- D3 반복 일정 ----------
 if (!S.reps) S.reps = []; if (!S.repSkip) S.repSkip = {};
 function materialize() {
-  let n = 0; const old = S.items.length; S.items = S.items.filter(t => !(t.rid && !t.done && t.due && Date.now() - new Date(t.due) > 2 * DAY)); if (S.items.length !== old) n++;
-  for (const r of S.reps) for (let i = 0; i < 14; i++) {
-    const d = dayAdd(i); if (r.days.length && !r.days.includes(d.getDay())) continue;
-    const key = r.id + '_' + dk(d); if (S.repSkip[key]) continue;
-    if (S.items.some(t => t.rkey === key)) continue;
-    const due = `${dk(d)}T${r.time}`; if (new Date(due) < new Date(Date.now() - 6 * 3600e3)) continue;
-    const t = addItem(r.text, due); t.rkey = key; t.rid = r.id; n++;
-  }
+  // v78: 매주 반복(고정) 일정은 시간표(다이얼 3)에만 — 전단지·알림으로 만들지 않고, 예전에 만들어 둔 것도 지운다
+  let n = 0; const old = S.items.length; S.items = S.items.filter(t => !t.rid); if (S.items.length !== old) n++;
   // 오래된 건너뛰기 기록 정리
   const lim = dk(dayAdd(-3)); for (const k in S.repSkip) if (k.slice(-10) < lim) delete S.repSkip[k];
   if (n) save();
@@ -57,7 +51,7 @@ function suggestCard(t, onDone) {
 const undated = () => openItems().filter(t => !t.due && t.noSug !== dk(new Date()));
 
 // ---------- D2 끝났는지 묻기 ----------
-const pastDue = () => S.items.filter(t => !t.done && t.due && !t.rid && Date.now() - new Date(t.due) > 30 * 60e3 && Date.now() - new Date(t.due) < 3 * DAY);
+const pastDue = () => S.items.filter(t => !t.done && t.due && !t.rid && t.kind !== 'event' && Date.now() - new Date(t.due) > 30 * 60e3 && Date.now() - new Date(t.due) < 3 * DAY);
 function askDone(t) {
   const c = el('div', 'ask'); c.append(el('span', 'who', '레나'), document.createTextNode(pick([`'${t.text}' 했어요?`, `'${t.text}' 끝났어요? 솔직하게.`, `${when(t.due)} '${t.text}'… 어떻게 됐어요?`])));
   const fin = msg => { c.classList.add('done'); c.querySelector('.row').remove(); c.appendChild(el('div', 'hint', msg)); };
@@ -135,11 +129,11 @@ const _plan = plan; plan = function () {
     const d = dayAdd(i), ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
     if (o.lunch) { const pm = ev.filter(t => t.due.slice(11) >= o.lunch); push('pa_l_' + dk(d), at(d, o.lunch), `${n}점심은 먹었어요? ` + (pm.length ? `오후엔 ${pm[0].due.slice(11, 16)} '${pm[0].text}'${pm.length > 1 ? ` 외 ${pm.length - 1}개` : ''} 있어요.` : '오후는 비어 있어요. …저랑 놀래요?')); }
     if (o.night) { push('pa_n_' + dk(d), at(d, o.night), pick([`${n}오늘 하루 어땠어요? 전화 걸어서 정리해요. 내일 공부도 같이 봐요.`, `${n}잘 시간 다 됐죠? 자기 전에 저한테 하루 얘기해 줘요.`, `${n}오늘도 수고했어요. 내일 일정 같이 볼래요?`])); }
-    if (o.nag) for (const tm of ['15:00', '21:00']) { const due = ev.filter(t => !t.rid && t.due.slice(11) < tm); if (due.length) push(`pa_g_${tm}_${dk(d)}`, at(d, tm), pick([`'${due[0].text}' 아직이죠? …해골이 장부 펼쳤어요.`, `${n}'${due[0].text}' 했어요? 했으면 떼 주세요. 동전 줄게요.`]) + (due.length > 1 ? ` (밀린 거 ${due.length}장)` : '')); }
+    if (o.nag) for (const tm of ['15:00', '21:00']) { const due = ev.filter(t => !t.rid && t.kind !== 'event' && t.due.slice(11) < tm); if (due.length) push(`pa_g_${tm}_${dk(d)}`, at(d, tm), pick([`'${due[0].text}' 아직이죠? …해골이 장부 펼쳤어요.`, `${n}'${due[0].text}' 했어요? 했으면 떼 주세요. 동전 줄게요.`]) + (due.length > 1 ? ` (밀린 거 ${due.length}장)` : '')); }
   }
-  for (const t of S.items) { if (t.done || !t.due) continue; const a = new Date(t.due).getTime();
+  for (const t of S.items) { if (t.done || !t.due || t.rid || t.kind !== 'event') continue; const a = new Date(t.due).getTime(); // 일정만(할 일은 마감 알림으로 충분)
     if (o.before) push(t.id + '_h', a - 3600e3, `${n}'${t.text}' 1시간 남았어요. 준비해요?`);
-    if (o.after && !t.rid) push(t.id + '_f', a + 3600e3, `'${t.text}' 끝났어요? 어땠는지 들려줘요. 끝났으면 떼 주기.`); }
+    if (o.after) push(t.id + '_f', a + (t.mins || 60) * 60e3 + 1800e3, `'${t.text}' 어땠어요? 들려줘요.`); }
   const late = S.items.filter(isLate); if (o.nag && late.length) { const d = new Date(); for (const tm of ['15:00', '21:00']) push('pa_late_' + tm + dk(d), at(d, tm), `밀린 전단지 ${late.length}장… '${late[0].text}'부터 정리해요. 1분이면 돼요.`); }
   p.reminders = p.reminders.concat(add).sort((a, b) => a.at - b.at).slice(0, 180);
   return p;
