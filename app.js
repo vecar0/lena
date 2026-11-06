@@ -327,10 +327,19 @@ SH[9] = { t: '부재중 전화', s: () => { const n = missed().length; return n 
 // * 통화 기록
 SH['*'] = { t: '통화 기록', s: () => `최근 ${Math.min(S.history.length, 60)}마디`, r: B => {
   if (!S.history.length) { B.appendChild(empty('아직 통화한 적 없어요.', 'st_phone')); return; }
-  const l = el('div', 'list card'); S.history.slice(-60).forEach(h => { const r = el('div', 'it'), tx = el('div', 't', h.content); tx.prepend(el('small', null, (h.role === 'user' ? (S.name || '나') : '레나') + (h.at ? ' · ' + when(h.at) : ''))); r.appendChild(tx); l.appendChild(r); }); B.appendChild(l);
+  // v81: 대화처럼 — 레나 = 종이 쪽지(왼쪽), 나 = 청록 말풍선(오른쪽), 날짜마다 테이프 띠
+  const l = el('div', 'clog'); let day = '';
+  S.history.slice(-60).forEach(h => {
+    const d = h.at ? new Date(h.at) : null, dk0 = d ? d.toDateString() : '';
+    if (d && dk0 !== day) { day = dk0; const td = new Date().toDateString(), yd = new Date(Date.now() - DAY).toDateString(); l.appendChild(el('div', 'cday', dk0 === td ? '오늘' : dk0 === yd ? '어제' : `${d.getMonth() + 1}월 ${d.getDate()}일 ${WD[d.getDay()]}`)); }
+    const me = h.role === 'user', txt = String(h.content || '').replace(/\n— 여기서 일정·할 일·예약이 있으면[\s\S]*$/, '').replace(/\uFFFD/g, '');
+    const r = el('div', 'cb ' + (me ? 'cme' : 'cle')), bb = el('div', 'bb', txt);
+    if (!me) r.appendChild(el('i', 'av' + (app.classList.contains('outside') ? ' cat' : '')));
+    const w = el('div', 'cbw'); w.append(bb, el('small', null, d ? `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : '')); r.appendChild(w); l.appendChild(r);
+  });
+  B.appendChild(l); requestAnimationFrame(() => { const sb = B.closest('.sbody') || B; sb.scrollTop = sb.scrollHeight; });
   B.appendChild(row(btn('기록 지우기', 'ghost wide', () => { if (!confirm('통화 기록을 모두 지울까요?')) return; S.history = []; save(); refreshSheet(); })));
 } };
-
 // 5 전화 = 예약 전화 + 부재중 + 통화 기록 (탭)
 SH.call = { t: '전화', s: () => { const n = missed().length, c = S.calls.filter(x => !x.done && x.at > Date.now()).length; return `${n ? `부재중 ${n}통 · ` : ''}예약 ${c}개`; }, r: B => {
   const T = el('div', 'tabs'), n = missed().length; [['res', '예약 전화'], ['miss', n ? `부재중 ${n}` : '부재중'], ['log', '통화 기록']].forEach(([v, l]) => { const b = el('button', callTab === v ? 'on' : '', l); b.onclick = () => { callTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);

@@ -5,7 +5,7 @@
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v80). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v81). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 속도(v60): 생각 최소 — 3.x는 thinkingLevel `minimal`, 2.5 Flash는 thinkingBudget 0, `-latest`는 thinkingBudget 0(모델이 400으로 거절하면 `TH[m]`에 기억하고 3.x→low, 2.5→512, latest→설정 빼고 같은 모델로 한 번 더). 모델 '자동'은 후보 셋(가장 새 Flash·flash-latest·2.5-flash) 중 첫 글자까지 걸린 시간 평균 `S.mlat`이 가장 짧은 것부터(처음엔 각각 한 번씩 재 봄), 직접 고르면 그 모델 먼저. 첫 글자 12초 안 오면 다음 모델. 통화를 열 때 Gemini 서버 연결을 미리 열어 둠(`warmAt`, index.html preconnect). 노트 정리(`notes.js`)는 품질 위해 생각 low/1024 그대로. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -33,6 +33,10 @@
 - 입력칸 글자 16px(아이폰 확대 방지), 버튼 높이 44 이상. 시트는 `openSheet(번호)`로 열고 `SH[번호]`에 내용 렌더러를 둔다.
 - 수정 후 확인: `node --check app.js`, 로컬 서버 + Playwright로 390×844 캡처.
 - 소리: `audio()`는 화면을 한 번 누르기 전엔 소리 엔진을 만들지 않음(시작하자마자 소리 내려다 경고 나던 것 막음). 빠른 버튼 줄 오른쪽 흐림 + 끝 여백 18%. 영상통화 대화는 적으면 아래부터 쌓임.
+
+## 화면 다듬기 (v81)
+- 시작 스플래시 `#splash`(index.html 맨 앞, 흐린 고양이 배경 + 고양이 프사·울리는 고리 + '레나' + 연결 중…): 글꼴 준비되고 두 프레임 뒤 걷힘(최소 0.9초, 최대 3초), 위로 줄어들며 사라짐. `.app`은 HTML에서부터 `outside` 클래스라 영상 화면이 잠깐 보이지 않음.
+- 종이 재질로 통일: 캘린더 = 테이프 붙은 종이 벽달력(`.calp`, 오늘 분홍 동그라미, 고른 날 노란 형광, 시험은 빨간 도장, 공부량은 청록 형광 줄, 범례 `.calg`), 시간표 = 종이(`.ttp`, 고정 = 색종이, 한 번만 = 점선, 공부 = 과목 색 왼쪽 띠, 휴식 = 줄무늬), 공부 시험 탭 = 시험마다 종이 한 장(`.exp`, D-숫자 도장, 과목 형광펜 줄 `.exr`/`.exk`), 통화 기록 = 대화 말풍선(`.clog`, 레나 = 종이 쪽지 왼쪽 + 프사, 나 = 청록 오른쪽, 날짜마다 노란 테이프 `.cday`, 열면 맨 아래로, 단축어 메모 뒤 지시문은 숨김). 클래스 이름 겹침 주의: `.me`·`.k`·`.bw`·`.sheetp .hd`가 전역에 있어 `.cme/.cle/.cbw/.exk`를 씀.
 
 ## 남은 일
 1. 해골 반응 영상(마감 임박에 다가옴, 엄지척)과 레나 표정 영상 추가.
