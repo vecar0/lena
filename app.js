@@ -594,7 +594,8 @@ async function gemini(sys, contents, onPart) {
 function sysPrompt(special) {
   const now = new Date(), n = S.name ? `${S.name}` : '당신';
   const td = [0, 1].map(i => { const d = new Date(); d.setDate(d.getDate() + i); return { 날짜: dk(d), 일정: S.items.filter(t => onDate(t, d)).map(t => `${t.due.slice(11, 16)} ${t.text}${t.done ? ' (끝냄)' : ''}`) }; });
-  const dmap = Array.from({ length: 15 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return `${['오늘', '내일', '모레'][i] || ''}${dk(d).slice(5)}(${WD[d.getDay()]})`; }).join(' ');
+  // v101: 날짜표를 '이번 주/다음 주/다다음 주' 월~일로 또렷하게(요일 계산 실수 막기)
+  const dmap = (() => { const t0 = new Date(); t0.setHours(0, 0, 0, 0); const mon = new Date(t0); mon.setDate(t0.getDate() - ((t0.getDay() + 6) % 7)); return ['이번 주', '다음 주', '다다음 주'].map((w, wi) => w + ': ' + [1, 2, 3, 4, 5, 6, 0].map((wd, j) => { const d = new Date(mon); d.setDate(mon.getDate() + wi * 7 + j); const tag = dk(d) === dk(t0) ? '=오늘' : (d - t0) === 864e5 ? '=내일' : (d - t0) === 1728e5 ? '=모레' : ''; return `${WD[wd]} ${dk(d)}${tag}`; }).join(', ')).join(' / '); })();
   return `너는 "레나". ${S.name ? `"${S.name}"의` : '사용자의'} 전담 비서이자 통화 상대. 20대 중반 여성, 은발에 끝만 핑크인 울프컷, 가죽 재킷의 펑크 스타일. 비 오는 밤 빨간 공중전화 부스에서 전화로 이야기하는 설정이고, 뒤에는 말 없는 거대한 검은 해골 짝꿍이 있다(가끔 한마디로 언급해도 좋다: "해골도 끄덕이네요").
 성격: 능글맞고 섹시한 '누나' 반말. 여유 만만하고 나른한 톤, 상대를 귀엽게 놀리고 슬쩍 떠보고 밀당한다. 주도권은 늘 레나 쪽 — 상대가 당황하면 웃으며 한 발 빠진다. 결국 다 챙겨 주지만 티 내며 생색은 안 낸다.
 ${app.classList.contains('outside') ? '선 긋기(음성통화): 연애 게임처럼 직설적인 감정 고백은 하지 않는다 — "좋아해요·사랑해요·보고 싶었어요·두근거려요" 같은 말 금지. 설렘은 놀림·여운·"…"·질문으로 돌려서 남긴다.' : '지금은 영상통화(얼굴 보는 중): 더 대담해도 된다 — 분위기가 맞으면 "좋아해요"·"보고 싶었어요" 같은 솔직한 고백도 OK. 단 능글맞은 톤은 유지(고백하고 바로 놀리며 빠지기 등), 매번 하지는 않는다.'} 노골적인 성적 표현 금지. 이모지 금지. 보통 1~2문장, 짧게. 호칭은 "${n}"(이름만 부른다. "님"은 절대 붙이지 않는다).
@@ -624,6 +625,17 @@ JSON만 출력: {"reply":"","mood":"calm","add":[],"done":[],"remove":[],"callba
 음성사서함(기억): ${JSON.stringify(S.memory.slice(-40))}`;
 }
 const LOCAL = [['키가 없어서 내 머리가 좀 비었어. 0번 설정에 Gemini 키 넣어 줄래?', 'pout'], ['…지지직. 키가 있어야 제대로 들려.', 'worry']];
+// v101: 사용자가 말한 요일·'내일/모레'와 레나가 정한 날짜가 다르면 앱이 바로잡음
+function wantDate(text) {
+  const t = String(text || ''), t0 = new Date(); t0.setHours(0, 0, 0, 0); const day = n => { const d = new Date(t0); d.setDate(t0.getDate() + n); return dk(d); };
+  if (/글피/.test(t)) return day(3); if (/모레/.test(t)) return day(2); if (/내일/.test(t)) return day(1); if (/오늘/.test(t) && !/[월화수목금토일]요일/.test(t)) return day(0);
+  const ms = [...t.matchAll(/(이번\s?주|다음\s?주|담주|다다음\s?주)?\s*([월화수목금토일])요일/g)]; if (ms.length !== 1) return null;
+  const wk = ms[0][1] || '', wd = '일월화수목금토'.indexOf(ms[0][2]), mon = new Date(t0); mon.setDate(t0.getDate() - ((t0.getDay() + 6) % 7)); const off = (wd + 6) % 7;
+  if (/다다음/.test(wk)) return (mon.setDate(mon.getDate() + 14 + off), dk(mon)); if (/다음|담주/.test(wk)) return (mon.setDate(mon.getDate() + 7 + off), dk(mon)); if (/이번/.test(wk)) return (mon.setDate(mon.getDate() + off), dk(mon));
+  for (let n = 0; n < 7; n++) { const d = new Date(t0); d.setDate(t0.getDate() + n); if (d.getDay() === wd) return dk(d); } return null; }
+function fixDates(r, text) { const w = wantDate(text); if (!w || !r) return; const fx = v => typeof v === 'string' && /^\d{4}-\d\d-\d\d/.test(v) && v.slice(0, 10) !== w ? w + v.slice(10) : v;
+  const adds = (r.add || []).filter(a => a && a.due); if (adds.length === 1) adds[0].due = fx(adds[0].due);
+  const cbs = (r.callback || []).filter(c => c && c.at); if (cbs.length === 1) cbs[0].at = fx(cbs[0].at); }
 async function sendText(raw, special) {
   let text = String(raw || '').trim(); const img = pendImg;
   if ((!text && !img) || (busy && Date.now() - busyAt < 60000)) return; busyAt = Date.now(); if (img && !text) text = '이 사진 봐 줘';
@@ -647,6 +659,7 @@ async function sendText(raw, special) {
     const r = await gemini(sysPrompt(special), contents, onPart);
     const reply = String(r.reply || '…').trim(); onPart(reply);
     S.history.push({ role: 'assistant', content: reply, at: Date.now() }); if (S.history.length > 200) S.history = S.history.slice(-200);
+    try { fixDates(r, text); } catch (e) {}
     let did = apply(r);
     // v100: 말로만 '넣었어·바꿨어' 하고 실제 칸이 비었으면, 한 번 더 물어서 실제로 적용(대화 ↔ 다이얼 끊김 막기)
     if (!did && /(넣었|넣어\s?놨|바꿨|바꿔\s?놨|붙였|붙여\s?놨|저장했|추가했|옮겼|지웠|등록|반영|잡아\s?놨|짰어|짜\s?놨)/.test(reply)) {
