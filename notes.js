@@ -167,7 +167,7 @@ function renderList(B) {
   B.appendChild(L);
 }
 function renderNew(B) {
-  const f = el('div', 'card frm nfrm');
+  const f = el('div', 'card frm nfrm paperc');
   f.appendChild(el('div', 'hint', '과목'));
   f.appendChild(pills(subsAll().map(s => [s, s]), fSub, v => { fSub = v; refreshSheet(); }));
   const units = [...new Set((ST().mats || []).filter(m => m.sub === fSub && m.kind === 'book').flatMap(m => m.units.map(u => `${m.title} ${u.name}`)).concat(ST().notes.filter(n => n.sub === fSub).map(n => n.title)))];

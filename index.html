@@ -395,7 +395,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .ainfo{display:none;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:10px;max-width:330px}
 .app.outside .ainfo{display:flex}
 .ainfo button{height:30px;padding:0 11px;border-radius:15px;border:1.5px solid #000;box-shadow:2px 2px 0 #000;font-size:12.5px;font-weight:800;color:#111;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
-.ainfo .ev{background:#ff8fc4}.ainfo .td{background:var(--yel)}.ainfo .wx{background:var(--mint)}.ainfo .st{background:#fff}
+.ainfo .cev{background:#ff8fc4}.ainfo .ctd{background:var(--yel)}.ainfo .cwx{background:var(--mint)}.ainfo .cst{background:#fff}
 @media (max-height:740px){.ainfo{margin-top:6px}.ainfo button{height:26px;font-size:11.5px}}
 @media (max-height:680px){.app.outside .ainfo{display:none}}
 @media (max-height:700px){.f1{top:calc(var(--st) + 78px)}.f2{top:calc(var(--st) + 170px)}.coinb{top:calc(var(--st) + 182px)}.sub{bottom:calc(var(--sb) + 118px)}.line{font-size:17px}}
@@ -432,6 +432,23 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .cb.cle .bb{color:#17181a;background:linear-gradient(rgba(243,239,230,.55),rgba(243,239,230,.55)),#f3efe6 url(assets/lena/paper_white.webp) center/cover;border-radius:4px 14px 14px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.55)}
 .cb.cme .bb{color:#06201b;background:var(--teal);border-radius:14px 4px 14px 14px;box-shadow:-3px 3px 0 rgba(0,0,0,.55);font-weight:600}
 .cb small{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--mute);padding:0 4px}
+
+/* v92 종이 카드 공통(어두운 칸 → 앱의 종이 재질, 글씨 잘 보이게) */
+.card.paperc,.mat.paperc{position:relative;color:#17181a;background:linear-gradient(rgba(243,239,230,.6),rgba(243,239,230,.6)),#f3efe6 url(assets/lena/paper_white.webp) center/cover;border:2px solid #000;border-radius:4px;box-shadow:3px 4px 0 rgba(0,0,0,.55)}
+.card.paperc.yel,.mat.paperc.yel{background:linear-gradient(rgba(242,234,58,.25),rgba(242,234,58,.25)),#f6ef9a url(assets/lena/paper_yellow.webp) center/cover}
+.paperc .hint,.paperc small,.paperc em{color:rgba(0,0,0,.6)!important}
+.paperc .in,.paperc input:not([type=file]),.paperc textarea,.paperc select{background:#fff!important;color:#111!important;border:2px solid #17181a!important}
+.paperc input::placeholder,.paperc textarea::placeholder{color:rgba(0,0,0,.4)}
+.paperc .pills button{background:rgba(255,255,255,.75);color:#111;border:1.5px solid #17181a}
+.paperc .pills button.on{background:var(--teal);color:#000;border:2px solid #000;box-shadow:2px 2px 0 #000}
+.paperc .btn.ghost,.paperc button.ghost{background:#fff;color:#111;border:2px solid #000}
+.paperc .bdue{background:rgba(255,255,255,.75);color:#111;border:1.5px solid #17181a}.paperc .bdue::before{border-color:#17181a}
+.paperc .npick{color:#111;border-color:rgba(0,0,0,.45);background:rgba(255,255,255,.45)}
+.paperc .lbl,.paperc .t{color:#17181a}
+.list.paperc .it{border-bottom:1.5px dashed rgba(0,0,0,.2)}
+.mat.paperc.slim{padding:10px 12px;margin-bottom:10px}.mat.paperc .h b{color:#17181a}.mat.paperc .pg{background:rgba(0,0,0,.12)}
+.mat.paperc:nth-child(odd){transform:rotate(-.3deg)}.mat.paperc:nth-child(even){transform:rotate(.3deg)}
+.mat.paperc .us button{background:rgba(255,255,255,.75);color:#111;border-color:#17181a}
 </style>
 <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://api.anthropic.com" crossorigin>

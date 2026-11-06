@@ -3,6 +3,13 @@
 'use strict';
 (() => {
 const css = `
+.bz-led{margin:0 0 12px;padding:10px 10px 8px;background:#0d1f17;border:2px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;font-family:'Space Mono',monospace;color:#7dffb5}
+.bz-led .g{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.bz-led .g div{text-align:center;padding:2px 0;border-right:1px dashed rgba(125,255,181,.25)}.bz-led .g div:last-child{border:0}
+.bz-led small{display:block;font-size:10px;opacity:.7;font-family:Pretendard,sans-serif;font-weight:700}.bz-led b{font-size:14px;text-shadow:0 0 6px rgba(125,255,181,.6)}
+.bz-led .tk{display:flex;gap:14px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(125,255,181,.2);overflow:hidden;white-space:nowrap;font-size:11px;-webkit-mask:linear-gradient(90deg,#000 85%,transparent);mask:linear-gradient(90deg,#000 85%,transparent)}
+.bz-led .tk span{flex:none;animation:bzTk 14s linear infinite}.bz-led .tk .on{color:#ff6fb0;animation:bzBl 1.2s steps(2) infinite}
+@keyframes bzTk{from{transform:translateX(0)}to{transform:translateX(-60%)}}@keyframes bzBl{50%{opacity:.3}}
+.bz-ls{display:flex;align-items:center;gap:7px;margin-top:5px;font-size:12px;font-weight:800}.bz-ls .rv{color:#0b7d6e;font-family:'Space Mono',monospace}.bz-ls i{flex:1;min-width:40px;height:7px;border:1.5px solid #17181a;border-radius:4px;background:rgba(0,0,0,.08);overflow:hidden}.bz-ls i u{display:block;height:100%;background:#2fe0c8}.bz-ls i.low u{background:#ff3d9a}.bz-ls .pc{font-size:11px;opacity:.65;font-family:'Space Mono',monospace}
 .bz-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0 12px}
 .bz-top div{position:relative;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;background-blend-mode:multiply;color:#111;border:2px solid #000;border-radius:4px;padding:9px 8px 7px;min-width:0;box-shadow:3px 3px 0 #000;transform:rotate(-1.2deg)}
 .bz-top div:nth-child(2){transform:rotate(1deg);background-image:url(assets/lena/paper_yellow.webp)}.bz-top div:nth-child(3){transform:rotate(-.4deg);background-image:url(assets/lena/paper_teal.webp)}
@@ -107,7 +114,7 @@ function minute(b, t, env) {
         let r = s.price / P[s.p].b; if (loc.cheap && r > 1) r = 1 + (r - 1) * 1.8;
         const rival = loc.rival && loc.rival.includes(s.p) ? .7 : 1;
         s.acc += cust * .03 * P[s.p].d * (loc.pop[s.p] || 1) * wxMul(s.p, env.wx || {}) * conv(r) * boost * rival;
-        while (s.acc >= 1 && s.n > 0) { s.acc -= 1; s.n--; b.today.rev += s.price; b.today.sold++; b.cash += s.price; }
+        while (s.acc >= 1 && s.n > 0) { s.acc -= 1; s.n--; b.today.rev += s.price; b.today.sold++; b.cash += s.price; const bl = b.today.loc || (b.today.loc = {}); const o = bl[loc.id] || (bl[loc.id] = { rev: 0, n: 0 }); o.rev += s.price; o.n++; if (!b.feed) b.feed = []; b.feed.push([t, loc.id, s.p, s.price]); if (b.feed.length > 8) b.feed.shift(); }
         if (s.n <= 0) { s.acc = 0; s.exp = 0; } } }
     if (b.staff.fill) for (const m of st.machines) for (const s of m.slots) if (s.p && s.n < capOf(b, m) / 2) fill(b, m, s, t, true);
   }
@@ -184,13 +191,21 @@ function top(Bx, b) {
   Bx.appendChild(t);
   const nx = RANK[b.rank + 1], rk = el('div', 'bz-rank'), bar = el('i'), u = el('u'); u.style.width = nx ? Math.min(100, b.life / nx[1] * 100) + '%' : '100%'; bar.appendChild(u);
   rk.append(document.createTextNode(`${RANK[b.rank][0]}`), bar, document.createTextNode(nx ? `다음: 누적 이익 ${won(nx[1])}·자리 ${nx[2]}곳` : '최고 등급')); Bx.appendChild(rk);
+  { // v92: 매출 전광판 — 오늘 매출·판매·원가·재고 + 방금 팔린 것
+    let cap = 0, have = 0; Object.values(b.locs).forEach(st => st.machines.forEach(m => m.slots.forEach(s => { if (s.p) { cap += capOf(b, m); have += s.n; } })));
+    const D = el('div', 'bz-led'), g = el('div', 'g'); [['오늘 매출', won(b.today.rev)], ['판매', b.today.sold + '개'], ['도매·버림', won(b.today.cogs + b.today.waste)], ['재고', cap ? Math.round(have / cap * 100) + '%' : '—']].forEach(([a, v]) => { const x = el('div'); x.append(el('small', null, a), el('b', null, v)); g.appendChild(x); });
+    const tk = el('div', 'tk'), f = (b.feed || []).slice(-4).reverse(); tk.appendChild(el('span', 'on', '● 영업 중'));
+    if (f.length) f.forEach(([t, lid, p, pr]) => { const l = L.find(x => x.id === lid); tk.appendChild(el('span', null, `${Math.max(0, Math.round((Date.now() - t) / 60000))}분 전 ${l ? l.n.split(' ')[0] : ''} ${P[p] ? P[p].n : ''} +${pr.toLocaleString()}`)); });
+    else tk.appendChild(el('span', null, '아직 오늘 판매 없음 — 칸을 채워요'));
+    D.append(g, tk); Bx.appendChild(D); }
   if (b.cash < 0) Bx.appendChild(el('div', 'warn', `해골 사채 ${won(-b.cash)} · 매일 자정 이자 5%. ${won(LIMIT)} 밑으로 가면 기계를 압류당해요.`));
 }
 function street(Bx, b) {
   L.forEach(loc => { const st = b.locs[loc.id], c = el('button', 'bz-loc' + (st ? '' : ' lock')), im = el('img'); im.src = loc.i; im.alt = ''; const t = el('div', 't');
     if (st) { let low = 0, empty = 0, brk = 0; st.machines.forEach(m => { if (m.broken) brk++; m.slots.forEach(s => { if (!s.p) empty++; else if (s.n <= capOf(b, m) * .25) low++; }); });
       const w = []; if (brk) w.push(`고장 ${brk}`); if (low) w.push(`거의 빔 ${low}칸`); if (empty) w.push(`빈 칸 ${empty}`);
-      t.append(el('b', null, loc.n), el('small', null, `자판기 ${st.machines.length}대 · 자릿세 ${won(loc.rent)}/일`)); if (w.length) t.appendChild(el('small', 'warnd', w.join(' · ')));
+      const td = (b.today.loc || {})[loc.id] || { rev: 0, n: 0 }; let cp = 0, hv = 0; st.machines.forEach(m => m.slots.forEach(s => { if (s.p) { cp += capOf(b, m); hv += s.n; } })); const pc = cp ? Math.round(hv / cp * 100) : 0;
+      t.append(el('b', null, loc.n), el('small', null, `자판기 ${st.machines.length}대 · 자릿세 ${won(loc.rent)}/일`)); const sr = el('div', 'bz-ls'); sr.append(el('span', 'rv', `오늘 ${won(td.rev)} · ${td.n}개`)); const gb = el('i', pc < 30 ? 'low' : ''), gu = el('u'); gu.style.width = pc + '%'; gb.appendChild(gu); sr.append(gb, el('span', 'pc', `재고 ${pc}%`)); t.appendChild(sr); if (w.length) t.appendChild(el('small', 'warnd', w.join(' · ')));
       c.onclick = () => { cur = loc.id; sel = null; tab = 'loc'; refreshSheet(); };
     } else { t.append(el('b', null, loc.n), el('small', null, `열기: 게임 동전 ${loc.gc}개 · 자릿세 ${won(loc.rent)}/일 · 손님 ${loc.c}/시간`));
       c.onclick = () => { if ((S.gc || 0) < loc.gc) { toast(`게임 동전이 ${loc.gc - (S.gc || 0)}개 모자라요.`); return; } if (!confirm(`${loc.n}을 열까요? 게임 동전 ${loc.gc}개, 매일 자릿세 ${won(loc.rent)}`)) return; S.gc -= loc.gc; b.locs[loc.id] = { machines: [newMachine(0)] }; save(); cur = loc.id; tab = 'loc'; refreshSheet(); }; }
