@@ -537,8 +537,8 @@ function stExam(B) {
 }
 function stMat(B) {
   ST().mats.slice().sort((a, b) => a.sub.localeCompare(b.sub)).forEach(m => {
-    const c = el('div', 'mat'), h = el('div', 'h'), dn = m.units.filter(u => u.done).length;
-    h.append(chip(m.sub), el('b', null, (m.kind === 'hw' ? '숙제 · ' : m.kind === 'perf' ? '수행 · ' : '') + m.title), el('em', null, m.rep ? `매주 ${m.rep.days.slice().sort().map(d => WD[d]).join('·')} · ${m.rep.mins}분` : m.kind !== 'book' ? (m.due ? `${m.kind === 'perf' ? '수행' : '학원'} ${m.due.slice(5).replace('-', '/')}` : '') : !m.units.length ? '시험 범위를 넣으면 단원이 생겨요' : `${dn}/${m.units.length} · ${hm(m.units.filter(u => !u.done).reduce((a, u) => a + Math.max(0, u.mins - (u.prog || 0)), 0))} 남음`), xbtnS(() => { if (!confirm(`'${m.title}' 지울까요?`)) return; ST().mats = ST().mats.filter(x => x !== m); ST().exams.forEach(e => e.ranges = e.ranges.filter(r => r.mat !== m.id)); save(); dirty(); refreshSheet(); }));
+    const c = el('div', 'mat paperc slim' + (m.kind === 'hw' ? ' yel' : '')), h = el('div', 'h'), dn = m.units.filter(u => u.done).length;
+    h.append(chip(m.sub), el('b', null, (m.kind === 'hw' ? (/^숙제$/.test(m.title) ? '학원 ' : '숙제 · ') : m.kind === 'perf' ? '수행 · ' : '') + m.title), el('em', null, m.rep ? `매주 ${m.rep.days.slice().sort().map(d => WD[d]).join('·')} · ${m.rep.mins}분` : m.kind !== 'book' ? (m.due ? `${m.kind === 'perf' ? '수행' : '학원'} ${m.due.slice(5).replace('-', '/')}` : '') : !m.units.length ? '시험 범위를 넣으면 단원이 생겨요' : `${dn}/${m.units.length} · ${hm(m.units.filter(u => !u.done).reduce((a, u) => a + Math.max(0, u.mins - (u.prog || 0)), 0))} 남음`), xbtnS(() => { if (!confirm(`'${m.title}' 지울까요?`)) return; ST().mats = ST().mats.filter(x => x !== m); ST().exams.forEach(e => e.ranges = e.ranges.filter(r => r.mat !== m.id)); save(); dirty(); refreshSheet(); }));
     const pg = el('div', 'pg'), i = el('i'); i.style.width = (m.units.length ? dn / m.units.length * 100 : 0) + '%'; pg.appendChild(i); c.append(h, pg);
     c.onclick = ev => { if (ev.target.closest('.x') || ev.target.closest('.us') || ev.target.closest('.row')) return; openMat = openMat === m.id ? null : m.id; refreshSheet(); };
     if (openMat === m.id) {

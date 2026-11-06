@@ -157,10 +157,10 @@ function renderHome() {
   }
   // v87: 음성통화 화면 이름 아래 오늘 요약 칩(다음 일정·할 일·날씨·공부)
   { const A = $('aInfo'); if (A) { A.innerHTML = ''; const chip = (c, t, f) => { const b = el('button', c, t); b.onclick = f; A.appendChild(b); };
-    if (nx) chip('ev', `${when(nx.due).replace(/^오늘 /, '')} ${nx.text}`, () => openBoard('today'));
-    if (todo.length) chip('td', `할 일 ${todo.length}`, () => openBoard('all'));
-    try { const w = S.wx, dd = w && w.on && w.data && (w.data.days || []).find(x => x.d === dk(now)); if (dd) chip('wx', `${dd.pop >= 40 ? '비 ' : ''}${Math.round(dd.min)}~${Math.round(dd.max)}°`, () => openSheet(0)); } catch (e) {}
-    try { const P = window.lenaStudy && lenaStudy.plan(), D = P && P.days[0]; if (D && D.mins) chip('st', `공부 ${D.mins >= 60 ? Math.floor(D.mins / 60) + '시간' + (D.mins % 60 ? ' ' + D.mins % 60 + '분' : '') : D.mins + '분'}`, () => openSheet(6)); } catch (e) {} } }
+    if (nx) chip('cev', `${when(nx.due).replace(/^오늘 /, '')} ${nx.text}`, () => openBoard('today'));
+    if (todo.length) chip('ctd', `할 일 ${todo.length}`, () => openBoard('all'));
+    try { const w = S.wx, dd = w && w.on && w.data && (w.data.days || []).find(x => x.d === dk(now)); if (dd) chip('cwx', `${dd.pop >= 40 ? '비 ' : ''}${Math.round(dd.min)}~${Math.round(dd.max)}°`, () => openSheet(0)); } catch (e) {}
+    try { const P = window.lenaStudy && lenaStudy.plan(), D = P && P.days[0]; if (D && D.mins) chip('cst', `공부 ${D.mins >= 60 ? Math.floor(D.mins / 60) + '시간' + (D.mins % 60 ? ' ' + D.mins % 60 + '분' : '') : D.mins + '분'}`, () => openSheet(6)); } catch (e) {} } }
   // 영상 화면엔 동전 개수를 띄우지 않는다(자판기는 음성 화면 ♥ 배지·오락실에서)
   const late = S.items.filter(isLate);
   const K = $('knock'); placeKnock(); K.classList.toggle('on', !!late.length); K.onclick = () => { dtmf('#'); openBoard('today'); };
@@ -282,7 +282,7 @@ function openBoard(tab) { boardTab = tab || 'today'; openSheet(1); }
 
 // 4 예약 전화
 SH[4] = { t: '예약 전화', s: '정한 시간에 레나가 전화해요', r: B => {
-  const c = el('div', 'card'), t = inp('text', '무슨 일로? (예: 빨래 꺼내기)'), d = inp('datetime-local');
+  const c = el('div', 'card paperc yel'), t = inp('text', '무슨 일로? (예: 빨래 꺼내기)'), d = inp('datetime-local');
   let off = 30;
   const P = pills([[10, '10분 뒤'], [30, '30분 뒤'], [60, '1시간 뒤'], [180, '3시간 뒤'], [0, '직접']], off, v => { off = v; [...P.children].forEach(b => b.classList.toggle('on', b.textContent === ({ 10: '10분 뒤', 30: '30분 뒤', 60: '1시간 뒤', 180: '3시간 뒤', 0: '직접' })[v])); d.style.display = v ? 'none' : ''; });
   d.style.display = 'none';
@@ -292,7 +292,7 @@ SH[4] = { t: '예약 전화', s: '정한 시간에 레나가 전화해요', r: B
   const L = S.calls.filter(x => !x.done && x.at > Date.now() - 6e4).sort((a, b) => a.at - b.at);
   B.appendChild(lbl('예약된 전화'));
   if (!L.length) B.appendChild(empty('예약된 전화가 없어요.\n통화 중에 "30분 뒤에 전화해 줘"라고 해도 돼요.', 'st_phone'));
-  else { const l = el('div', 'list card'); L.forEach(x => { const r = el('div', 'it'), ic = el('img', 'ic'); ic.src = 'assets/lena/st_phone.webp'; ic.alt = ''; const tx = el('div', 't', x.text || '그냥 목소리 들려주기'); tx.appendChild(el('small', null, when(x.at))); r.append(ic, tx, xbtn(() => { S.calls = S.calls.filter(y => y !== x); save(); refreshSheet(); })); l.appendChild(r); }); B.appendChild(l); }
+  else { const l = el('div', 'list card paperc'); L.forEach(x => { const r = el('div', 'it'), ic = el('img', 'ic'); ic.src = 'assets/lena/st_phone.webp'; ic.alt = ''; const tx = el('div', 't', x.text || '그냥 목소리 들려주기'); tx.appendChild(el('small', null, when(x.at))); r.append(ic, tx, xbtn(() => { S.calls = S.calls.filter(y => y !== x); save(); refreshSheet(); })); l.appendChild(r); }); B.appendChild(l); }
   if (!S.pushOn) B.appendChild(el('div', 'hint', '앱을 닫아 두면 폰 알림으로 와요. 0번 설정에서 폰 알림을 켜 주세요.'));
 } };
 
