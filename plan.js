@@ -51,7 +51,7 @@ const B0 = () => { if (!S.pro) S.pro = {}; if (S.pro.brief === undefined) S.pro.
 // ---------- 시간표 탭 (전단지 시트 안) ----------
 let ttEd = null;
 const _bt = boardTabs; boardTabs = function (B) {
-  const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['tt', '시간표'], ['all', '할 일']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
+  const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['tt', '시간표'], ['all', '전체']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
 };
 const _br = boardRender; boardRender = function (B) {
   if (boardTab !== 'tt') {
@@ -109,7 +109,8 @@ const _br = boardRender; boardRender = function (B) {
 // ---------- 레나가 오늘 시간표 짜기 ----------
 function busyToday() {
   const d = new Date(), L = [];
-  S.items.forEach(t => { if (t.done || !t.due || !onDate(t, d)) return; const s = toM(t.due.slice(11, 16)); L.push([s, s + durOf(t), t.text]); });
+  S.items.forEach(t => { if (t.done || !t.due || !onDate(t, d) || t.rid) return; const s = toM(t.due.slice(11, 16)); L.push([s, s + durOf(t), t.text]); });
+  (S.reps || []).forEach(r => { if (r.days.length && !r.days.includes(d.getDay())) return; if ((S.repSkip || {})[r.id + '_' + dk(d)]) return; L.push([toM(r.time), toM(repEnd(r)), r.text]); }); // v78: 고정 일정은 전단지가 아니라 시간표에서 읽음
   if (window.studyBusy) L.push(...window.studyBusy());
   return L.sort((a, b) => a[0] - b[0]);
 }

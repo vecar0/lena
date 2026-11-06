@@ -76,16 +76,19 @@ function tick() {
 }
 
 // ---------------- items (전단지) ----------------
-const openItems = () => S.items.filter(t => !t.done);
-// 시간표(매주 반복)로 생긴 전단지(t.rid)는 '할 일'이 아니라 일정이라 밀림·부재중·재촉에서 뺀다
-const isLate = t => !t.done && t.due && !t.rid && new Date(t.due) < new Date();
+// v78: 한 번만 하는 것은 두 종류 — 할 일(kind 'todo': 마감만, 체크해서 뗌) / 일정(kind 'event': 정확한 시간, 체크 없음, 끝나면 저절로 내려감)
+// 매주 반복(고정)은 시간표에만 있고 전단지·알림으로 만들지 않는다
+const isEv = t => t.kind === 'event';
+const evEnd = t => new Date(t.due).getTime() + (t.mins || 60) * 60e3;
+const openItems = () => { const n = Date.now(); S.items.forEach(t => { if (isEv(t) && !t.done && t.due && evEnd(t) < n) { t.done = true; t.doneAt = evEnd(t); t.auto = 1; } }); return S.items.filter(t => !t.done && !t.rid); };
+const isLate = t => !t.done && t.due && !t.rid && !isEv(t) && new Date(t.due) < new Date();
 const repEndAt = t => { const r = (S.reps || []).find(x => x.id === t.rid), d = new Date(t.due); if (r && r.end) { const [h, m] = r.end.split(':').map(Number); d.setHours(h, m, 0, 0); } else d.setTime(d.getTime() + 3600e3); return d; };
 const repOver = t => !!t.rid && !t.done && repEndAt(t) < new Date();
 const onDate = (t, d) => t.due && t.due.slice(0, 10) === dk(d);
 // 같은 것인지 비교할 때: 띄어쓰기·문장부호·대소문자 무시
 const norm = x => String(x || '').toLowerCase().replace(/[\s·.,!?~'"()\[\]\-_/]/g, '');
 function dedupItems() { const seen = new Set(), n = S.items.length; S.items = S.items.filter(t => { if (t.done || t.rid) return true; const k = norm(t.text) + '|' + (t.due || ''); if (seen.has(k)) return false; seen.add(k); return true; }); return n - S.items.length; }
-function addItem(text, due) { const t = { id: uid('t'), text: String(text).slice(0, 80), due: /^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(due || '') ? due.slice(0, 16) : '', done: false, at: Date.now() }; S.items.push(t); return t; }
+function addItem(text, due, kind) { const t = { id: uid('t'), text: String(text).slice(0, 80), due: /^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(due || '') ? due.slice(0, 16) : '', done: false, at: Date.now(), kind: kind === 'event' ? 'event' : 'todo' }; if (t.kind === 'event' && !t.due) t.kind = 'todo'; S.items.push(t); return t; }
 function setDone(t, v, srcEl) {
   if (t.done === v) return; t.done = v; t.doneAt = v ? Date.now() : 0;
   const k = dk(new Date());
@@ -107,7 +110,7 @@ function coinPop(srcEl) {
 function mcAt(d) { if (!S.morning) return null; const [h, m] = S.morning.split(':').map(Number); const x = new Date(d); x.setHours(h, m, 0, 0); return x; }
 function missed() {
   const from = S.ack || 0, now = Date.now(), L = [];
-  S.items.forEach(t => { if (t.done || !t.due || t.rid || S.fired[t.id]) return; const a = new Date(t.due).getTime(); if (a > from && a <= now) L.push({ at: a, text: t.text, kind: '전단지', ref: t }); });
+  S.items.forEach(t => { if (t.done || !t.due || t.rid || isEv(t) || S.fired[t.id]) return; const a = new Date(t.due).getTime(); if (a > from && a <= now) L.push({ at: a, text: `${t.text} (마감)`, kind: '할 일', ref: t }); });
   S.calls.forEach(c => { if (c.done || S.fired[c.id]) return; if (c.at > from && c.at <= now) L.push({ at: c.at, text: c.text || '약속한 전화', kind: '예약 전화', ref: c }); });
   for (let i = 0; i < 2; i++) { const d = new Date(); d.setDate(d.getDate() - i); const m = mcAt(d); if (!m) continue; const a = m.getTime(); if (a > from && a <= now && S.mcDone !== dk(d) && now - a > 2 * 3600e3) L.push({ at: a, text: '모닝콜', kind: '모닝콜' }); }
   return L.sort((a, b) => b.at - a.at);
@@ -214,28 +217,31 @@ function pills(opts, cur, fn) {
   const P = el('div', 'pills'); opts.forEach(([v, l]) => { const b = el('button', String(cur) === String(v) ? 'on' : '', l); b.onclick = () => fn(v); P.appendChild(b); }); return P; }
 
 // 1~3 전단지
-let boardTab = 'today';
+let boardTab = 'today', addKind = 'todo';
 const TAPES = ['tape_pink1', 'tape_teal1', 'tape_yellow', 'tape_white', 'tape_teal2', 'tape_pink2'];
 function paper(t, i) {
   const late = isLate(t), cls = t.done ? 'white' : t.due ? (late ? 'pink' : (onDate(t, new Date()) ? 'pink' : 'teal')) : 'yel';
   const p = el('div', `pp ${cls}${t.done ? ' done' : ''}${late ? ' late' : ''}`);
   const tp = el('div', 'tp'); tp.style.backgroundImage = `url(assets/lena/${TAPES[i % TAPES.length]}.webp)`; tp.style.transform = `rotate(${(i % 3 - 1) * 5}deg)`;
-  p.append(tp, el('small', null, t.due ? when(t.due) : '언제든'), el('b', null, t.text));
+  const ev = isEv(t); if (ev) p.classList.add('evt');
+  p.append(tp, el('small', null, ev ? `일정 · ${when(t.due)}` : t.due ? `할 일 · ${when(t.due)}까지` : '할 일 · 언제든'), el('b', null, t.text));
   const a = el('div', 'acts'), ck = el('button', 'ck'); ck.setAttribute('aria-label', '끝냄'); ck.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   ck.onclick = () => { dtmf(5); if (!t.done) { tearSound(); p.classList.add('tear'); setTimeout(() => { setDone(t, true, ck); refreshSheet(); }, 450); } else { setDone(t, false); refreshSheet(); } };
-  a.append(ck, xbtn(() => { const snap = JSON.stringify(S.items); if (t.rkey && S.repSkip) S.repSkip[t.rkey] = 1; S.items = S.items.filter(x => x !== t); save(); refreshSheet(); toast(`'${t.text}' 떼어 버렸어요`, () => { S.items = JSON.parse(snap); save(); refreshSheet(); }); }));
+  if (ev) a.append(el('span', 'evk', t.done ? '지난 일정' : '꼭 가요')); else a.append(ck);
+  a.append(xbtn(() => { const snap = JSON.stringify(S.items); if (t.rkey && S.repSkip) S.repSkip[t.rkey] = 1; S.items = S.items.filter(x => x !== t); save(); refreshSheet(); toast(`'${t.text}' 떼어 버렸어요`, () => { S.items = JSON.parse(snap); save(); refreshSheet(); }); }));
   p.appendChild(a); return p;
 }
 function boardAdd(B) {
-  const c = el('div', 'card'), t = inp('text', '새 전단지 (예: 택배 반품)'), d = inp('datetime-local');
+  const c = el('div', 'card'), t = inp('text', addKind === 'event' ? '일정 (예: 치과 예약)' : '할 일 (예: 택배 반품)'), d = inp('datetime-local');
   t.enterKeyHint = 'done';
-  const go = () => { const v = t.value.trim(); if (!v) { t.focus(); return; } const it = addItem(v, d.value); save(); t.value = ''; d.value = ''; refreshSheet(); say(it.due ? `${when(it.due)}, '${v}'. 붙여 뒀어요.` : `'${v}' 붙여 뒀어요. 까먹으면 혼나요.`, 'happy', false); };
+  const go = () => { const v = t.value.trim(); if (!v) { t.focus(); return; } if (addKind === 'event' && !d.value) { toast('일정은 시간을 넣어 주세요.'); d.focus(); return; } const it = addItem(v, d.value, addKind); save(); pushSync(true); t.value = ''; d.value = ''; refreshSheet(); say(isEv(it) ? `${when(it.due)} '${v}'. 그 시간에 꼭 알려 줄게요.` : it.due ? `'${v}', ${when(it.due)}까지. 끝나면 체크해요.` : `'${v}' 붙여 뒀어요. 까먹으면 혼나요.`, 'happy', false); };
   t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
-  c.classList.add('badd'); const dl = el('label', 'bwhen'); dl.append(el('span', null, '시간 (비워도 돼요)'), d);
-  c.append(row(t, btn('붙이기', '', go)), dl); B.appendChild(c);
+  c.classList.add('badd'); const dl = el('label', 'bwhen'); dl.append(el('span', null, addKind === 'event' ? '언제 (꼭 넣기)' : '마감 (비워도 돼요)'), d);
+  c.append(pills([['todo', '할 일 — 마감까지 체크'], ['event', '일정 — 정해진 시간']], addKind, v => { addKind = v; refreshSheet(); }), row(t, btn('붙이기', '', go)), dl); B.appendChild(c);
 }
-function boardTabs(B) { const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['all', '할 일']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T); }
+function boardTabs(B) { const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['all', '전체']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T); }
 function boardRender(B) {
+  openItems(); // 끝난 일정은 저절로 내려감
   boardTabs(B);
   const now = new Date();
   if (boardTab === 'week') {
@@ -549,7 +555,7 @@ function sysPrompt(special) {
 음성사서함(기억): ${JSON.stringify(S.memory.slice(-40))}
 규칙:
 - 이미 위 목록에 있는 일정·할 일·예약 전화·기억은 add/callback/remember에 다시 넣지 않는다(새로 생긴 것만).
-- 일정·할 일·약속을 말하면 add에 {"text","due"}. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.
+- 일정·할 일·약속을 말하면 add에 {"text","due","type"}. type은 "event"(정해진 시간에 꼭 하는 일정·약속 — 병원·만남·시험 등, due 꼭 시간까지) 또는 "todo"(마감까지 끝내면 되는 할 일 — 숙제 제출·택배 반품 등, due는 마감, 없으면 ""). 매주 반복이면 add 말고 repeat. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.
 - 끝냈다고 하면 done에 id. 취소·지워 달라고 하면 remove에 id.
 - "~뒤에/~시에 전화해 줘, 깨워 줘, 알려 줘"는 callback에 {"at":"YYYY-MM-DDTHH:mm","text":"무슨 일로"}(미래 시각만).
 - 오래 기억할 정보(취향, 사람, 습관)는 remember에 짧게. 이미 있으면 넣지 않는다.
@@ -596,7 +602,7 @@ async function sendText(raw, special) {
 }
 function apply(r) {
   const snap = JSON.stringify({ items: S.items, calls: S.calls, memory: S.memory, diary: S.diary }), out = [];
-  (r.add || []).forEach(a => { if (!a || !a.text) return; const due = /^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(a.due || '') ? a.due.slice(0, 16) : ''; if (S.items.some(x => !x.done && norm(x.text) === norm(a.text) && (x.due || '') === due)) return; /* 이미 있는 전단지는 또 붙이지 않음 */ const t = addItem(a.text, a.due); out.push(`'${t.text}'${t.due ? ' ' + when(t.due) : ''}`); });
+  (r.add || []).forEach(a => { if (!a || !a.text) return; const due = /^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(a.due || '') ? a.due.slice(0, 16) : ''; if (S.items.some(x => !x.done && norm(x.text) === norm(a.text) && (x.due || '') === due)) return; /* 이미 있는 전단지는 또 붙이지 않음 */ const t = addItem(a.text, a.due, a.type === 'event' ? 'event' : 'todo'); out.push(`'${t.text}'${t.due ? ' ' + when(t.due) : ''}`); });
   (r.done || []).forEach(id => { const t = S.items.find(x => x.id === id); if (t && !t.done) { setDone(t, true, $('log').lastChild); out.push(`'${t.text}' 뗌`); } });
   (r.remove || []).forEach(id => { const t = S.items.find(x => x.id === id); if (t) { S.items = S.items.filter(x => x !== t); out.push(`'${t.text}' 지움`); } });
   (r.callback || []).forEach(c => { if (!c || !/^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(c.at || '')) return; const at = new Date(c.at.slice(0, 16)).getTime(); if (!(at > Date.now())) return; if (S.calls.some(x => !x.done && Math.abs(x.at - at) < 3 * 60e3)) return; S.calls.push({ id: uid('c'), at, text: String(c.text || '').slice(0, 60), done: false }); out.push(`${when(at)} 전화 예약`); });
@@ -662,9 +668,13 @@ const rnd = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toStr
 function b64u(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); const r = atob(s + '==='.slice((s.length + 3) % 4)); return Uint8Array.from(r, c => c.charCodeAt(0)); }
 function plan() {
   const n = nmc(), now = Date.now(), rem = [];
-  S.items.forEach(t => { if (t.done || !t.due) return; const at = new Date(t.due).getTime(); if (isNaN(at)) return;
-    if (at - 10 * 60e3 > now) rem.push({ id: t.id + 'a', at: at - 10 * 60e3, body: `${n}'${t.text}' 10분 남았어요. 준비해요.` });
-    if (at > now) rem.push({ id: t.id + 'b', at, body: `'${t.text}' 시간이에요. …제가 말했죠?` }); });
+  S.items.forEach(t => { if (t.done || !t.due || t.rid) return; const at = new Date(t.due).getTime(); if (isNaN(at)) return;
+    if (isEv(t)) { // 일정: 정확한 시간에 꼭
+      if (at - 10 * 60e3 > now) rem.push({ id: t.id + 'a', at: at - 10 * 60e3, body: `${n}'${t.text}' 10분 뒤예요. 준비해요.` });
+      if (at > now) rem.push({ id: t.id + 'b', at, body: `'${t.text}' 시간이에요. …제가 말했죠?` });
+    } else { // 할 일: 마감 3시간 전·마감
+      if (at - 3 * 3600e3 > now) rem.push({ id: t.id + 'a', at: at - 3 * 3600e3, body: `${n}'${t.text}' 마감 3시간 전이에요. 했어요?` });
+      if (at > now) rem.push({ id: t.id + 'b', at, body: `'${t.text}' 마감이에요. 끝냈으면 체크해 줘요.` }); } });
   S.calls.forEach(c => { if (!c.done && c.at > now) rem.push({ id: c.id, at: c.at, body: c.text ? `📞 레나예요. 약속한 전화 — ${c.text}` : `📞 레나예요. …그냥 목소리 듣고 싶어서요.` }); });
   if (S.morning) for (let i = 0; i < 8; i++) { const d = new Date(); d.setDate(d.getDate() + i); const m = mcAt(d); if (m.getTime() <= now) continue; const ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
     if (S.mcDone === dk(d)) continue;
