@@ -43,6 +43,7 @@ const css = `
 .exp .exr .exk{flex:none;width:64px}
 .exp .exr span{flex:1;font-size:14px;font-weight:700;line-height:1.45;word-break:keep-all}.exp .exr span.ac{color:#6a3fd0}
 .exp .exr small{display:block;font-size:12px;font-weight:600;opacity:.6}
+.exp .exrg{margin-top:10px;padding-top:10px;border-top:1.5px dashed rgba(0,0,0,.25)}.exp .exrg .in{background:#fff;color:#111;border:2px solid #17181a}.exp .exrg .hint{color:rgba(0,0,0,.6)}
 .exp .exs{display:flex;flex-wrap:wrap;gap:6px 10px;padding-top:9px}
 .calh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .calh b{font-family:'Black Han Sans';font-weight:400;font-size:20px}
@@ -393,7 +394,7 @@ function dayPaper(B, k, D) {
   (S.reps || []).filter(r => (!r.days.length || r.days.includes(d.getDay())) && !(S.repSkip || {})[r.id + '_' + k]).forEach(r => add(toM(r.time), { kind: 'fix', txt: `${r.text} ~${r.end || ''}` }));
   S.items.filter(t => !t.rid && t.due && t.due.slice(0, 10) === k).forEach(t => add(toM(t.due.slice(11, 16)), { kind: t.kind === 'event' ? 'ev' : 'todo', txt: t.kind === 'event' ? t.text : `${t.text} (마감)`, done: t.done }));
   lg.forEach(l => add(l.s, { kind: 'log', sub: l.sub, txt: l.label, mins: l.mins }));
-  (D ? D.blocks : []).forEach(b => add(b.s, { kind: 'st', sub: b.sub, txt: b.parts.map(p => p.t.label).join(' + '), mins: b.e - b.s, b }));
+  grp(D ? D.blocks : []).forEach(g => add(g.s, { kind: 'st', sub: g.b.sub, txt: g.b.parts.map(p => p.t.label).join(' + ') + (g.bs.length > 1 ? ` (~${toT(g.e)})` : ''), mins: g.mins, b: g.b, bs: g.bs }));
   if (D && D.play) add(D.play.s, { kind: 'play', txt: `휴식 시간 ${D.play.e - D.play.s}분`, mins: D.play.e - D.play.s });
   const tot = (D ? D.mins : 0) + lg.reduce((a, x) => a + x.mins, 0);
   const sp = el('div', 'sheetp'); sp.style.marginTop = '12px'; sp.append(el('i', 'tape'), el('i', 'tape r'));
@@ -404,7 +405,7 @@ function dayPaper(B, k, D) {
     t.append(document.createTextNode(o.s < 0 ? '시험' : toT(o.s))); if (o.mins && o.kind !== 'play') t.appendChild(el('small', null, `${o.mins}분`));
     const w = el('span', 'w'); if (o.sub) w.appendChild(sw(o.sub, o.txt)); else w.textContent = (o.kind === 'ev' ? '일정 · ' : o.kind === 'todo' ? '할 일 · ' : '') + o.txt; r.append(t, w);
     if (o.kind === 'log') r.appendChild(el('span', 'st', '✓'));
-    else if (o.kind === 'st' && isT) { const ok = el('button', 'st'); ok.setAttribute('aria-label', '끝냄'); ok.onclick = () => { finishBlock(o.b); refreshSheet(); toast('한 블록 끝! 수고했어요.'); }; r.appendChild(ok); }
+    else if (o.kind === 'st' && isT) { const ok = el('button', 'st'); ok.setAttribute('aria-label', '끝냄'); ok.onclick = () => { (o.bs || [o.b]).forEach(x2 => finishBlock(x2)); refreshSheet(); toast('끝! 수고했어.'); }; r.appendChild(ok); }
     sp.appendChild(r); });
   if (!rows.length) sp.appendChild(el('div', 'pempty', '이날은 비어 있어요.'));
   sp.appendChild(el('div', 'pfoot', '일정·할 일은 1번 전단지에서 붙여요. 고정 일정은 3번 시간표에서.'));
@@ -448,6 +449,9 @@ function lenaNote(B, D, lg) {
   const R = el('div', 'lbtn'); R.append(...(adj === 1 ? [btn('조금만', 'ghost', () => set(.5)), btn('쉴래', 'ghost', () => set(0)), btn('더 할래', 'ghost', () => set(1.4))] : [btn('원래대로', 'ghost', () => set(1))]), btn('레나랑 얘기', 'teal', () => { closeSheet(); openCall(); setTimeout(() => sendText('공부 계획 얘기하자'), 400); }));
   c.appendChild(R); B.appendChild(c);
 }
+// v99: 붙어 있는 같은 숙제·같은 공부 블록은 한 줄로(50분씩 끊어 보이지 않게)
+const keyOf = b => b.parts.length === 1 ? b.parts[0].t.key : null;
+function grp(blocks) { const G = []; blocks.forEach((b, i) => { const g = G[G.length - 1], k = keyOf(b); if (g && k && k === g.k && b.s - g.e <= 15) { g.e = b.e; g.bs.push(b); g.mins += b.e - b.s; } else G.push({ k, s: b.s, e: b.e, b, i, bs: [b], mins: b.e - b.s }); }); return G; }
 function stToday(B) {
   const st = ST(), P = splan(), D = P.days[0] || { blocks: [], mins: 0 }, k = todayK(), lg = st.log[k] || [], now = new Date();
   dFlyer(B);
@@ -463,15 +467,15 @@ function stToday(B) {
   const hd = el('div', 'hd'); hd.append(el('b', null, `${now.getMonth() + 1}월 ${now.getDate()}일 ${WD[now.getDay()]}요일`), el('span', null, tot ? hm(tot) : '쉬는 날')); sp.appendChild(hd);
   const first = D.blocks.length ? D.blocks[0].s : 0, lastE = D.blocks.length ? D.blocks[D.blocks.length - 1].e : 0;
   const fixd = busyOn(now).filter(([s0, e2]) => s0 < lastE && e2 > first);
-  const list = [...lg.map(l => ({ s: l.s, lg: l })), ...D.blocks.map((b, i) => ({ s: b.s, b, i })), ...fixd.map(f => ({ s: f[0], fx: f })), ...(D.play ? [{ s: D.play.s, pl: D.play }] : [])].sort((a, b) => a.s - b.s);
+  const list = [...lg.map(l => ({ s: l.s, lg: l })), ...grp(D.blocks).map(g => ({ s: g.s, b: g.b, i: g.i, g })), ...fixd.map(f => ({ s: f[0], fx: f })), ...(D.play ? [{ s: D.play.s, pl: D.play }] : [])].sort((a, b) => a.s - b.s);
   const subWord = (sb, txt) => { const w = el('span'), i2 = el('i', null, sb); i2.style.setProperty('--c', colOf(sb)); w.append(i2, document.createTextNode(txt)); return w; };
   list.forEach(x => {
     if (x.pl) { const r = el('div', 'pr pplay'); r.append(el('span', 't', toT(x.pl.s)), el('span', 'w', `휴식 시간 ${x.pl.e - x.pl.s}분 — 푹 쉬어요`)); sp.appendChild(r); return; }
     if (x.fx) { const r = el('div', 'pr pfx'); r.append(el('span', 't', toT(x.fx[0])), el('span', 'w', `${x.fx[2] || '일정'} ~${toT(x.fx[1])}`)); sp.appendChild(r); return; }
     if (x.lg) { const r = el('div', 'pr done'), t = el('span', 't'); t.append(document.createTextNode(toT(x.lg.s)), el('small', null, `${x.lg.mins}분`)); const w = el('span', 'w'); w.appendChild(subWord(x.lg.sub, x.lg.label)); const st2 = el('span', 'st', '✓'); st2.setAttribute('aria-label', '끝냄'); r.append(t, w, st2); sp.appendChild(r); return; }
-    const b = x.b, i = x.i, r = el('div', 'pr' + (ed === i ? ' ed' : '')), t = el('span', 't'); t.append(document.createTextNode(toT(b.s)), el('small', null, `${b.e - b.s}분`));
+    const b = x.b, i = x.i, g = x.g, r = el('div', 'pr' + (ed === i ? ' ed' : '')), t = el('span', 't'); t.append(document.createTextNode(toT(g.s)), el('small', null, g.bs.length > 1 ? `~${toT(g.e)} · ${g.mins}분` : `${g.mins}분`));
     const w = el('button', 'w'); w.appendChild(subWord(b.sub, b.parts.map(p => p.t.label).join(' + '))); w.onclick = () => { ed = ed === i ? -1 : i; edMode = ''; addOpen = false; refreshSheet(); };
-    const ok = el('button', 'st'); ok.setAttribute('aria-label', '끝냄'); ok.onclick = () => { finishBlock(b); ed = -1; refreshSheet(); toast('한 블록 끝! 수고했어요.'); };
+    const ok = el('button', 'st'); ok.setAttribute('aria-label', '끝냄'); ok.onclick = () => { g.bs.forEach(x2 => finishBlock(x2)); ed = -1; refreshSheet(); toast(g.bs.length > 1 ? '통째로 끝! 수고했어.' : '한 블록 끝! 수고했어.'); };
     r.append(t, w, ok); sp.appendChild(r);
     if (ed === i) sp.appendChild(editRow(i));
   });
@@ -526,7 +530,14 @@ function stExam(B) {
         rg.forEach(([x, m]) => tx.appendChild(el('small', null, `${m.title} ${m.units[x.from] ? m.units[x.from].name : ''}~${m.units[x.to] ? m.units[x.to].name : ''}`)));
         lw.appendChild(lb); r.append(lw, tx); W.appendChild(r); });
       c.appendChild(W);
-    } else { const sp = el('div', 'exs'); exSubs(e).forEach(sb => { const i = el('i', null, sb); i.style.setProperty('--c', colOf(sb)); sp.appendChild(i); }); c.appendChild(sp); }
+    }
+    // v99: 이미 있는 시험에도 문제집 범위 넣기/고치기
+    { const BK = ST().mats.filter(m => m.kind === 'book' && exSubs(e).includes(m.sub)); if (BK.length) { const rr = el('div', 'exrg'), ms = el('select', 'in'); BK.forEach(m => ms.appendChild(new Option(`${m.sub} · ${m.title}`, m.id)));
+      const cur0 = () => e.ranges.find(x => x.mat === ms.value), fr = inp('number', '부터'), to = inp('number', '까지'); fr.min = to.min = '1'; fr.style.maxWidth = to.style.maxWidth = '76px';
+      const fill = () => { const c = cur0(), m = matOf(ms.value); fr.value = c && m && m.units[c.from] ? (m.units[c.from].n || c.from + 1) : ''; to.value = c && m && m.units[c.to] ? (m.units[c.to].n || c.to + 1) : ''; }; ms.onchange = fill; fill();
+      rr.append(el('div', 'hint', '문제집 범위 (몇 단원부터 몇 단원까지)'), row(ms), row(fr, el('span', 'hint', '~'), to, el('span', 'hint', '단원'), btn('넣기', 'teal', () => { const m = matOf(ms.value), a2 = Math.max(1, +fr.value || 1), b2 = Math.max(a2, +to.value || a2); if (!m) return; const [fi, ti] = ensureUnits(m, a2, b2); mergeExam(e, null, [m.sub], [{ mat: m.id, from: fi, to: ti }]); save(); dirty(); pushSync(true); refreshSheet(); toast(`${m.sub} ${m.title} ${a2}~${b2}단원 넣었어. 시험 전까지 나눠 짤게.`); })));
+      c.appendChild(rr); } }
+    if (n) { const sp = el('div', 'exs'); exSubs(e).forEach(sb => { const i = el('i', null, sb); i.style.setProperty('--c', colOf(sb)); sp.appendChild(i); }); c.appendChild(sp); }
     B.appendChild(c);
   });
   if (!E.length && !formOpen) B.appendChild(el('div', 'hint', '시험을 넣으면 오늘부터 시험까지 문제집 풀기·오답을 나눠 넣어요. 학원 다니는 과목은 학원 숙제만.'));
@@ -603,7 +614,7 @@ const _ap = apply; apply = function (r) {
   const res = _ap(r), x = r && r.study, got = [];
   if (x && typeof x === 'object') {
     (x.mats || []).forEach(o => { if (!o || !o.title) return; if (findMat(o)) return; const m = addMat({ ...o, unit: o.unit === '쪽' ? '쪽' : '단원' }); got.push(`${m.sub} ${m.title}`); });
-    (x.exams || []).forEach(o => { if (!o || !o.name || !/^\d{4}-\d\d-\d\d$/.test(o.date || '')) return; const ranges = (o.ranges || []).map(rg => { if (!rg || !rg.title) return null; let m = ST().mats.find(mm => mm.kind === 'book' && mm.title === rg.title) || ST().mats.find(mm => mm.kind === 'book' && (mm.title.includes(rg.title) || rg.title.includes(mm.title))); if (!m) m = addMat({ sub: rg.sub, title: rg.title, kind: 'book' }); const [fi, ti] = ensureUnits(m, Math.max(1, +rg.from || 1), Math.max(1, +rg.to || +rg.from || 1)); return { mat: m.id, from: fi, to: ti }; }).filter(Boolean); const subs2 = [...(o.subs || []), ...(o.ranges || []).map(rg => rg && rg.sub).filter(Boolean)], ex = findExam(o); if (ex) { if (mergeExam(ex, o.date, subs2, ranges)) got.push(`시험 ${ex.name} 고침`); return; } addExam({ name: o.name, date: o.date, subs: subs2, ranges }); got.push(`시험 ${o.name}`); });
+    (x.exams || []).forEach(o => { if (!o || !o.name || !/^\d{4}-\d\d-\d\d$/.test(o.date || '')) return; const ranges = (o.ranges || []).map(rg => { if (!rg || !rg.title) return null; const bs0 = ST().mats.filter(mm => mm.kind === 'book'), same = x => !rg.sub || x.sub === rg.sub, near = x => x.title.includes(rg.title) || rg.title.includes(x.title); let m = bs0.find(mm => same(mm) && mm.title === rg.title) || bs0.find(mm => same(mm) && near(mm)) || (!rg.sub ? bs0.find(mm => mm.title === rg.title) : null); /* v99: 같은 이름 문제집이 여러 과목에 있으면 과목까지 맞춰서 */ if (!m) m = addMat({ sub: rg.sub, title: rg.title, kind: 'book' }); const [fi, ti] = ensureUnits(m, Math.max(1, +rg.from || 1), Math.max(1, +rg.to || +rg.from || 1)); return { mat: m.id, from: fi, to: ti }; }).filter(Boolean); const subs2 = [...(o.subs || []), ...(o.ranges || []).map(rg => rg && rg.sub).filter(Boolean)], ex = findExam(o); if (ex) { if (mergeExam(ex, o.date, subs2, ranges)) got.push(`시험 ${ex.name} 고침`); return; } addExam({ name: o.name, date: o.date, subs: subs2, ranges }); got.push(`시험 ${o.name}`); });
   }
   if (x && x.set && typeof x.set === 'object') {
     const P = ST().pref, o = x.set, tm = v => /^\d{1,2}:\d\d$/.test(v || '') ? v.padStart(5, '0') : null, ch = [];
