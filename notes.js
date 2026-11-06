@@ -33,6 +33,7 @@ const css = `
 .npaper .qa b{display:block;font-size:14.5px;line-height:1.5;word-break:keep-all}
 .npaper .qa button{margin-top:6px;min-height:40px;padding:0 12px;border-radius:10px;background:#fff;border:2px solid #000;box-shadow:2px 2px 0 #000;font-size:13px;font-weight:800;color:#111}
 .npaper .qa p{margin-top:6px;font-size:14px;line-height:1.55;color:#0f6f62;font-weight:700;word-break:keep-all}
+.npaper .nweb{margin:4px 0 0 18px;font-size:12.5px;line-height:1.6}.npaper .nweb a{color:#0b57d0;word-break:break-all}
 .npaper .warnl{margin-top:14px;font-size:12px;color:rgba(0,0,0,.5);line-height:1.5}
 .nedit textarea{min-height:360px;font-family:'Space Mono',monospace;font-size:13px}
 `;
@@ -47,7 +48,7 @@ const subsAll = () => [...new Set([...(ST().mats || []).map(m => m.sub), ...ST()
 const md = t => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()}`; };
 
 // 상태
-let keep = false, view = 'list', openId = null, fSub = '', fTitle = '', fText = '', files = [], busy = false, err = '', filterSub = '', mode = '', shown = {};
+let fWeb = false; let keep = false, view = 'list', openId = null, fSub = '', fTitle = '', fText = '', files = [], busy = false, err = '', filterSub = '', mode = '', shown = {};
 
 // ---------- 파일 → Gemini 부분 ----------
 function readImg(file) { return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => { const im = new Image(); im.onload = () => { const s = Math.min(1, 1800 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res({ name: file.name, mime: 'image/jpeg', data: c.toDataURL('image/jpeg', .85).split(',')[1] }); }; im.onerror = rej; im.src = fr.result; }; fr.onerror = rej; fr.readAsDataURL(file); }); }
@@ -75,18 +76,18 @@ function sysNote(old) {
 기존 노트: ${JSON.stringify(old)}` : ''}
 JSON만 출력: ${SCHEMA}`;
 }
-async function askNote(parts, old) {
+async function askNote(parts, old, web) {
   let lastErr = null;
   for (const m of mChain()) {
     const ac = new AbortController(), t = setTimeout(() => ac.abort(), 120000);
     try {
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(S.key)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ac.signal,
-        body: JSON.stringify({ systemInstruction: { parts: [{ text: sysNote(old) }] }, contents: [{ role: 'user', parts }], generationConfig: Object.assign({ responseMimeType: 'application/json', temperature: .3, maxOutputTokens: 8192 }, /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: 'low' } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: 1024 } } : {}) }) });
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: sysNote(old) + (web ? '\n(검색 모드) 구글 검색으로 믿을 만한 자료(교과서·백과·공식 자료)를 찾아 그 내용으로 정리한다. 자료끼리 다르면 교과 과정 기준을 따른다. 검색으로 확인 못 한 건 쓰지 않는다. JSON 하나만 출력(코드블록 없이).' : '') }] }, contents: [{ role: 'user', parts }], ...(web ? { tools: [{ google_search: {} }] } : {}), generationConfig: Object.assign(web ? {} : { responseMimeType: 'application/json' }, { temperature: .3, maxOutputTokens: 8192 }, /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: 'low' } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: 1024 } } : {}) }) });
       clearTimeout(t);
       if (r.status === 401 || r.status === 403) throw Object.assign(new Error('키가 안 맞아요. 0번 설정에서 확인해 주세요.'), { fatal: 1 });
       if (!r.ok) { lastErr = new Error(r.status === 429 ? '지금 요청이 많아요. 1분 뒤에 다시 해 주세요.' : `서버 오류(${r.status})`); if (r.status === 429 || r.status >= 500) COOL[m] = Date.now() + (r.status === 429 ? 90e3 : 30e3); continue; }
       const j = await r.json(), tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('');
-      const o = JSON.parse(tx.slice(tx.indexOf('{'), tx.lastIndexOf('}') + 1));
+      const o = JSON.parse(tx.slice(tx.indexOf('{'), tx.lastIndexOf('}') + 1)); if (web) o._web = (j.candidates?.[0]?.groundingMetadata?.groundingChunks || []).map(c => c.web).filter(w => w && w.uri).slice(0, 8).map(w => ({ t: String(w.title || w.uri).slice(0, 80), u: w.uri }));
       if (!o || !Array.isArray(o.secs)) throw new Error('정리 결과가 이상해요.');
       return o;
     } catch (e) { clearTimeout(t); if (e.fatal) throw e; lastErr = e.name === 'AbortError' ? new Error('시간이 너무 걸렸어요. 사진을 몇 장 줄여서 다시 해 주세요.') : e; }
@@ -98,19 +99,20 @@ const clean = o => ({ secs: (o.secs || []).filter(s => s && s.h).slice(0, 12).ma
 async function run() {
   if (busy) return;
   if (!S.key) { err = '0번 설정에 Gemini 키를 넣어야 정리할 수 있어요.'; refreshSheet(); return; }
-  if (!files.length && !fText.trim()) { err = '사진·PDF를 고르거나 글을 붙여 넣어 주세요.'; refreshSheet(); return; }
+  if (!files.length && !fText.trim() && !(fWeb && fTitle)) { err = fWeb ? '찾을 주제(단원)를 적어 주세요.' : '사진·PDF를 고르거나 글을 붙여 넣어 주세요.'; refreshSheet(); return; }
   if (!fSub) { err = '과목을 골라 주세요.'; refreshSheet(); return; }
   busy = true; err = ''; refreshSheet();
   try {
-    const parts = [{ text: `과목: ${fSub}${fTitle ? `\n단원/주제: ${fTitle}` : ''}\n아래 자료를 정리해 주세요.` }];
+    const parts = [{ text: `과목: ${fSub}${fTitle ? `\n단원/주제: ${fTitle}` : ''}\n${fWeb ? (files.length || fText.trim() ? '아래 자료를 정리하고, 부족한 부분은 검색으로 찾아 채워 주세요(검색으로 채운 줄 끝에 "(검색)").' : '이 주제를 검색해서 고등학생 시험공부용으로 정리해 주세요.') : '아래 자료를 정리해 주세요.'}` }];
     files.forEach(f => parts.push(f.text != null ? { text: `[${f.name}]\n${f.text.slice(0, 60000)}` } : { inline_data: { mime_type: f.mime, data: f.data } }));
     if (fText.trim()) parts.push({ text: fText.slice(0, 60000) });
     const old = fTitle ? ST().notes.find(n => n.sub === fSub && n.title === fTitle) : null;
-    const o = await askNote(parts, old ? { secs: old.secs, keys: old.keys, traps: old.traps, qs: old.qs } : null);
+    const o = await askNote(parts, old ? { secs: old.secs, keys: old.keys, traps: old.traps, qs: old.qs } : null, fWeb);
     const title = String(fTitle || o.title || '정리 노트').slice(0, 40), sub = fSub;
     let n = ST().notes.find(x => x.sub === sub && x.title === title);
     if (n) Object.assign(n, clean(o), { at: Date.now(), src: (n.src || 0) + files.length + (fText.trim() ? 1 : 0) });
     else { n = { id: uid('n'), sub, title, at: Date.now(), src: files.length + (fText.trim() ? 1 : 0), ...clean(o) }; ST().notes.push(n); }
+    if (o._web && o._web.length) n.web = [...(n.web || []), ...o._web].filter((w, i, a) => a.findIndex(x => x.u === w.u) === i).slice(-12);
     save(); files = []; fText = ''; busy = false; view = 'note'; openId = n.id; mode = ''; shown = {};
     refreshSheet(); toast(`'${title}' 정리했어요.`);
     try { if (JSON.stringify(S).length > 4.2e6) toast('저장 공간이 거의 찼어요. 안 쓰는 노트를 지워 주세요.'); } catch (e) {}
@@ -169,15 +171,16 @@ function renderNew(B) {
   f.appendChild(el('div', 'hint', '과목'));
   f.appendChild(pills(subsAll().map(s => [s, s]), fSub, v => { fSub = v; refreshSheet(); }));
   const units = [...new Set((ST().mats || []).filter(m => m.sub === fSub && m.kind === 'book').flatMap(m => m.units.map(u => `${m.title} ${u.name}`)).concat(ST().notes.filter(n => n.sub === fSub).map(n => n.title)))];
-  const t = inp('text', '단원 (예: 함수의 극한)', fTitle); t.oninput = () => { fTitle = t.value.trim(); };
+  const t = inp('text', fWeb ? '찾을 주제 (예: 조선 후기 실학)' : '단원 (예: 함수의 극한)', fTitle); t.oninput = () => { fTitle = t.value.trim(); };
   const dl = el('datalist'); dl.id = 'nUnits'; units.forEach(u => dl.appendChild(Object.assign(document.createElement('option'), { value: u }))); t.setAttribute('list', 'nUnits');
-  f.append(row(t), dl, el('div', 'hint', '단원을 비우면 레나가 자료를 보고 정해요.'));
+  f.append(row(t), dl); if (!fWeb) f.appendChild(el('div', 'hint', '단원을 비우면 레나가 자료를 보고 정해요.'));
   if (fTitle && ST().notes.some(n => n.sub === fSub && n.title === fTitle)) f.appendChild(el('div', 'hint', '이미 있는 노트예요. 새 자료를 기존 노트에 합쳐요.'));
   const pk = el('label', 'npick'), fi = el('input'); fi.type = 'file'; fi.multiple = true; fi.accept = 'image/*,application/pdf,.pdf,.txt,.md';
   pk.append(document.createTextNode(files.length ? `+ 더 고르기 (${files.length}개 골랐어요)` : '사진 · PDF 고르기'), fi);
   fi.onchange = async () => { const L = [...fi.files]; fi.value = ''; err = ''; for (const x of L) { if (files.length >= 12) { err = '한 번에 12개까지예요. 나머지는 다음에 합쳐서 넣어요.'; break; } try { files.push(await readFile(x)); } catch (e) { err = e.message; } } refreshSheet(); };
   f.appendChild(pk);
   if (files.length) { const F = el('div', 'nfiles'); files.forEach((x, i) => { const s = el('span', null, x.name || `사진 ${i + 1}`), xb = el('button', null, '×'); xb.setAttribute('aria-label', '빼기'); xb.style.cssText = 'margin-left:2px;font-size:15px;color:#ff7a9c'; xb.onclick = () => { files.splice(i, 1); refreshSheet(); }; s.appendChild(xb); F.appendChild(s); }); f.appendChild(F); }
+  { const w = el('button', 'bdue' + (fWeb ? ' on' : ''), '인터넷에서 찾아서 정리 (자료 없어도 돼요)'); w.type = 'button'; w.style.marginTop = '10px'; w.onclick = () => { fWeb = !fWeb; refreshSheet(); }; f.appendChild(w); if (fWeb) f.appendChild(el('div', 'hint', '단원 칸에 찾고 싶은 것을 적어요. 예: 조선 후기 실학, 이차함수 최대최소. 자료를 같이 넣으면 모자란 부분만 찾아 채워요.')); }
   const ta = el('textarea'); ta.placeholder = '또는 글을 붙여 넣기 (필기 내용, 교과서 본문 등)'; ta.value = fText; ta.oninput = () => { fText = ta.value; };
   f.appendChild(ta);
   if (err) f.appendChild(el('div', 'warn', err));
@@ -196,7 +199,8 @@ function renderNote(B, n) {
   if (n.keys.length) { p.appendChild(el('h4', null, '꼭 외울 것')); p.appendChild(keysEl(n.keys)); }
   if (n.traps.length) { p.appendChild(el('h4', null, '헷갈리기 쉬운 것')); p.appendChild(ul(n.traps, 'trap')); }
   if (n.qs.length) { p.appendChild(el('h4', null, `백지 복습 ${n.qs.length}문제`)); p.appendChild(qaEl(n.qs, n.id + '_')); }
-  p.appendChild(el('div', 'warnl', '사진에서 읽어 정리한 거라 원문과 다를 수 있어요. 틀린 곳은 "고치기"로 바꿔요.'));
+  if (n.web && n.web.length) { p.appendChild(el('h4', null, '찾아본 곳')); const u = el('ul', 'nweb'); n.web.forEach(w => { const li = el('li'), a = el('a', null, w.t); a.href = w.u; a.target = '_blank'; a.rel = 'noopener'; li.appendChild(a); u.appendChild(li); }); p.appendChild(u); }
+  p.appendChild(el('div', 'warnl', n.web && n.web.length ? '인터넷에서 찾아 정리한 거라 교과서·선생님 설명과 다를 수 있어요. 틀린 곳은 "고치기"로 바꿔요.' : '사진에서 읽어 정리한 거라 원문과 다를 수 있어요. 틀린 곳은 "고치기"로 바꿔요.'));
   B.appendChild(row(btn('자료 더 넣어 합치기', 'ghost wide', () => { view = 'new'; fSub = n.sub; fTitle = n.title; err = ''; refreshSheet(); }), btn('고치기', 'ghost', () => { view = 'edit'; refreshSheet(); })));
   B.appendChild(row(btn('레나랑 이 단원 공부하기', 'teal wide', () => { const k = n.keys.slice(0, 6).map(x => x.t).join(', '); closeSheet(); openCall(); setTimeout(() => sendText(`${n.sub} '${n.title}' 노트로 나 퀴즈 내 줘. 핵심: ${k}`), 400); }), btn('지우기', 'ghost', () => { if (!confirm(`'${n.title}' 노트를 지울까요?`)) return; ST().notes = ST().notes.filter(x => x !== n); save(); view = 'list'; refreshSheet(); })));
 }

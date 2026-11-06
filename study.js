@@ -205,7 +205,7 @@ function busyOn(d) {
 }
 const ACAD = /학원|클리닉|과외|수업/;
 // 학원 다니는 과목: 시간표(고정) 이름에 '과목+학원/클리닉/과외'가 있거나 그 과목 학원 숙제가 있으면
-const acadSub = sub => (S.reps || []).some(r => ACAD.test(r.text) && r.text.includes(sub)) || ST().mats.some(m => m.kind === 'hw' && (m.sub === sub || (m.title || '').includes(sub)));
+const acadSub = sub => (S.reps || []).some(r => r.text.includes(sub) && (ACAD.test(r.text) || r.text.replace(/[\s\d:~·-]/g, '').length <= sub.length + 1)) /* v86: 시간표에 '국어'처럼 과목 이름만 있어도 학원으로 봄 */ || ST().mats.some(m => m.kind === 'hw' && (m.sub === sub || (m.title || '').includes(sub)));
 function freeIv(d, isToday) {
   const P = ST().pref, we = d.getDay() === 0 || d.getDay() === 6; let s = toM(we ? P.weS : P.wdS); const e = toM(P.end);
   if (isToday) { const n = new Date(); s = Math.max(s, Math.ceil((n.getHours() * 60 + n.getMinutes() + 5) / 5) * 5); }
