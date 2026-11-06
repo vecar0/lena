@@ -199,7 +199,7 @@ const nextExam = () => ST().exams.filter(e => e.date >= todayK()).sort((a, b) =>
 // ---------- 그날 빈 시간 ----------
 function busyOn(d) {
   const L = [], k = dkey(d), wd = d.getDay();
-  S.items.forEach(t => { if (t.done || !t.due || t.due.slice(0, 10) !== k || t.rid) return; const s = toM(t.due.slice(11, 16)); L.push([s, s + (t.mins || 60), t.text]); });
+  S.items.forEach(t => { if (t.done || !t.due || t.due.slice(0, 10) !== k || t.rid || !isEv(t)) return; /* v84: 할 일 마감은 시간을 막지 않음 */ const s = toM(t.due.slice(11, 16)); L.push([s, s + (t.mins || 60), t.text]); });
   (S.reps || []).forEach(r => { if (r.days.length && !r.days.includes(wd)) return; if ((S.repSkip || {})[r.id + '_' + k]) return; L.push([toM(r.time), toM(r.end || toT(toM(r.time) + 60)), r.text]); });
   return L.sort((a, b) => a[0] - b[0]);
 }
@@ -214,7 +214,7 @@ function freeIv(d, isToday) {
   if (wd5) { const ae = Math.max(0, ...busyOn(d).filter(x => ACAD.test(x[2] || '')).map(x => x[1])); if (ae && e - (ae + (P.acadGap || 120)) >= 50) cur = Math.max(cur, ae + (P.acadGap || 120)); }
   for (const [bs, be, tx] of busyOn(d)) { if (be + 10 <= cur) continue; if (bs - 10 > cur) out.push([cur, Math.min(e, bs - 10)]); let gap = 10; if (wd5 && ACAD.test(tx || '')) { gap = P.acadGap || 120; if (e - (be + gap) < 50) gap = 30; } cur = Math.max(cur, be + gap); if (cur >= e) break; }
   if (cur < e) out.push([cur, e]);
-  return out.filter(([a, b]) => b - a >= 25);
+  return out.filter(([a, b]) => b - a >= 30); // v84: 30분 안 되는 자투리는 안 씀
 }
 
 // ---------- 계산 ----------
@@ -268,7 +268,7 @@ function simulate(nDays, capMode) {
           const pick = bsub ? (near.find(t => t.sub === bsub) || elig.find(t => t.sub === bsub) || null) : (near.find(t => t.sub === focus && t.sub !== last) || near.find(t => t.sub !== last) || near[0]);
           if (!pick) break;
           if (parts.length && pick.rem > left) break; // 자투리로 쪼개지 않음
-          const use = Math.min(pick.rem, left); pick.rem -= use; left -= use; bsub = pick.sub; daySubs.add(pick.sub);
+          let use = Math.min(pick.rem, left); if (pick.rem - use > 0 && pick.rem - use < 15 && cur + (len - left) + pick.rem <= b) use = pick.rem; /* v84: 15분 미만 자투리는 남기지 않고 붙여서 끝냄 */ pick.rem -= use; left -= use; bsub = pick.sub; daySubs.add(pick.sub);
           parts.push({ t: pick, mins: use, late: pick.due && k > pick.due });
           if (pick.rem > 0) break;
         }
