@@ -662,6 +662,11 @@ async function sendText(raw, special) {
     try { fixDates(r, text); } catch (e) {}
     let did = apply(r);
     // v100: 말로만 '넣었어·바꿨어' 하고 실제 칸이 비었으면, 한 번 더 물어서 실제로 적용(대화 ↔ 다이얼 끊김 막기)
+    // v105: '기능이 없어·직접 못 바꿔' 같은 거절이면 할 수 있다고 알려 주고 한 번 더
+    const refuse = /(기능.{0,12}(없|안\s?돼)|직접.{0,10}(못|수\s?(는|가)?\s?없)|(바꿔|고쳐|저장해|적용해|넣어|짜)\s?줄\s?수.{0,3}없|(바꿀|고칠|저장할|넣을)\s?수.{0,3}없|권한.{0,4}없)/.test(reply);
+    if (!did && refuse) {
+      try { const c2 = contents.concat([{ role: 'model', parts: [{ text: JSON.stringify(r).slice(0, 1500) }] }, { role: 'user', parts: [{ text: '(앱 확인) 레나는 이 앱을 전부 바꿀 수 있어 — 공부 칸은 study.pin/block/unpin, 교재는 study.mats(goals·due·del), 설정은 study.set, 전단지는 add/edit/remove, 고정 일정은 repeat/unrepeat. 송휘가 원한 걸 이 칸들로 실제로 넣어서 다시 답해. 못 한다는 말은 하지 마. reply는 레나 말투로 짧게.' }] }]);
+        const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (did && r2.reply) { const sp2 = did.querySelector('span'); if (sp2) sp2.textContent = String(r2.reply).trim() + ' — ' + sp2.textContent; S.history.push({ role: 'assistant', content: String(r2.reply).trim(), at: Date.now() }); } } catch (e) {} }
     if (!did && /(넣었|넣어\s?놨|바꿨|바꿔\s?놨|붙였|붙여\s?놨|저장했|추가했|옮겼|지웠|등록|반영|잡아\s?놨|짰어|짜\s?놨)/.test(reply)) {
       try { const c2 = contents.concat([{ role: 'model', parts: [{ text: JSON.stringify(r).slice(0, 1500) }] }, { role: 'user', parts: [{ text: '(앱 확인) 방금 말한 변경이 JSON 칸(add·done·remove·callback·repeat·study 등)에 없어서 앱에 아무것도 안 바뀌었어. 같은 변경을 JSON 칸에 실제로 넣어서 다시 답해. reply는 짧게.' }] }]);
         const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (!did) { did = el('div', 'note'); did.appendChild(el('span', null, '⚠ 레나가 말만 하고 앱엔 안 바뀌었어. 한 번 더 구체적으로 말해 줘(예: 역사 수능특강 1~3단원).')); } } catch (e) {} }
