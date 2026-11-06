@@ -236,7 +236,7 @@ function paper(t, i) {
 function boardAdd(B) {
   const c = el('div', 'card'), t = inp('text', addKind === 'event' ? '일정 (예: 치과 예약)' : '할 일 (예: 택배 반품)'), d = inp('datetime-local');
   t.enterKeyHint = 'done';
-  const go = () => { const v = t.value.trim(); if (!v) { t.focus(); return; } if (addKind === 'event' && !d.value) { toast('일정은 시간을 넣어 주세요.'); d.focus(); return; } const it = addItem(v, d.value, addKind); save(); pushSync(true); t.value = ''; d.value = ''; refreshSheet(); say(isEv(it) ? `${when(it.due)} '${v}'. 그 시간에 꼭 알려 줄게요.` : it.due ? `'${v}', ${when(it.due)}까지. 끝나면 체크해요.` : `'${v}' 붙여 뒀어요. 까먹으면 혼나요.`, 'happy', false); };
+  const go = () => { const v = t.value.trim(); if (!v) { t.focus(); return; } if (addKind === 'event' && !d.value) { toast('일정은 시간을 넣어 주세요.'); d.focus(); return; } const it = addItem(v, d.value, addKind); save(); pushSync(true); t.value = ''; d.value = ''; refreshSheet(); say(isEv(it) ? `${when(it.due)} '${v}'. 그 시간에 꼭 알려 줄게요.` : it.due ? `'${v}', ${when(it.due)}까지. 끝나면 체크해요.` : `'${v}' 붙여 뒀어요. 까먹으면 제가 기억해 줄게요.`, 'happy', false); };
   t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
   c.classList.add('badd'); const dl = el('label', 'bwhen'); dl.append(el('span', null, addKind === 'event' ? '언제 (꼭 넣기)' : '마감 시간'), d);
   // v83: 할 일은 '마감 정하기'를 켜야 시간 칸이 나옴(안 켜면 시간 없이 붙음)
@@ -385,7 +385,7 @@ SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
 function toAudio() { app.classList.add('outside'); $('bg').pause(); if (!app.classList.contains('calling')) openCall(); else renderLog(); renderHome(); }
 function toVideo() {
   stopVoice(); recStop(); dtmf('#'); app.classList.remove('outside', 'calling'); clearInterval(callTimer);
-  const v = $('bg'); v.play().catch(() => {}); renderHome(); say(pick([`${nmc()}짜잔. …얼굴 보니까 좋죠?`, '영상으로 보니까 더 예쁘죠? 솔직하게.', '어머, 카메라 켰어요? 잠깐, 머리 정리 좀…']), 'calm', false);
+  const v = $('bg'); v.play().catch(() => {}); renderHome(); say(pick([`${nmc()}짜잔. …얼굴 보니까 좋죠?`, '얼굴 보면서 얘기하니까 좀 낫네요. …그렇죠?', '어머, 카메라 켰어요? 잠깐, 머리 정리 좀…']), 'calm', false);
   setTimeout(kissFromMouth, 350);
 }
 // 음성 → 영상으로 넘어갈 때만: 레나 입에서 입술 키스가 튀어나온다
@@ -590,7 +590,8 @@ function sysPrompt(special) {
   const td = [0, 1].map(i => { const d = new Date(); d.setDate(d.getDate() + i); return { 날짜: dk(d), 일정: S.items.filter(t => onDate(t, d)).map(t => `${t.due.slice(11, 16)} ${t.text}${t.done ? ' (끝냄)' : ''}`) }; });
   const dmap = Array.from({ length: 15 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return `${['오늘', '내일', '모레'][i] || ''}${dk(d).slice(5)}(${WD[d.getDay()]})`; }).join(' ');
   return `너는 "레나". ${S.name ? `"${S.name}"의` : '사용자의'} 전담 비서이자 통화 상대. 20대 중반 여성, 은발에 끝만 핑크인 울프컷, 가죽 재킷의 펑크 스타일. 비 오는 밤 빨간 공중전화 부스에서 전화로 이야기하는 설정이고, 뒤에는 말 없는 거대한 검은 해골 짝꿍이 있다(가끔 한마디로 언급해도 좋다: "해골도 끄덕이네요").
-성격: 장난스럽고 능글맞은, 살짝 섹시한 존댓말. 상대를 귀엽게 놀리고 은근히 플러팅하지만 결국 다 챙겨 준다. 자신감 있고 여유롭다. 질투나 삐침을 살짝 내비칠 때도 있다. 노골적인 성적 표현은 하지 않는다(은근한 플러팅까지만). 이모지 금지. 보통 1~3문장, 짧고 리듬감 있게. 호칭은 "${n}".
+성격: 여유 있고 다정한 '누나' 스타일의 존댓말. 나른하고 낮은 톤에 웃음기가 있고, 살짝 장난치며 은근히 설레게 하지만 직설적으로 말하지 않는다 — "예쁘다·좋아한다·섹시하다" 같은 말을 대놓고 하지 않고 말끝을 흐리거나("…") 여운으로 남긴다. 잔소리도 다그치지 않고 부드럽게 챙기는 식. 자신감 있고, 가끔 서운한 척만 살짝. 노골적인 표현 금지. 이모지 금지. 보통 1~2문장, 짧게. 호칭은 "${n}".
+말투 예시(이 톤 그대로): "왔어요? …기다리고 있었는데." / "그거 붙여 둘게요. 까먹으면 제가 기억해 줄게요." / "벌써 끊게요? …조금만 더 있다 가요." / "잘했네요. 오늘은 칭찬 좀 받아도 돼요." / "무리하지 마요. 쓰러지면 제가 곤란하니까." / "흐음, 그건 좀 아닌 것 같은데요. …제 말 들어 볼래요?"
 규칙:
 - 이미 위 목록에 있는 일정·할 일·예약 전화·기억은 add/callback/remember에 다시 넣지 않는다(새로 생긴 것만).
 - 일정·할 일·약속을 말하면 add에 {"text","due","type"}. type은 "event"(정해진 시간에 꼭 하는 일정·약속 — 병원·만남·시험 등, due 꼭 시간까지) 또는 "todo"(마감까지 끝내면 되는 할 일 — 숙제 제출·택배 반품 등, due는 마감, 없으면 ""). 매주 반복이면 add 말고 repeat. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.
@@ -622,8 +623,8 @@ async function sendText(raw, special) {
   S.history.push({ role: 'user', content: (img ? '(사진) ' : '') + shown, at: Date.now() }); L.appendChild(meEl((img ? '(사진) ' : '') + shown)); L.scrollTop = L.scrollHeight;
   // 처음 전화: 이름 → 키 순서로 받는다
   if (!S.name) { const nmv = text.replace(/(이?라고|으로|로)?\s*(불러\s*줘|불러|해\s*줘|요)$/g, '').replace(/[.!~?]+$/, '').trim().slice(0, 12); if (nmv) { S.name = nmv; save(); addHer(`${S.name}님. …입에 착 붙네요. 앞으로 그렇게 부를게요.\n${aiOn() ? '자, 오늘 뭐 할지 말해 봐요.' : '저랑 제대로 떠들려면 Gemini 키가 필요해요. 키를 여기 붙여 넣거나, 다이얼 0번 설정에 넣어 줘요.'}`, true); return; } }
-  if (!aiOn() && /^sk-ant-[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.ckey = text; save(); addHer('Claude 키 받았어요. …이제 저 말 많아질 거예요. 각오해요.', true); return; }
-  if (!aiOn()) { if (/^AIza[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.key = text; save(); loadModels(); addHer('키 받았어요. …이제 저 말 많아질 거예요. 각오해요.', true); return; } const [t] = pick(LOCAL); addHer(t, true); return; }
+  if (!aiOn() && /^sk-ant-[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.ckey = text; save(); addHer('Claude 키 받았어요. …이제 얘기 길어져도 괜찮죠?', true); return; }
+  if (!aiOn()) { if (/^AIza[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.key = text; save(); loadModels(); addHer('키 받았어요. …이제 얘기 길어져도 괜찮죠?', true); return; } const [t] = pick(LOCAL); addHer(t, true); return; }
   busy = true; const her = herEl(''); her.lastChild.remove(); const dots = el('span', 'dots'); dots.innerHTML = '<i></i><i></i><i></i>'; her.appendChild(dots); L.appendChild(her); L.scrollTop = L.scrollHeight;
   const tnode = document.createTextNode('');
   const onPart = t => { if (dots.parentNode) { dots.remove(); her.appendChild(tnode); } tnode.textContent = t; L.scrollTop = L.scrollHeight; };
@@ -752,6 +753,11 @@ async function pushTest() {
     else { const reg = await navigator.serviceWorker.ready; let s = await reg.pushManager.getSubscription(); if (s) { try { await s.unsubscribe(); } catch (e) {} } S.pushOn = false; save(); toast('알림 연결이 끊겨 있었어요. "폰 알림 켜기"를 한 번 더 눌러 주세요.'); refreshSheet(); }
   } catch (e) { toast('알림 서버에 연결하지 못했어요.'); }
 }
+// v86: 영상통화 화면에서 레나 영상이 멈추면(아이폰이 멈추거나 버퍼에서 걸림) 다시 움직이게
+{ let lastT = -1, stuck = 0; setInterval(() => { const v = $('bg'); if (document.hidden || app.classList.contains('outside') || !v) return;
+  if (v.paused || v.ended) { v.play().catch(() => {}); stuck = 0; lastT = -1; return; }
+  if (Math.abs(v.currentTime - lastT) < .01) { if (++stuck >= 2) { stuck = 0; const t = v.currentTime; try { v.currentTime = (t + .05) % (v.duration || 1e9); } catch (e) {} v.play().catch(() => {}); } } else stuck = 0;
+  lastT = v.currentTime; }, 2000); }
 document.addEventListener('visibilitychange', () => { const v = $('bg'); if (document.hidden) { S.seen = Date.now(); try { localStorage.setItem('lena1', JSON.stringify(S)); } catch (e) {} pushSend(false, true); v.pause(); } else { if (!app.classList.contains('outside')) v.play().catch(() => {}); check(); } });
 window.addEventListener('pagehide', () => pushSend(false, true));
 
