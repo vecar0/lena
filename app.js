@@ -427,7 +427,7 @@ let toastT = 0;
 function toast(text, undo) { $('toastTx').textContent = text; $('toastUndo').hidden = !undo; $('toastUndo').onclick = () => { $('toast').classList.remove('on'); undo && undo(); }; $('toast').classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => $('toast').classList.remove('on'), 6000); }
 
 // ---------------- call screen ----------------
-let callStart = 0, callTimer = 0, busy = false, pendImg = null;
+let callStart = 0, callTimer = 0, busy = false, busyAt = 0, pendImg = null;
 const QUICK = () => {
   const h = new Date().getHours();
   return [h >= 20 || h < 4 ? '오늘 하루 정리하자' : '오늘 뭐 있어?', '30분 뒤에 전화해 줘', '남은 할 일 뭐야?', '칭찬해 줘', '내일 일정 알려 줘'];
@@ -541,14 +541,14 @@ function toClaude(contents) { const out = [];
     (c.parts || []).forEach(p => { if (p.text) blk.push({ type: 'text', text: p.text }); else if (p.inline_data) { const mt = p.inline_data.mime_type || ''; if (/^image\//.test(mt)) blk.push({ type: 'image', source: { type: 'base64', media_type: mt, data: p.inline_data.data } }); else if (/pdf/.test(mt)) blk.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: p.inline_data.data } }); } });
     if (!blk.length) return; const last = out[out.length - 1]; if (last && last.role === role) last.content.push(...blk); else out.push({ role, content: blk }); });
   while (out.length && out[0].role !== 'user') out.shift(); return out; }
-async function claudeCall(m, sys, contents, onPart, ac, t1) {
+async function claudeCall(m, sys, contents, onPart, ac, t1, kick) {
   const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal: ac.signal, headers: { 'content-type': 'application/json', 'x-api-key': S.ckey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
     body: JSON.stringify({ model: m, max_tokens: 2048, stream: true, system: sys + '\n(답은 JSON 객체 하나만. 앞뒤에 다른 글·코드블록 없이.)', messages: toClaude(contents), thinking: { type: 'disabled' }, output_config: { effort: 'low' } }) });
   if (!r.ok || !r.body) { let x = ''; try { x = await r.text(); } catch (e) {} throw Object.assign(new Error('claude ' + r.status + ' ' + x.slice(0, 200)), { status: r.status, cl: 1 }); }
   const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', acc = '', first = 0;
-  for (;;) { const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); let k;
+  for (;;) { let rr; try { rr = await rd.read(); } catch (e) { if (acc.trim()) break; throw e; } const { value, done } = rr; if (done) break; buf += dec.decode(value, { stream: true }); let k;
     while ((k = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1); if (!line.startsWith('data:')) continue;
-      try { const j = JSON.parse(line.slice(5)); if (j.type === 'content_block_delta' && j.delta && j.delta.type === 'text_delta') { clearTimeout(t1); if (!first) first = Date.now(); acc += j.delta.text; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } else if (j.type === 'error') throw Object.assign(new Error('claude stream'), { status: 529, cl: 1 }); } catch (e) { if (e.cl) throw e; } } }
+      try { const j = JSON.parse(line.slice(5)); if (j.type === 'content_block_delta' && j.delta && j.delta.type === 'text_delta') { clearTimeout(t1); kick && kick(); if (!first) first = Date.now(); acc += j.delta.text; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } else if (j.type === 'error') throw Object.assign(new Error('claude stream'), { status: 529, cl: 1 }); } catch (e) { if (e.cl) throw e; } } }
   return { acc, first }; }
 // 모델마다 첫 글자가 오기까지 걸린 시간(ms)을 기억(S.mlat, 평균). '자동'이면 후보 셋 중 가장 빠른 것부터.
 const TH = {};
@@ -562,13 +562,15 @@ async function loadModels() { if (!S.key) return; try { const r = await fetch(`h
 function unesc(s) { try { return JSON.parse('"' + s.replace(/\\$/, '') + '"'); } catch (e) { return s.replace(/\\n/g, '\n').replace(/\\"/g, '"'); } }
 function parseReply(t) { t = t.replace(/```json|```/g, '').trim(); try { return JSON.parse(t); } catch (e) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (x) {} } const m = t.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); return { reply: m ? unesc(m[1]) : t.slice(0, 400), mood: 'calm' }; } }
 async function gemini(sys, contents, onPart) {
-  let lastErr = null;
+  let lastErr = null; const T0 = Date.now(); // v85: 전체 30초 넘게 붙잡지 않음(멈춘 것처럼 보이던 것)
   for (const m of mChain()) for (let tryN = 0; tryN < 2; tryN++) {
+    if (Date.now() - T0 > 30000) throw lastErr || Object.assign(new Error('slow'), { status: 503 });
     // 대화는 빠르게: 생각 최소(3.x minimal, 2.5 Flash 0). 그 모델이 안 받아 주면(400) 한 단계 올려 다시.
     const th = /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: TH[m] || 'minimal' } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: TH[m] != null ? TH[m] : (/pro/.test(m) ? 128 : 0) } } : /latest/.test(m) && TH[m] !== 'skip' ? { thinkingConfig: { thinkingBudget: 0 } } : {};
     const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents, generationConfig: Object.assign({ responseMimeType: 'application/json', temperature: 1, maxOutputTokens: 2048 }, th) });
-    const ac = new AbortController(); const t1 = setTimeout(() => ac.abort(), 12000), t2 = setTimeout(() => ac.abort(), 45000); let acc = '', t0 = Date.now(), first = 0;
-    if (isCl(m)) { try { const o = await claudeCall(m, sys, contents, onPart, ac, t1); clearTimeout(t1); clearTimeout(t2); acc = o.acc; if (acc.trim()) { S.model = m; S.clErr = ''; lat(m, (o.first || Date.now()) - t0); return parseReply(acc); } break; }
+    const ac = new AbortController(); const t1 = setTimeout(() => ac.abort(), Math.min(12000, Math.max(4000, 30000 - (Date.now() - T0)))); let t2 = setTimeout(() => ac.abort(), 40000), acc = '', t0 = Date.now(), first = 0;
+    const kick = () => { clearTimeout(t2); t2 = setTimeout(() => ac.abort(), 8000); }; // 글자가 오다가 8초 끊기면 끊고 받은 데까지 씀
+    if (isCl(m)) { try { const o = await claudeCall(m, sys, contents, onPart, ac, t1, kick); clearTimeout(t1); clearTimeout(t2); acc = o.acc; if (acc.trim()) { S.model = m; S.clErr = ''; lat(m, (o.first || Date.now()) - t0); return parseReply(acc); } break; }
       catch (e) { clearTimeout(t1); clearTimeout(t2); lastErr = e; if (e.status === 401 || e.status === 403) { COOL[m] = Date.now() + 600e3; S.clErr = '키가 맞지 않거나 크레딧이 없어요'; } else if (e.status === 400 && /credit|billing/i.test(e.message)) { COOL[m] = Date.now() + 600e3; S.clErr = '크레딧(충전 금액)이 없어요'; } else if (e.status >= 500 && !tryN) { await sleep(1200); continue; } else COOL[m] = Date.now() + (e.status === 429 ? 90e3 : 30e3); console.warn(e.message); break; } }
     try {
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:streamGenerateContent?alt=sse&key=${encodeURIComponent(S.key)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: ac.signal });
@@ -577,7 +579,7 @@ async function gemini(sys, contents, onPart) {
       const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '';
       for (;;) { const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); let k;
         while ((k = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1); if (!line.startsWith('data:')) continue;
-          try { const j = JSON.parse(line.slice(5)); const tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join(''); if (tx) { clearTimeout(t1); if (!first) first = Date.now() - t0; acc += tx; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } } catch (e) {} } }
+          try { const j = JSON.parse(line.slice(5)); const tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join(''); if (tx) { clearTimeout(t1); kick(); if (!first) first = Date.now() - t0; acc += tx; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } } catch (e) {} } }
       clearTimeout(t1); clearTimeout(t2); if (acc.trim()) { S.model = m; lat(m, first || Date.now() - t0); return parseReply(acc); } break;
     } catch (e) { clearTimeout(t1); clearTimeout(t2); if (e.status === 403) throw e; lastErr = e; if (acc.trim()) { S.model = m; return parseReply(acc); } if (e.name === 'AbortError') COOL[m] = Date.now() + 30e3; break; }
   }
@@ -613,7 +615,7 @@ JSON만 출력: {"reply":"","mood":"calm","add":[],"done":[],"remove":[],"callba
 const LOCAL = [['키가 없어서 제 머리가 좀 비었어요. 0번 설정에 Gemini 키 넣어 줄래요?', 'pout'], ['…지지직. 키가 있어야 제대로 들려요.', 'worry']];
 async function sendText(raw, special) {
   let text = String(raw || '').trim(); const img = pendImg;
-  if ((!text && !img) || busy) return; if (img && !text) text = '이 사진 봐 줘';
+  if ((!text && !img) || (busy && Date.now() - busyAt < 60000)) return; busyAt = Date.now(); if (img && !text) text = '이 사진 봐 줘';
   if (!app.classList.contains('calling')) openCall();
   msg.value = ''; pendImg = null; $('attp').classList.remove('on'); syncSend(); stopVoice();
   const L = $('log'), shown = special ? '동전 1개 넣었어요 · 오늘의 운세' : text;
