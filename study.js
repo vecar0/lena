@@ -208,12 +208,12 @@ const SUBJN = /^(국어|영어|수학|사회|과학|한국사|역사|윤리|경�
 const isAcad = tx => ACAD.test(tx || '') || SUBJN.test(String(tx || '').replace(/[\s\d:~·-]/g, '')); // v94: '국어'처럼 과목 이름만 있는 고정 일정도 학원
 // 학원 다니는 과목: 시간표(고정) 이름에 '과목+학원/클리닉/과외'가 있거나 그 과목 학원 숙제가 있으면
 const acadSub = sub => (S.reps || []).some(r => r.text.includes(sub) && (ACAD.test(r.text) || r.text.replace(/[\s\d:~·-]/g, '').length <= sub.length + 1)) /* v86: 시간표에 '국어'처럼 과목 이름만 있어도 학원으로 봄 */ || ST().mats.some(m => m.kind === 'hw' && (m.sub === sub || (m.title || '').includes(sub)));
-function freeIv(d, isToday) {
+function freeIv(d, isToday, loose) {
   const P = ST().pref, we = d.getDay() === 0 || d.getDay() === 6; let s = toM(we ? P.weS : P.wdS); const e = toM(P.end);
   if (isToday) { const n = new Date(); s = Math.max(s, Math.ceil((n.getHours() * 60 + n.getMinutes() + 5) / 5) * 5); }
   const out = []; let cur = s;
   // v94: 학원 앞뒤로 1시간씩 비움(이동 시간), 다른 일정은 앞뒤 10분
-  for (const [bs, be, tx] of busyOn(d)) { const g = isAcad(tx) ? 60 : 10; if (be + g <= cur) continue; if (bs - g > cur) out.push([cur, Math.min(e, bs - g)]); cur = Math.max(cur, be + g); if (cur >= e) break; }
+  for (const [bs, be, tx] of busyOn(d)) { const g = isAcad(tx) && !loose ? 60 : 10; /* loose = 휴식 시간 자리 찾기(학원 앞뒤 1시간 규칙은 공부에만) */ if (be + g <= cur) continue; if (bs - g > cur) out.push([cur, Math.min(e, bs - g)]); cur = Math.max(cur, be + g); if (cur >= e) break; }
   if (cur < e) out.push([cur, e]);
   return out.filter(([a, b]) => b - a >= 30); // v84: 30분 안 되는 자투리는 안 씀
 }
@@ -236,7 +236,7 @@ function tasks() {
 function simulate(nDays, capMode) {
   const st = ST(), P = st.pref, T = tasks().map(t => ({ ...t })), days = [], today = new Date(); today.setHours(0, 0, 0, 0);
   const fm = new Map(), freeMin = x => { const kk = dkey(x); if (!fm.has(kk)) fm.set(kk, freeIv(x, false).reduce((a, [p1, p2]) => a + p2 - p1, 0)); return fm.get(kk); };
-  const eveSet = new Set(st.exams.map(e => dkey(dAdd(pDate(e.date), -1)))), acadEnd = x => (x.getDay() >= 1 && x.getDay() <= 5 && !eveSet.has(dkey(x))) ? Math.max(0, ...busyOn(x).filter(y => ACAD.test(y[2] || '')).map(y => y[1])) : 0, playOf = () => 0; /* v94: 휴식 시간 없음 */ /* 시험 전날은 휴식 시간 없이 필승노트 */ const dmax = x => { const we = x.getDay() === 0 || x.getDay() === 6, u = we ? P.weMax : P.wdMax, room = Math.max(0, freeMin(x) - playOf(x)); return Math.min(room, u || Math.min(AUTO_CAP[we ? 1 : 0], Math.floor(room * .85 / 10) * 10)); };
+  const eveSet = new Set(st.exams.map(e => dkey(dAdd(pDate(e.date), -1)))), acadEnd = x => (x.getDay() >= 1 && x.getDay() <= 5 && !eveSet.has(dkey(x))) ? Math.max(0, ...busyOn(x).filter(y => ACAD.test(y[2] || '')).map(y => y[1])) : 0, playOf = x => eveSet.has(dkey(x)) ? 0 : (x.getDay() === 0 || x.getDay() === 6) ? (P.wePlay || 0) : (P.wdPlay || 0); /* v96: 휴식 시간 다시(시험 전날만 0) */ const looseMin = x => freeIv(x, false, true).reduce((a, [p1, p2]) => a + p2 - p1, 0); /* 시험 전날은 휴식 시간 없이 필승노트 */ const dmax = x => { const we = x.getDay() === 0 || x.getDay() === 6, u = we ? P.weMax : P.wdMax, room = Math.max(0, freeMin(x) - Math.max(0, playOf(x) - Math.max(0, looseMin(x) - freeMin(x)))); /* 휴식은 학원 앞뒤 빈 시간에 먼저 들어감 */ return Math.min(room, u || Math.min(AUTO_CAP[we ? 1 : 0], Math.floor(room * .85 / 10) * 10)); };
   const kr = keepRate(), habit = we => Math.round((we ? 120 : 90) * (kr == null ? 1 : Math.max(.6, kr + .15)) / 10) * 10, adj = st.adj && st.adj.d === dkey(today) ? st.adj.mul : 1, focus = P.focus && P.focus.until >= dkey(today) ? P.focus.sub : '';
   for (let di = 0; di < nDays; di++) {
     const d = dAdd(today, di), k = dkey(d), we = d.getDay() === 0 || d.getDay() === 6;
@@ -279,7 +279,7 @@ function simulate(nDays, capMode) {
       }
     }
     // 휴식 시간: 공부 블록 사이 빈 곳 중 가장 늦은 곳에 넣는다
-    let play = null; const ae = 0, pl = 0; if (ae) { const fs = (freeIv(d, di === 0)[0] || [0])[0]; if (fs - ae >= 60) play = { s: ae + 10, e: fs - 10, rest: 1 }; } /* 학원 끝나고 쉬는 시간 = 휴식 시간 */ if (pl >= 20) { const gaps = []; for (const [a, b] of freeIv(d, di === 0)) { let c0 = a; blocks.filter(x => x.s >= a && x.e <= b).sort((x, y) => x.s - y.s).forEach(x => { if (x.s - 10 - c0 >= 20) gaps.push([c0, x.s - 10]); c0 = x.e + 10; }); if (b - c0 >= 20) gaps.push([c0, b]); } const g = gaps.sort((x, y) => (y[1] - y[0] >= pl) - (x[1] - x[0] >= pl) || y[0] - x[0])[0]; if (g) play = { s: g[0], e: Math.min(g[1], g[0] + pl) }; }
+    let play = null; const ae = 0, pl = playOf(d); if (ae) { const fs = (freeIv(d, di === 0)[0] || [0])[0]; if (fs - ae >= 60) play = { s: ae + 10, e: fs - 10, rest: 1 }; } /* 학원 끝나고 쉬는 시간 = 휴식 시간 */ if (pl >= 20) { const gaps = []; for (const [a, b] of freeIv(d, di === 0, true)) { let c0 = a; blocks.filter(x => x.s >= a && x.e <= b).sort((x, y) => x.s - y.s).forEach(x => { if (x.s - 10 - c0 >= 20) gaps.push([c0, x.s - 10]); c0 = x.e + 10; }); if (b - c0 >= 20) gaps.push([c0, b]); } const g = gaps.sort((x, y) => (y[1] - y[0] >= pl) - (x[1] - x[0] >= pl) || y[0] - x[0])[0]; if (g) play = { s: g[0], e: Math.min(g[1], g[0] + pl) }; }
     days.push({ k, blocks, play, mins: blocks.reduce((a, b) => a + (b.e - b.s), 0) });
   }
   const left = T.filter(t => t.rem > 0 && t.due), late = [];
@@ -490,7 +490,7 @@ function timeEditor(B) {
   const cap = (lab, key, we) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = P[key] ? (P[key] - 30 < 30 ? 0 : P[key] - 30) : 0; up(); }), el('b', null, P[key] ? hm(P[key]) : '자동'), btn('+', 'ghost', () => { P[key] = Math.min(we ? 720 : 600, (P[key] || AUTO_CAP[we ? 1 : 0]) + 30); up(); })); r.append(el('span', null, lab), S3); return r; };
   const play = (lab, key) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = Math.max(0, (P[key] || 0) - 30); up(); }), el('b', null, P[key] ? hm(P[key]) : '없음'), btn('+', 'ghost', () => { P[key] = Math.min(300, (P[key] || 0) + 30); up(); })); r.append(el('span', null, lab), S3); return r; };
   const cnt = (lab, key) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = Math.max(1, P[key] - 1); up(); }), el('b', null, `${P[key]}과목`), btn('+', 'ghost', () => { P[key] = Math.min(6, P[key] + 1); up(); })); r.append(el('span', null, lab), S3); return r; };
-  c.append(time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), cap('평일 하루 최대', 'wdMax', 0), cap('주말 하루 최대', 'weMax', 1), cnt('평일 과목 수', 'wdSubs'), cnt('주말 과목 수', 'weSubs'));
+  c.append(time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), cap('평일 하루 최대', 'wdMax', 0), cap('주말 하루 최대', 'weMax', 1), cnt('평일 과목 수', 'wdSubs'), cnt('주말 과목 수', 'weSubs'), play('평일 휴식 시간', 'wdPlay'), play('주말 휴식 시간', 'wePlay'));
   c.prepend(el('div', 'hint', `지금: 평일 ${P.wdS}~ · 주말 ${P.weS}~ · ${P.end}까지`));
   c.appendChild(el('div', 'hint', '하루 최대를 0까지 내리면 "자동"이에요. 자동은 그날 빈 시간과 마감까지 남은 양으로 레나가 정해요. 통화로 "주말엔 9시부터" "수학 먼저 해 줘"처럼 말해도 바꿔요.'));
   B.appendChild(c);
