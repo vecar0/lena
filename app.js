@@ -297,14 +297,24 @@ SH[4] = { t: '예약 전화', s: '정한 시간에 레나가 전화해요', r: B
 } };
 
 // 5 음성사서함 (기억)
-SH[5] = { t: '음성사서함', s: () => `레나가 기억하는 것 ${S.memory.length}개`, r: B => {
-  const c = el('div', 'card'), t = inp('text', '예: 나 오이 싫어해');
-  const go = () => { const v = t.value.trim(); if (!v) return; if (!S.memory.includes(v)) S.memory.push(v.slice(0, 120)); save(); t.value = ''; refreshSheet(); say(pick(['메시지 잘 받았어요. 안 까먹어요.', '…녹음해 뒀어요. 몇 번 더 들어 볼게요.']), 'happy', false); };
-  t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
-  c.append(row(t, btn('남기기', '', go))); B.appendChild(c);
-  B.appendChild(lbl('저장된 메시지'));
-  if (!S.memory.length) { B.appendChild(empty('아직 비어 있어요.\n취향, 사람, 습관을 남겨 주면 통화할 때 기억해요.', 'st_tape')); return; }
-  const l = el('div', 'list card'); S.memory.slice().reverse().forEach(m => { const r = el('div', 'it'), ic = el('img', 'ic'); ic.src = 'assets/lena/st_tape.webp'; ic.alt = ''; r.append(ic, el('div', 't', m), xbtn(() => { S.memory = S.memory.filter(x => x !== m); save(); refreshSheet(); })); l.appendChild(r); }); B.appendChild(l);
+SH[5] = { t: '음성사서함', s: () => `저장된 메시지 ${S.memory.length}개`, r: B => {
+  const c = el('div', 'card paperc'), t = el('textarea', 'in'); t.rows = 3; t.placeholder = '레나에게 남길 음성 메시지를 적거나 녹음해…';
+  const SR2 = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const record = btn('음성으로 남기기', 'ghost', () => {
+    if (!SR2) { toast('이 브라우저에서는 음성 녹음을 지원하지 않아. 글로 남겨 줘.'); return; }
+    const rec = new SR2(); rec.lang = 'ko-KR'; rec.continuous = false; rec.interimResults = true;
+    record.textContent = '듣는 중… 눌러서 중지'; record.classList.add('on');
+    rec.onresult = e => { let v = ''; for (let i = 0; i < e.results.length; i++) v += e.results[i][0].transcript; t.value = v; };
+    rec.onerror = () => { record.textContent = '음성으로 남기기'; record.classList.remove('on'); toast('음성을 인식하지 못했어. 다시 해 봐.'); };
+    rec.onend = () => { record.textContent = '음성으로 남기기'; record.classList.remove('on'); };
+    record.onclick = () => { try { rec.stop(); } catch (e) {} };
+    try { rec.start(); } catch (e) { toast('마이크를 사용할 수 없어.'); }
+  });
+  const go = () => { const v = t.value.trim(); if (!v) return; if (!S.memory.includes(v)) S.memory.push(v.slice(0, 500)); save(); t.value = ''; refreshSheet(); say('메시지 잘 받았어. …몇 번이고 다시 들어 볼게.', 'happy', false); };
+  c.append(el('div', 'hint', '마이크로 말하면 글로 받아 적어 저장해. 저장한 내용은 레나가 다음 통화에서도 기억해.'), t, row(record, btn('메시지 저장', 'teal wide', go)));
+  B.appendChild(c); B.appendChild(lbl('저장된 메시지'));
+  if (!S.memory.length) { B.appendChild(empty('아직 남긴 메시지가 없어.\n위에서 말하거나 글로 남겨 줘.', 'st_tape')); return; }
+  const l = el('div', 'list card paperc'); S.memory.slice().reverse().forEach(m => { const r = el('div', 'it'), ic = el('img', 'ic'); ic.src = 'assets/lena/st_tape.webp'; ic.alt = ''; r.append(ic, el('div', 't', m), xbtn(() => { S.memory = S.memory.filter(x => x !== m); save(); refreshSheet(); })); l.appendChild(r); }); B.appendChild(l);
 } };
 
 // 6 공부 → study.js
@@ -575,7 +585,7 @@ async function gemini(sys, contents, onPart) {
     if (Date.now() - T0 > 30000) throw lastErr || Object.assign(new Error('slow'), { status: 503 });
     // 대화는 빠르게: 생각 최소(3.x minimal, 2.5 Flash 0). 그 모델이 안 받아 주면(400) 한 단계 올려 다시.
     const dp = window.lenaDeep, th = /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: TH[m] || (dp ? 'low' : 'minimal') } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: TH[m] != null ? TH[m] : dp ? 1024 : (/pro/.test(m) ? 128 : 0) } } : /latest/.test(m) && TH[m] !== 'skip' ? { thinkingConfig: { thinkingBudget: 0 } } : {};
-    const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents, generationConfig: Object.assign({ responseMimeType: 'application/json', temperature: 1, maxOutputTokens: 6000 }, th) });
+    const lastUserText = [...contents].reverse().find(x => x.role === 'user')?.parts?.map(p => p.text || '').join(' ') || ''; const wantsSearch = /(인터넷|웹에서|구글|검색|서칭|최신 정보|최근 뉴스|출처 찾아)/i.test(lastUserText);\n    const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents, tools: wantsSearch ? [{ google_search: {} }] : undefined, generationConfig: Object.assign({ responseMimeType: 'application/json', temperature: 1, maxOutputTokens: 6000 }, th) });
     const ac = new AbortController(); const t1 = setTimeout(() => ac.abort(), Math.min(window.lenaDeep ? 18000 : 12000, Math.max(4000, 30000 - (Date.now() - T0)))); let t2 = setTimeout(() => ac.abort(), 40000), acc = '', t0 = Date.now(), first = 0;
     const kick = () => { clearTimeout(t2); t2 = setTimeout(() => ac.abort(), 8000); }; // 글자가 오다가 8초 끊기면 끊고 받은 데까지 씀
     if (isCl(m)) { try { const o = await claudeCall(m, sys, contents, onPart, ac, t1, kick); clearTimeout(t1); clearTimeout(t2); acc = o.acc; if (acc.trim()) { S.model = m; S.clErr = ''; lat(m, (o.first || Date.now()) - t0); return parseReply(acc); } break; }
@@ -584,10 +594,10 @@ async function gemini(sys, contents, onPart) {
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:streamGenerateContent?alt=sse&key=${encodeURIComponent(S.key)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: ac.signal });
       if (r.status === 400 || r.status === 401 || r.status === 403) { let x = ''; try { x = await r.text(); } catch (e) {} if (r.status !== 400 || /API_KEY|api key/i.test(x)) { clearTimeout(t1); clearTimeout(t2); if (S.ckey) { COOL[m] = Date.now() + 600e3; lastErr = Object.assign(new Error('key'), { status: 403 }); break; } throw Object.assign(new Error('key'), { status: 403 }); } if (/think/i.test(x) && TH[m] == null && !tryN) { clearTimeout(t1); clearTimeout(t2); TH[m] = /gemini-3/.test(m) ? 'low' : /latest/.test(m) ? 'skip' : 512; continue; } }
       if (!r.ok || !r.body) { clearTimeout(t1); clearTimeout(t2); lastErr = Object.assign(new Error('http'), { status: r.status }); if (r.status >= 500 && !tryN) { await sleep(1200); continue; } if (r.status === 429 || r.status >= 500) COOL[m] = Date.now() + (r.status === 429 ? 90e3 : 30e3); break; }
-      const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '';
+      const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', grounding = [];
       for (;;) { const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); let k;
         while ((k = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1); if (!line.startsWith('data:')) continue;
-          try { const j = JSON.parse(line.slice(5)); const tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join(''); if (tx) { clearTimeout(t1); kick(); if (!first) first = Date.now() - t0; acc += tx; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } } catch (e) {} } }
+          try { const j = JSON.parse(line.slice(5)); const gm = j.candidates?.[0]?.groundingMetadata; if (gm?.groundingChunks) grounding = gm.groundingChunks.map(x => x.web).filter(x => x?.uri).map(x => ({ title: x.title || '검색 결과', uri: x.uri })); const tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join(''); if (tx) { clearTimeout(t1); kick(); if (!first) first = Date.now() - t0; acc += tx; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } } catch (e) {} } }
       clearTimeout(t1); clearTimeout(t2); if (acc.trim()) { S.model = m; lat(m, first || Date.now() - t0); return parseReply(acc); } break;
     } catch (e) { clearTimeout(t1); clearTimeout(t2); if (e.status === 403) throw e; lastErr = e; if (acc.trim()) { S.model = m; return parseReply(acc); } if (e.name === 'AbortError') COOL[m] = Date.now() + 30e3; break; }
   }
@@ -613,7 +623,7 @@ ${app.classList.contains('outside') ? '선 긋기(음성통화): 연애 게임�
 - "~뒤에/~시에 전화해 줘, 깨워 줘, 알려 줘"는 callback에 {"at":"YYYY-MM-DDTHH:mm","text":"무슨 일로"}(미래 시각만).
 - 오래 기억할 정보(취향, 사람, 습관)는 remember에 짧게. 이미 있으면 넣지 않는다.
 - "하루 정리" 통화에서는 오늘 어땠는지 한두 번 짧게 묻고 따뜻하게 마무리한다. diary는 비워 둔다.
-- 잡담, 고민, 말놀이, 지식 질문, 사진 보기 등 무엇이든 즐겁게 받아 준다. "비서라서 못 한다"는 말은 하지 않는다. 사진 속 사람의 신원은 추측하지 않는다.
+- 사용자가 인터넷 검색·웹 서칭·최신 정보 확인을 요청하면 Google 검색 도구를 실제로 사용해 확인하고, 확인한 내용과 출처를 짧게 알려 준다. 검색하지 않았으면 검색한 척하지 않는다.\n- 잡담, 고민, 말놀이, 지식 질문, 사진 보기 등 무엇이든 즐겁게 받아 준다. "비서라서 못 한다"는 말은 하지 않는다. 사진 속 사람의 신원은 추측하지 않는다.
 - 같은 말·같은 맺음말을 반복하지 않는다.
 - mood: 놀림·플러팅 "tease", 기쁨·칭찬 "happy", 걱정·잔소리 "worry", 삐침·질투 "pout", 놀람 "surprise", 평온 "calm".${special ? '\n- 이번은 할 일 동전 1개를 넣은 "오늘의 운세 전화"다. 오늘 날짜·일정·기억을 참고해 장난스럽고 다정하게 4~6문장: 오늘 총운 한 줄, 행운의 숫자 하나, 행운의 색 하나, 조심할 것 하나, 레나의 짧은 조언(오늘 일정과 연결되면 좋음). add·done·remove·callback은 비워 둔다.' : ''}
 - 날짜는 아래 '날짜표'에서 그대로 골라 쓴다(요일 계산 실수 금지). "다음 주 X요일"은 이번 주가 아닌 그다음 주.
@@ -662,7 +672,7 @@ async function sendText(raw, special) {
   window.lenaDeep = !special && (/(넣어|짜\s?줘|짜\s?봐|바꿔|옮겨|빼\s?줘|비워|미뤄|당겨|계획|일정|시간표|캘린더|공부|시험|범위|정리|어떻게|왜|추천|몇\s?시|언제)/.test(text) || text.length > 60); /* v108: 일·계획 얘기는 조금 더 생각하고 답함 */
   try {
     const r = await gemini(sysPrompt(special), contents, onPart);
-    const reply = String(r.reply || '…').trim(); onPart(reply);
+    const sourceText = Array.isArray(r.sources) && r.sources.length ? '\\n\\n찾아본 곳\\n' + r.sources.map(x => `· ${x.title}: ${x.uri}`).join('\\n') : ''; const reply = (String(r.reply || '…').trim() + sourceText); onPart(reply);
     S.history.push({ role: 'assistant', content: reply, at: Date.now() }); if (S.history.length > 200) S.history = S.history.slice(-200);
     try { fixDates(r, text); } catch (e) {}
     let did = apply(r);
