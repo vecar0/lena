@@ -549,7 +549,7 @@ function toClaude(contents) { const out = [];
   while (out.length && out[0].role !== 'user') out.shift(); return out; }
 async function claudeCall(m, sys, contents, onPart, ac, t1, kick) {
   const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal: ac.signal, headers: { 'content-type': 'application/json', 'x-api-key': S.ckey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: m, max_tokens: 6000, stream: true, system: sys + '\n(답은 JSON 객체 하나만. 앞뒤에 다른 글·코드블록 없이.)', messages: toClaude(contents), thinking: { type: 'disabled' }, output_config: { effort: 'low' } }) });
+    body: JSON.stringify({ model: m, max_tokens: 6000, stream: true, system: sys + '\n(답은 JSON 객체 하나만. 앞뒤에 다른 글·코드블록 없이.)', messages: toClaude(contents), thinking: { type: 'disabled' }, output_config: { effort: window.lenaDeep ? 'medium' : 'low' } }) });
   if (!r.ok || !r.body) { let x = ''; try { x = await r.text(); } catch (e) {} throw Object.assign(new Error('claude ' + r.status + ' ' + x.slice(0, 200)), { status: r.status, cl: 1 }); }
   const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', acc = '', first = 0;
   for (;;) { let rr; try { rr = await rd.read(); } catch (e) { if (acc.trim()) break; throw e; } const { value, done } = rr; if (done) break; buf += dec.decode(value, { stream: true }); let k;
@@ -573,9 +573,9 @@ async function gemini(sys, contents, onPart) {
   for (const m of mChain()) for (let tryN = 0; tryN < 2; tryN++) {
     if (Date.now() - T0 > 30000) throw lastErr || Object.assign(new Error('slow'), { status: 503 });
     // 대화는 빠르게: 생각 최소(3.x minimal, 2.5 Flash 0). 그 모델이 안 받아 주면(400) 한 단계 올려 다시.
-    const th = /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: TH[m] || 'minimal' } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: TH[m] != null ? TH[m] : (/pro/.test(m) ? 128 : 0) } } : /latest/.test(m) && TH[m] !== 'skip' ? { thinkingConfig: { thinkingBudget: 0 } } : {};
+    const dp = window.lenaDeep, th = /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: TH[m] || (dp ? 'low' : 'minimal') } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: TH[m] != null ? TH[m] : dp ? 1024 : (/pro/.test(m) ? 128 : 0) } } : /latest/.test(m) && TH[m] !== 'skip' ? { thinkingConfig: { thinkingBudget: 0 } } : {};
     const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents, generationConfig: Object.assign({ responseMimeType: 'application/json', temperature: 1, maxOutputTokens: 6000 }, th) });
-    const ac = new AbortController(); const t1 = setTimeout(() => ac.abort(), Math.min(12000, Math.max(4000, 30000 - (Date.now() - T0)))); let t2 = setTimeout(() => ac.abort(), 40000), acc = '', t0 = Date.now(), first = 0;
+    const ac = new AbortController(); const t1 = setTimeout(() => ac.abort(), Math.min(window.lenaDeep ? 18000 : 12000, Math.max(4000, 30000 - (Date.now() - T0)))); let t2 = setTimeout(() => ac.abort(), 40000), acc = '', t0 = Date.now(), first = 0;
     const kick = () => { clearTimeout(t2); t2 = setTimeout(() => ac.abort(), 8000); }; // 글자가 오다가 8초 끊기면 끊고 받은 데까지 씀
     if (isCl(m)) { try { const o = await claudeCall(m, sys, contents, onPart, ac, t1, kick); clearTimeout(t1); clearTimeout(t2); acc = o.acc; if (acc.trim()) { S.model = m; S.clErr = ''; lat(m, (o.first || Date.now()) - t0); return parseReply(acc); } break; }
       catch (e) { clearTimeout(t1); clearTimeout(t2); lastErr = e; if (e.status === 401 || e.status === 403) { COOL[m] = Date.now() + 600e3; S.clErr = '키가 맞지 않거나 크레딧이 없어요'; } else if (e.status === 400 && /credit|billing/i.test(e.message)) { COOL[m] = Date.now() + 600e3; S.clErr = '크레딧(충전 금액)이 없어요'; } else if (e.status >= 500 && !tryN) { await sleep(1200); continue; } else COOL[m] = Date.now() + (e.status === 429 ? 90e3 : 30e3); console.warn(e.message); break; } }
@@ -605,7 +605,7 @@ ${app.classList.contains('outside') ? '선 긋기(음성통화): 연애 게임�
 플러팅 감각(꼭): 대답마다 능글맞은 한 끗을 넣는다 — 살짝 떠보기, 은근한 칭찬, 일부러 뜸 들이기("…"), 장난스러운 조건 걸기("대신 ~해"), 질투하는 척, 상대 반응 놀리기. 일정·할 일 처리처럼 일 얘기도 그냥 확인만 하지 말고 한마디 얹는다. 보고서·안내문처럼 정리해서 나열하는 딱딱한 말투 금지.
 규칙:
 - 이미 위 목록에 있는 일정·할 일·예약 전화·기억은 add/callback/remember에 다시 넣지 않는다(새로 생긴 것만).
-- 일정·할 일·약속을 말하면 add에 {"text","due","type"}. type은 "event"(정해진 시간에 꼭 하는 일정·약속 — 병원·만남·시험 등, due 꼭 시간까지) 또는 "todo"(마감까지 끝내면 되는 할 일 — 숙제 제출·택배 반품 등, due는 마감, 없으면 ""). 매주 반복이면 add 말고 repeat. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.
+- 일정·할 일·약속을 말하면 add에 {"text","due","type","end":"HH:mm 일정이 끝나는 시각(알면 꼭)"}. type은 "event"(정해진 시간에 꼭 하는 일정·약속 — 병원·만남·시험 등, due 꼭 시간까지) 또는 "todo"(마감까지 끝내면 되는 할 일 — 숙제 제출·택배 반품 등, due는 마감, 없으면 ""). 매주 반복이면 add 말고 repeat. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.
 - 끝냈다고 하면 done에 id. 취소·지워 달라고 하면 remove에 id.
 - "~뒤에/~시에 전화해 줘, 깨워 줘, 알려 줘"는 callback에 {"at":"YYYY-MM-DDTHH:mm","text":"무슨 일로"}(미래 시각만).
 - 오래 기억할 정보(취향, 사람, 습관)는 remember에 짧게. 이미 있으면 넣지 않는다.
@@ -656,6 +656,7 @@ async function sendText(raw, special) {
   if (special) contents[contents.length - 1].parts[0].text = text;
   if (img) contents[contents.length - 1].parts.unshift({ inline_data: { mime_type: img.mime, data: img.data } });
   const extra = window.pendFiles || []; window.pendFiles = null; extra.forEach(f => contents[contents.length - 1].parts.unshift({ inline_data: { mime_type: f.mime, data: f.data } }));
+  window.lenaDeep = !special && (/(넣어|짜\s?줘|짜\s?봐|바꿔|옮겨|빼\s?줘|비워|미뤄|당겨|계획|일정|시간표|캘린더|공부|시험|범위|정리|어떻게|왜|추천|몇\s?시|언제)/.test(text) || text.length > 60); /* v108: 일·계획 얘기는 조금 더 생각하고 답함 */
   try {
     const r = await gemini(sysPrompt(special), contents, onPart);
     const reply = String(r.reply || '…').trim(); onPart(reply);
@@ -686,7 +687,7 @@ async function sendText(raw, special) {
 }
 function apply(r) {
   const snap = JSON.stringify({ items: S.items, calls: S.calls, memory: S.memory, diary: S.diary }), out = [];
-  (r.add || []).forEach(a => { if (!a || !a.text) return; const due = /^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(a.due || '') ? a.due.slice(0, 16) : ''; if (S.items.some(x => !x.done && norm(x.text) === norm(a.text) && (x.due || '') === due)) return; /* 이미 있는 전단지는 또 붙이지 않음 */ const t = addItem(a.text, a.due, a.type === 'event' ? 'event' : 'todo'); out.push(`'${t.text}'${t.due ? ' ' + when(t.due) : ''}`); });
+  (r.add || []).forEach(a => { if (!a || !a.text) return; const due = /^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(a.due || '') ? a.due.slice(0, 16) : ''; if (S.items.some(x => !x.done && norm(x.text) === norm(a.text) && (x.due || '') === due)) return; /* 이미 있는 전단지는 또 붙이지 않음 */ const t = addItem(a.text, a.due, a.type === 'event' ? 'event' : 'todo'); { const toMin = v => +v.slice(0, 2) * 60 + +v.slice(3, 5), st0 = t.due ? toMin(t.due.slice(11, 16)) : null, en = /^\d{1,2}:\d\d$/.test(a.end || '') ? toMin(a.end.padStart(5, '0')) : null, mn = en != null && st0 != null ? (en > st0 ? en - st0 : en + 1440 - st0) : +a.mins; if (mn > 0 && mn < 1440) t.mins = Math.round(mn); } /* v108: 일정 끝 시간 → 시간표·캘린더·공부가 그만큼 피함 */ out.push(`'${t.text}'${t.due ? ' ' + when(t.due) : ''}`); });
   (r.done || []).forEach(id => { const t = S.items.find(x => x.id === id); if (t && !t.done) { setDone(t, true, $('log').lastChild); out.push(`'${t.text}' 뗌`); } });
   (r.remove || []).forEach(id => { const t = S.items.find(x => x.id === id); if (t) { S.items = S.items.filter(x => x !== t); out.push(`'${t.text}' 지움`); } });
   (r.callback || []).forEach(c => { if (!c || !/^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(c.at || '')) return; const at = new Date(c.at.slice(0, 16)).getTime(); if (!(at > Date.now())) return; if (S.calls.some(x => !x.done && Math.abs(x.at - at) < 3 * 60e3)) return; S.calls.push({ id: uid('c'), at, text: String(c.text || '').slice(0, 60), done: false }); out.push(`${when(at)} 전화 예약`); });
