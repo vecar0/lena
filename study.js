@@ -3,16 +3,6 @@
 'use strict';
 (() => {
 const css = `
-.mat-subhead{margin:10px 0 5px;padding:5px 9px;background:var(--teal);color:#071411;border:1px solid #111;font-size:13px;font-weight:900;box-shadow:2px 2px 0 #111}
-.mat-subgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;align-items:start}.mat-subgrid .mat{margin:0;min-width:0;max-width:100%;padding:7px;transform:none;overflow:hidden}.mat-subgrid .mat .h{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px}.mat-subgrid .mat .h .sj{font-size:10px;padding:1px 5px}.mat-subgrid .mat .h b{flex:1 1 100%;min-width:0;font-size:13px;line-height:1.35;overflow-wrap:anywhere;word-break:normal}.mat-subgrid .mat .h em{flex:1 1 auto;min-width:0;font-size:10px;line-height:1.35;white-space:normal;text-align:left;overflow-wrap:anywhere}.mat-subgrid .mat .h .x{flex:none}.mat-subgrid .mat .pg{height:5px;margin-top:5px}@media(max-width:390px){.mat-subgrid{gap:5px}.mat-subgrid .mat{padding:6px}.mat-subgrid .mat .h b{font-size:12px}}
-/* 시간표의 긴 과목명·할 일 문구가 시간/완료 버튼과 겹치지 않도록 */
-.sheetp .pr{grid-template-columns:56px minmax(0,1fr) 36px;gap:6px;align-items:center;min-height:0;padding:8px 0}
-.sheetp .pr .t{white-space:normal;overflow-wrap:anywhere;font-size:12px;line-height:1.25}
-.sheetp .pr .w{display:block;min-width:0;width:100%;padding:5px 2px;font-size:14px;line-height:1.4;white-space:normal;overflow-wrap:anywhere;word-break:normal}
-.sheetp .pr .st{width:34px;height:34px;justify-self:end}
-.sheetp .pr .st img{width:29px;height:29px}
-@media(max-width:390px){.sheetp .pr{grid-template-columns:49px minmax(0,1fr) 32px;gap:4px}.sheetp .pr .w{font-size:13px}.sheetp .pr .t{font-size:11px}.sheetp .pr .st{width:30px;height:30px}}
-
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .cal .wd{text-align:center;font-size:11.5px;font-weight:800;color:var(--mute);padding:2px 0}
 .cal .wd.su{color:#ff7a9c}.cal .wd.sa{color:#7fb6ff}
@@ -213,7 +203,8 @@ function busyOn(d) {
   const L = [], k = dkey(d), wd = d.getDay();
   S.items.forEach(t => { if (t.done || !t.due || t.due.slice(0, 10) !== k || t.rid || !isEv(t)) return; /* v84: 할 일 마감은 시간을 막지 않음 */ const s = toM(t.due.slice(11, 16)); L.push([s, s + (t.mins || 60), t.text]); });
   (S.reps || []).forEach(r => { if (r.days.length && !r.days.includes(wd)) return; if ((S.repSkip || {})[r.id + '_' + k]) return; L.push([toM(r.time), toM(r.end || toT(toM(r.time) + 60)), r.text]); });
-  // 기존 '공부 안 함/공부 고정' 항목은 더 이상 시간표에 반영하지 않는다.
+  // v105: 대화로 정한 '공부 안 하는 시간'(blk)과 '여기에 공부'(pins)는 다른 공부가 못 들어오게
+  const sd = S.study || {}; (sd.blk || []).forEach(b => { if (b.d ? b.d === k : (b.days || []).includes(wd)) L.push([b.s, b.e, '공부 안 함']); }); (sd.pins || []).forEach(p => { if (p.d === k) L.push([p.s, p.e, '공부 고정']); });
   return L.sort((a, b) => a[0] - b[0]);
 }
 const ACAD = /학원|클리닉|과외|수업/;
@@ -271,7 +262,10 @@ function simulate(nDays, capMode) {
     // 블로그: 평일 2과목, 주말 3~4과목
     const lim = capMode === 'max' ? 99 : (we ? P.weSubs : P.wdSubs), daySubs = new Set((di === 0 ? st.log[k] || [] : []).map(l => l.sub));
     const blocks = []; let last = '';
-    // '공부 고정' 블록을 만들지 않고, 빈 시간은 자동 배치한다.
+    (st.pins || []).filter(p => p.d === k).forEach(p => { const parts = []; let left = p.e - p.s; const el2 = T.filter(t => t.rem > 0 && (!t.from || t.from <= k) && (!p.sub || t.sub === p.sub)).sort((x, y) => ((x.due || '9999') < (y.due || '9999') ? -1 : (x.due || '9999') > (y.due || '9999') ? 1 : ((x.tier || 0) - (y.tier || 0)) || (x.i || 0) - (y.i || 0)));
+      if (!p.what) for (const t of el2) { if (left < 10) break; const use = Math.min(t.rem, left); t.rem -= use; left -= use; parts.push({ t, mins: use, late: t.due && k > t.due }); }
+      if (left >= 5) parts.push({ t: { key: 'pin_' + p.id, label: p.what || `${p.sub || ''} 공부`.trim(), sub: p.sub || '공부', rev: 1, pin: 1 }, mins: left });
+      blocks.push({ s: p.s, e: p.e, sub: p.sub || (parts[0] && parts[0].t.sub) || '공부', parts, pin: 1 }); cap = Math.max(0, cap - (p.e - p.s)); daySubs.add(p.sub); }); /* v105: 레나가 대화로 박아 둔 공부 칸 */
     for (const [a, b, tag] of freeIv(d, di === 0)) {
       let cur = a;
       while (cap >= Math.min(20, b - a) && b - cur >= Math.min(25, b - a)) {
@@ -514,7 +508,8 @@ function timeEditor(B) {
   const sch = () => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P.schoolMin = Math.max(0, (+P.schoolMin || 0) - 10); up(); }), el('b', null, P.schoolMin ? P.schoolMin + '분' : '안 함'), btn('+', 'ghost', () => { P.schoolMin = Math.min(120, (+P.schoolMin || 0) + 10); up(); })); r.append(el('span', null, '학교에서 공부'), S3); return r; };
   const cnt = (lab, key) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = Math.max(1, P[key] - 1); up(); }), el('b', null, `${P[key]}과목`), btn('+', 'ghost', () => { P[key] = Math.min(6, P[key] + 1); up(); })); r.append(el('span', null, lab), S3); return r; };
   c.append(time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), cap('평일 하루 최대', 'wdMax', 0), cap('주말 하루 최대', 'weMax', 1), cnt('평일 과목 수', 'wdSubs'), cnt('주말 과목 수', 'weSubs'), play('학원 끝나고 휴식', 'acadGap'), play('평일 휴식 시간', 'wdPlay'), play('주말 휴식 시간', 'wePlay'), sch());
-  // '공부 고정'과 '공부 안 함' 편집 항목을 제거했습니다.
+  { const L2 = [...(st.pins || []).map(p => ({ o: p, a: 'pins', t: `📌 ${p.d.slice(5)} ${toT(p.s)}~${toT(p.e)} ${p.sub || ''} ${p.what || '공부'}` })), ...(st.blk || []).map(b => ({ o: b, a: 'blk', t: `⛔ ${b.d ? b.d.slice(5) : '매주 ' + (b.days || []).map(w => '일월화수목금토'[w]).join('')} ${b.e - b.s >= 1440 ? '하루 종일' : toT(b.s) + '~' + toT(b.e)} 공부 안 함` }))];
+    if (L2.length) { c.appendChild(el('div', 'hint', '레나랑 정한 공부 칸 (✕로 풀기)')); L2.forEach(x => { const r = el('div', 'r'); r.append(el('span', null, x.t), btn('✕', 'ghost', () => { st[x.a] = st[x.a].filter(y => y !== x.o); st.fix = {}; up(); })); c.appendChild(r); }); } }
   c.prepend(el('div', 'hint', `지금: 평일 ${P.wdS}~ · 주말 ${P.weS}~ · ${P.end}까지`));
   c.appendChild(el('div', 'hint', '하루 최대를 0까지 내리면 "자동"이에요. 자동은 그날 빈 시간과 마감까지 남은 양으로 레나가 정해요. 통화로 "주말엔 9시부터" "수학 먼저 해 줘"처럼 말해도 바꿔요.'));
   B.appendChild(c);
@@ -576,9 +571,7 @@ function stExam(B) {
   B.appendChild(f);
 }
 function stMat(B) {
-  const groups = [...new Set(ST().mats.map(m => m.sub))].sort((a,b)=>a.localeCompare(b));
-  groups.forEach(subject => { B.appendChild(el('div','mat-subhead',subject)); const grid = el('div','mat-subgrid');
-  ST().mats.filter(m => m.sub === subject).sort((a,b)=>a.title.localeCompare(b.title)).forEach(m => {
+  ST().mats.slice().sort((a, b) => a.sub.localeCompare(b.sub)).forEach(m => {
     const c = el('div', 'mat paperc slim' + (m.kind === 'hw' ? ' yel' : '')), h = el('div', 'h'), dn = m.units.filter(u => u.done).length;
     h.append(chip(m.sub), el('b', null, (m.kind === 'hw' ? (/^숙제$/.test(m.title) ? '학원 ' : '숙제 · ') : m.kind === 'perf' ? '수행 · ' : '') + m.title), el('em', null, m.rep ? `매주 ${m.rep.days.slice().sort().map(d => WD[d]).join('·')} · ${m.rep.mins}분` : m.kind !== 'book' ? (m.due ? `${m.kind === 'perf' ? '수행' : '학원'} ${m.due.slice(5).replace('-', '/')}` : '') : !m.units.length ? '시험 범위를 넣으면 단원이 생겨요' : `${dn}/${m.units.length} · ${hm(m.units.filter(u => !u.done).reduce((a, u) => a + Math.max(0, u.mins - (u.prog || 0)), 0))} 남음`), xbtnS(() => { if (!confirm(`'${m.title}' 지울까요?`)) return; ST().mats = ST().mats.filter(x => x !== m); ST().exams.forEach(e => e.ranges = e.ranges.filter(r => r.mat !== m.id)); save(); dirty(); refreshSheet(); }));
     const pg = el('div', 'pg'), i = el('i'); i.style.width = (m.units.length ? dn / m.units.length * 100 : 0) + '%'; pg.appendChild(i); c.append(h, pg);
@@ -589,8 +582,8 @@ function stMat(B) {
       const mi = inp('number', '분', String(m.units[0] ? m.units[0].mins : 40)); mi.style.maxWidth = '80px';
       if (!m.units.some(u => u.subs)) c.appendChild(row(el('span', 'hint', m.kind !== 'book' ? '걸리는 분' : '하나에 걸리는 분'), mi, btn('바꾸기', 'ghost', () => { const v = Math.max(10, Math.min(600, +mi.value || 40)); m.units.forEach(u => u.mins = v); save(); dirty(); refreshSheet(); toast(`${v}분으로 다시 짰어요.`); })));
     }
-    grid.appendChild(c);
-  }); B.appendChild(grid); });
+    B.appendChild(c);
+  });
   if (ST().mats.length && !formOpen) B.appendChild(el('div', 'hint', '누르면 단원이 펼쳐져요. 끝낸 단원을 누르면 체크돼요.'));
   if (!ST().mats.length && !formOpen) B.appendChild(el('div', 'hint', '문제집·교과서·학원 숙제를 넣으면 진도에 맞춰 나눠 넣어요.'));
   if (!formOpen) { B.appendChild(row(btn('+ 교재·숙제 넣기', 'teal wide', () => { formOpen = true; refreshSheet(); }))); return; }
@@ -720,43 +713,4 @@ try { dedupExams(); if (window.dedupItems && dedupItems()) save(); } catch (e) {
 window.lenaStudy = { dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, colOf, plan: () => splan(), splan: () => { dirty(); return splan(); }, tasks, parseOutline, simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
 })();
 
-
-/* v116: 실제 공부 화면의 시간표·교재 카드 가독성 보정 */
-(() => {
-  const css = `
-  .sheetp{box-sizing:border-box;width:calc(100% - 8px);max-width:100%;padding-left:14px;padding-right:14px}
-  .sheetp .hd{gap:10px;align-items:center}
-  .sheetp .hd b{font-size:22px;line-height:1.25;color:#111;word-break:keep-all}
-  .sheetp .hd span{font-size:14px;color:#111;white-space:nowrap}
-  .sheetp .pr{display:grid;grid-template-columns:62px minmax(0,1fr) 44px;align-items:center;gap:7px;min-height:66px;padding:7px 0;box-sizing:border-box}
-  .sheetp .pr .t{width:auto;min-width:0;font-size:14px;line-height:1.3;color:#111;font-weight:900;white-space:nowrap}
-  .sheetp .pr .t small{font-size:11px;color:#444;opacity:1;font-weight:800}
-  .sheetp .pr .w{min-width:0;width:100%;min-height:0;padding:6px 2px;font-size:16px;line-height:1.48;font-weight:800;color:#171717;white-space:normal;word-break:normal;overflow-wrap:anywhere}
-  .sheetp .pr .w i{font-size:14px}
-  .sheetp .pr .st{width:38px;height:38px;justify-self:end}
-  .sheetp .pr.pfx{min-height:42px}
-  .sheetp .pr.pfx .w{font-size:14px;line-height:1.4;color:#555}
-  .sheetp .pr.pplay .w{font-size:14px;color:#075e54}
-  .sheetp .pfoot{font-size:12.5px;line-height:1.55;color:#444}
-  .mat.paperc{box-sizing:border-box;width:100%;max-width:100%;padding:13px 13px 12px;overflow:visible}
-  .mat.paperc:nth-child(n){transform:none!important}
-  .mat.paperc .h{display:grid!important;grid-template-columns:minmax(0,1fr) 34px;grid-template-rows:auto auto auto;align-items:center;gap:5px 8px}
-  .mat.paperc .h .sj{grid-column:1;grid-row:1;justify-self:start;font-size:12px;line-height:1.5;padding:1px 7px}
-  .mat.paperc .h b{grid-column:1;grid-row:2;min-width:0;width:100%;font-size:17px!important;line-height:1.4!important;color:#111!important;font-weight:900;white-space:normal;overflow-wrap:anywhere}
-  .mat.paperc .h em{grid-column:1;grid-row:3;min-width:0;white-space:normal!important;overflow-wrap:anywhere;font-size:13px!important;line-height:1.4;color:#333!important}
-  .mat.paperc .h .x{grid-column:2;grid-row:1;align-self:start;justify-self:end;width:32px;height:32px;font-size:18px}
-  .mat.paperc .pg{height:10px!important;margin-top:11px!important;background:#d4d0c7!important;border:1px solid #777!important}
-  .mat.paperc .pg i{background:#087e72!important;min-width:0}
-  .mat.paperc .us{gap:7px;margin-top:11px}
-  .mat.paperc .us button{min-height:40px!important;height:auto!important;padding:7px 11px!important;font-size:13.5px!important;line-height:1.35;white-space:normal}
-  .mat.paperc .us2{margin:7px 0 8px 5px;padding:8px 0 3px 9px;gap:7px}
-  .mat.paperc .us2 button{min-height:38px!important;height:auto!important;font-size:13px!important;line-height:1.35;white-space:normal}
-  @media(max-width:390px){
-    .sheetp .pr{grid-template-columns:56px minmax(0,1fr) 38px;gap:5px}
-    .sheetp .pr .w{font-size:15px}
-    .mat.paperc .h b{font-size:16px!important}
-    .mat.paperc .h em{font-size:12px!important}
-  }
-  `;
-  document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
-})();
+// v115: 교재 목록 대비 강화 — 종이 카드 위에 어두운 글자, 진한 진도 막대와 단원 버튼.
