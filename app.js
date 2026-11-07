@@ -299,16 +299,16 @@ SH[4] = { t: '예약 전화', s: '정한 시간에 레나가 전화해요', r: B
 // 5 음성사서함 (기억)
 SH[5] = { t: '음성사서함', s: () => `저장된 메시지 ${S.memory.length}개`, r: B => {
   const c = el('div', 'card paperc'), t = el('textarea', 'in'); t.rows = 3; t.placeholder = '레나에게 남길 음성 메시지를 적거나 녹음해…';
-  const SR2 = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const SR2 = window.SpeechRecognition || window.webkitSpeechRecognition; let activeRec = null;
   const record = btn('음성으로 남기기', 'ghost', () => {
-    if (!SR2) { toast('이 브라우저에서는 음성 녹음을 지원하지 않아. 글로 남겨 줘.'); return; }
-    const rec = new SR2(); rec.lang = 'ko-KR'; rec.continuous = false; rec.interimResults = true;
+    if (activeRec) { try { activeRec.stop(); } catch (e) {} return; }
+    if (!SR2) { toast('이 브라우저에서는 음성 입력을 지원하지 않아. 글로 남겨 줘.'); return; }
+    const rec = new SR2(); activeRec = rec; rec.lang = 'ko-KR'; rec.continuous = false; rec.interimResults = true;
     record.textContent = '듣는 중… 눌러서 중지'; record.classList.add('on');
     rec.onresult = e => { let v = ''; for (let i = 0; i < e.results.length; i++) v += e.results[i][0].transcript; t.value = v; };
-    rec.onerror = () => { record.textContent = '음성으로 남기기'; record.classList.remove('on'); toast('음성을 인식하지 못했어. 다시 해 봐.'); };
-    rec.onend = () => { record.textContent = '음성으로 남기기'; record.classList.remove('on'); };
-    record.onclick = () => { try { rec.stop(); } catch (e) {} };
-    try { rec.start(); } catch (e) { toast('마이크를 사용할 수 없어.'); }
+    rec.onerror = () => { activeRec = null; record.textContent = '음성으로 남기기'; record.classList.remove('on'); toast('음성을 인식하지 못했어. 다시 해 봐.'); };
+    rec.onend = () => { activeRec = null; record.textContent = '음성으로 남기기'; record.classList.remove('on'); };
+    try { rec.start(); } catch (e) { activeRec = null; record.textContent = '음성으로 남기기'; record.classList.remove('on'); toast('마이크를 사용할 수 없어.'); }
   });
   const go = () => { const v = t.value.trim(); if (!v) return; if (!S.memory.includes(v)) S.memory.push(v.slice(0, 500)); save(); t.value = ''; refreshSheet(); say('메시지 잘 받았어. …몇 번이고 다시 들어 볼게.', 'happy', false); };
   c.append(el('div', 'hint', '마이크로 말하면 글로 받아 적어 저장해. 저장한 내용은 레나가 다음 통화에서도 기억해.'), t, row(record, btn('메시지 저장', 'teal wide', go)));
