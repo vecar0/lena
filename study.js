@@ -98,14 +98,14 @@ const css = `
 .step b{min-width:84px;text-align:center;font-family:'Space Mono',monospace;font-size:13px}
 .pedit input.in{max-width:130px}
 .warn{padding:9px 12px;border-radius:12px;background:rgba(255,46,110,.13);border:1px solid rgba(255,46,110,.5);font-size:13px;line-height:1.5;margin-bottom:10px;word-break:keep-all}
-.mat{padding:12px 13px;border-radius:12px;background:#f3efe6;color:#171717;border:2px solid #171717;margin-bottom:10px;box-shadow:3px 3px 0 #000;}
-.mat .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.mat .h b{flex:1 1 48%;min-width:0;font-size:16px;line-height:1.35;color:#111;font-weight:900}.mat .h em{font-style:normal;font-family:'Space Mono',monospace;font-size:12px;color:#444;font-weight:800;white-space:nowrap}
-.mat .pg{height:9px;border-radius:5px;background:#c9c5bc;border:1px solid #777;margin-top:10px;overflow:hidden}.mat .pg i{display:block;height:100%;background:#00a994}
+.mat{padding:10px 12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);margin-bottom:8px}
+.mat .h{display:flex;gap:8px;align-items:center}.mat .h b{flex:1;min-width:0;font-size:14.5px}.mat .h em{font-style:normal;font-family:'Space Mono',monospace;font-size:12px;color:var(--mute)}
+.mat .pg{height:5px;border-radius:3px;background:#0b0d10;margin-top:8px;overflow:hidden}.mat .pg i{display:block;height:100%;background:var(--teal)}
 .mat .us{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
-.mat .us2{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 7px 8px;padding:7px 0 2px 10px;border-left:3px solid #159b8c}.mat .us2 button{min-height:34px;font-size:12.5px;padding:0 9px;background:#fff;color:#111;border:1.5px solid #444}
+.mat .us2{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:4px;margin:-1px 0 5px 14px;padding-left:8px;border-left:2px solid rgba(0,0,0,.18)}.mat .us2 button{min-height:30px;font-size:12px;padding:0 8px}
 .pr.pplay{min-height:40px;background:repeating-linear-gradient(-45deg,rgba(47,224,200,.16) 0 8px,transparent 8px 16px);border-radius:6px}.pr.pplay .w{font-size:13.5px;font-weight:700;color:#0b6e61}
-.mat .us button{height:36px;padding:0 11px;border-radius:9px;border:1.5px solid #171717;background:#fff;color:#171717;font-size:13px;font-weight:800}
-.mat .us button.d{background:#a8f0e4;color:#003c34;border-color:#007c70}
+.mat .us button{height:32px;padding:0 10px;border-radius:16px;border:1px solid var(--line);font-size:12.5px;color:#cdd6da}
+.mat .us button.d{background:var(--teal);color:#000;border-color:var(--teal)}
 .frm{display:flex;flex-direction:column;gap:8px}
 .wkl{display:flex;flex-direction:column;gap:10px;margin:14px 0 2px}
 .wkl div{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5;color:#d7dee1;word-break:keep-all}
@@ -119,7 +119,7 @@ const ST = () => { if (!S.study) S.study = {}; const s = S.study; s.mats = s.mat
   if (s.pref && s.pref.preset) { delete s.pref.preset; s.pref.wdMax = 0; s.pref.weMax = 0; delete s.presets; } // v54: 카드(프리셋) 없앰 → 자동
   s.pref = Object.assign({ wdS: '17:00', weS: '10:00', end: '01:30', wdMax: 0, weMax: 0, block: 50, wdSubs: 2, weSubs: 4, focus: null, wdPlay: 60, wePlay: 120, schoolMin: 30, acadGap: 120 }, s.pref || {}); return s; };
 // 하루 최대(자동): 그날 빈 시간의 75%, 평일 4시간·주말 7시간까지. 직접 정하면(wdMax/weMax) 그 값.
-const AUTO_CAP = [180, 300];
+const AUTO_CAP = [240, 420];
 // 최근 7일 계획 대비 실제로 한 비율(최근에 덜 했으면 평소 양을 줄인다)
 function keepRate() { const st = ST(); let P = 0, D = 0; for (let i = 1; i <= 7; i++) { const k = dkey(dAdd(new Date(), -i)); if (!st.pl[k]) continue; P += st.pl[k]; D += (st.log[k] || []).reduce((a, b) => a + b.mins, 0); } return P >= 60 ? Math.min(1, D / P) : null; }
 const toM = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + (m || 0); };
@@ -244,7 +244,7 @@ function tasks() {
 function simulate(nDays, capMode) {
   const st = ST(), P = st.pref, T = tasks().map(t => ({ ...t })), days = [], today = new Date(); today.setHours(0, 0, 0, 0);
   const fm = new Map(), freeMin = x => { const kk = dkey(x); if (!fm.has(kk)) fm.set(kk, freeIv(x, false).reduce((a, [p1, p2]) => a + p2 - p1, 0)); return fm.get(kk); };
-  const eveSet = new Set(st.exams.map(e => dkey(dAdd(pDate(e.date), -1)))), acadEnd = x => Math.max(0, ...busyOn(x).filter(y => isAcad(y[2])).map(y => y[1])), playOf = x => eveSet.has(dkey(x)) || acadEnd(x) ? 0 /* v103: 학원 날은 학원 끝나고 2시간이 휴식 */ : (x.getDay() === 0 || x.getDay() === 6) ? (P.wePlay || 0) : (P.wdPlay || 0); /* v96: 휴식 시간 다시(시험 전날만 0) */ const looseMin = x => freeIv(x, false, true).reduce((a, [p1, p2]) => a + p2 - p1, 0); /* 시험 전날은 휴식 시간 없이 필승노트 */ const dmax = x => { const we = x.getDay() === 0 || x.getDay() === 6, u = we ? P.weMax : P.wdMax, room = Math.max(0, freeMin(x) - Math.max(0, playOf(x) - Math.max(0, looseMin(x) - freeMin(x)))); /* 휴식은 학원 앞뒤 빈 시간에 먼저 들어감 */ return Math.min(room, u || Math.min(AUTO_CAP[we ? 1 : 0], Math.floor(room * .75 / 10) * 10)); };
+  const eveSet = new Set(st.exams.map(e => dkey(dAdd(pDate(e.date), -1)))), acadEnd = x => Math.max(0, ...busyOn(x).filter(y => isAcad(y[2])).map(y => y[1])), playOf = x => eveSet.has(dkey(x)) || acadEnd(x) ? 0 /* v103: 학원 날은 학원 끝나고 2시간이 휴식 */ : (x.getDay() === 0 || x.getDay() === 6) ? (P.wePlay || 0) : (P.wdPlay || 0); /* v96: 휴식 시간 다시(시험 전날만 0) */ const looseMin = x => freeIv(x, false, true).reduce((a, [p1, p2]) => a + p2 - p1, 0); /* 시험 전날은 휴식 시간 없이 필승노트 */ const dmax = x => { const we = x.getDay() === 0 || x.getDay() === 6, u = we ? P.weMax : P.wdMax, room = Math.max(0, freeMin(x) - Math.max(0, playOf(x) - Math.max(0, looseMin(x) - freeMin(x)))); /* 휴식은 학원 앞뒤 빈 시간에 먼저 들어감 */ return Math.min(room, u || Math.min(AUTO_CAP[we ? 1 : 0], Math.floor(room * .85 / 10) * 10)); };
   const kr = keepRate(), habit = we => Math.round((we ? 120 : 90) * (kr == null ? 1 : Math.max(.6, kr + .15)) / 10) * 10, adj = st.adj && st.adj.d === dkey(today) ? st.adj.mul : 1, focus = P.focus && P.focus.until >= dkey(today) ? P.focus.sub : '';
   for (let di = 0; di < nDays; di++) {
     const d = dAdd(today, di), k = dkey(d), we = d.getDay() === 0 || d.getDay() === 6;
@@ -314,7 +314,7 @@ function splan() {
   let r, strained = false; const n = (() => { try { return horizon(); } catch (e) { return 31; } })();
   try { r = simulate(n); } catch (e) { console.warn('plan', e); S.planErr = String(e && e.message || e).slice(0, 120); cache = { sig, ...EMPTY, strained }; return cache; }
   S.planErr = '';
-  if (r.late.length) { /* 일정이 밀려도 24시간 몰아넣는 강제 배치는 하지 않는다. 실제 가능한 시간 안에서 분산한 계획을 유지한다. */ strained = true; }
+  if (r.late.length) { const r2 = simulate(n, 'max'); if (r2.late.length < r.late.length) { r = r2; strained = true; } }
   cache = { sig, ...r, strained };
   try { const k = todayK(), D = r.days[0], tot = (D ? D.mins : 0) + (ST().log[k] || []).reduce((a, b) => a + b.mins, 0); if (tot > (ST().pl[k] || 0)) { ST().pl[k] = tot; const ks = Object.keys(ST().pl).sort(); while (ks.length > 14) delete ST().pl[ks.shift()]; } } catch (e) {}
   return cache;
@@ -712,5 +712,3 @@ const _ap = apply; apply = function (r) {
 try { dedupExams(); if (window.dedupItems && dedupItems()) save(); } catch (e) {}
 window.lenaStudy = { dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, colOf, plan: () => splan(), splan: () => { dirty(); return splan(); }, tasks, parseOutline, simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
 })();
-
-// v115: 교재 목록 대비 강화 — 종이 카드 위에 어두운 글자, 진한 진도 막대와 단원 버튼.
