@@ -549,7 +549,7 @@ function toClaude(contents) { const out = [];
   while (out.length && out[0].role !== 'user') out.shift(); return out; }
 async function claudeCall(m, sys, contents, onPart, ac, t1, kick) {
   const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal: ac.signal, headers: { 'content-type': 'application/json', 'x-api-key': S.ckey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: m, max_tokens: 2048, stream: true, system: sys + '\n(답은 JSON 객체 하나만. 앞뒤에 다른 글·코드블록 없이.)', messages: toClaude(contents), thinking: { type: 'disabled' }, output_config: { effort: 'low' } }) });
+    body: JSON.stringify({ model: m, max_tokens: 6000, stream: true, system: sys + '\n(답은 JSON 객체 하나만. 앞뒤에 다른 글·코드블록 없이.)', messages: toClaude(contents), thinking: { type: 'disabled' }, output_config: { effort: 'low' } }) });
   if (!r.ok || !r.body) { let x = ''; try { x = await r.text(); } catch (e) {} throw Object.assign(new Error('claude ' + r.status + ' ' + x.slice(0, 200)), { status: r.status, cl: 1 }); }
   const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', acc = '', first = 0;
   for (;;) { let rr; try { rr = await rd.read(); } catch (e) { if (acc.trim()) break; throw e; } const { value, done } = rr; if (done) break; buf += dec.decode(value, { stream: true }); let k;
@@ -566,6 +566,7 @@ function mChain() {
   const all = [...new Set([...fast, ...C, ...(S.key ? [mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-flash-lite-latest'] : [])])], ok = all.filter(m => !(COOL[m] > Date.now())); return ok.length ? ok : all; }
 async function loadModels() { if (!S.key) return; try { const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key=${encodeURIComponent(S.key)}`); if (!r.ok) return; const j = await r.json(); S.mlist = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, '')).filter(n => mRank(n) > 0).sort((a, b) => mRank(b) - mRank(a)); save(); } catch (e) {} }
 function unesc(s) { try { return JSON.parse('"' + s.replace(/\\$/, '') + '"'); } catch (e) { return s.replace(/\\n/g, '\n').replace(/\\"/g, '"'); } }
+const REFUSE = /(기능.{0,12}(없|안\s?돼)|직접.{0,10}(못|수\s?(는|가)?\s?없)|(바꿔|고쳐|저장해|적용해|넣어|짜)\s?줄\s?수.{0,3}없|(바꿀|고칠|저장할|넣을)\s?수.{0,3}없|권한.{0,4}없)/;
 function parseReply(t) { t = t.replace(/```json|```/g, '').trim(); try { return JSON.parse(t); } catch (e) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (x) {} } const m = t.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); return { reply: m ? unesc(m[1]) : t.slice(0, 400), mood: 'calm' }; } }
 async function gemini(sys, contents, onPart) {
   let lastErr = null; const T0 = Date.now(); // v85: 전체 30초 넘게 붙잡지 않음(멈춘 것처럼 보이던 것)
@@ -573,7 +574,7 @@ async function gemini(sys, contents, onPart) {
     if (Date.now() - T0 > 30000) throw lastErr || Object.assign(new Error('slow'), { status: 503 });
     // 대화는 빠르게: 생각 최소(3.x minimal, 2.5 Flash 0). 그 모델이 안 받아 주면(400) 한 단계 올려 다시.
     const th = /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: TH[m] || 'minimal' } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: TH[m] != null ? TH[m] : (/pro/.test(m) ? 128 : 0) } } : /latest/.test(m) && TH[m] !== 'skip' ? { thinkingConfig: { thinkingBudget: 0 } } : {};
-    const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents, generationConfig: Object.assign({ responseMimeType: 'application/json', temperature: 1, maxOutputTokens: 2048 }, th) });
+    const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents, generationConfig: Object.assign({ responseMimeType: 'application/json', temperature: 1, maxOutputTokens: 6000 }, th) });
     const ac = new AbortController(); const t1 = setTimeout(() => ac.abort(), Math.min(12000, Math.max(4000, 30000 - (Date.now() - T0)))); let t2 = setTimeout(() => ac.abort(), 40000), acc = '', t0 = Date.now(), first = 0;
     const kick = () => { clearTimeout(t2); t2 = setTimeout(() => ac.abort(), 8000); }; // 글자가 오다가 8초 끊기면 끊고 받은 데까지 씀
     if (isCl(m)) { try { const o = await claudeCall(m, sys, contents, onPart, ac, t1, kick); clearTimeout(t1); clearTimeout(t2); acc = o.acc; if (acc.trim()) { S.model = m; S.clErr = ''; lat(m, (o.first || Date.now()) - t0); return parseReply(acc); } break; }
@@ -650,7 +651,7 @@ async function sendText(raw, special) {
   busy = true; app.classList.add('talking'); const her = herEl(''); her.lastChild.remove(); const dots = el('span', 'dots'); dots.innerHTML = '<i></i><i></i><i></i>'; her.appendChild(dots); L.appendChild(her); L.scrollTop = L.scrollHeight;
   const tnode = document.createTextNode('');
   const onPart = t => { if (dots.parentNode) { dots.remove(); her.appendChild(tnode); } tnode.textContent = t; L.scrollTop = L.scrollHeight; };
-  const contents = S.history.slice(-10).filter(h => h.content).map(h => ({ role: h.role === 'assistant' ? 'model' : 'user', parts: [{ text: h.content }] }));
+  const contents = S.history.slice(-10).filter(h => h.content && !(h.role === 'assistant' && REFUSE.test(h.content))) /* v106: 예전 '못 해' 답은 다시 안 보여 줌(그걸 보고 또 거절했음) */.map(h => ({ role: h.role === 'assistant' ? 'model' : 'user', parts: [{ text: h.content }] }));
   while (contents.length && contents[0].role !== 'user') contents.shift();
   if (special) contents[contents.length - 1].parts[0].text = text;
   if (img) contents[contents.length - 1].parts.unshift({ inline_data: { mime_type: img.mime, data: img.data } });
@@ -663,10 +664,11 @@ async function sendText(raw, special) {
     let did = apply(r);
     // v100: 말로만 '넣었어·바꿨어' 하고 실제 칸이 비었으면, 한 번 더 물어서 실제로 적용(대화 ↔ 다이얼 끊김 막기)
     // v105: '기능이 없어·직접 못 바꿔' 같은 거절이면 할 수 있다고 알려 주고 한 번 더
-    const refuse = /(기능.{0,12}(없|안\s?돼)|직접.{0,10}(못|수\s?(는|가)?\s?없)|(바꿔|고쳐|저장해|적용해|넣어|짜)\s?줄\s?수.{0,3}없|(바꿀|고칠|저장할|넣을)\s?수.{0,3}없|권한.{0,4}없)/.test(reply);
-    if (!did && refuse) {
+    const want = /(넣어|넣자|짜\s?줘|짜\s?봐|짜자|바꿔|바꾸자|옮겨|빼\s?줘|빼자|추가|저장|적용|고쳐|정리해|붙여|지워|등록|나눠|잡아\s?줘|박아|비워|쉴래|미뤄|당겨)/.test(text), refuse = REFUSE.test(reply);
+    if (!did && (refuse || want)) { /* v106: 바꿔 달라고 했는데 아무것도 안 바뀌었으면 한 번 더 */
       try { const c2 = contents.concat([{ role: 'model', parts: [{ text: JSON.stringify(r).slice(0, 1500) }] }, { role: 'user', parts: [{ text: '(앱 확인) 레나는 이 앱을 전부 바꿀 수 있어 — 공부 칸은 study.pin/block/unpin, 교재는 study.mats(goals·due·del), 설정은 study.set, 전단지는 add/edit/remove, 고정 일정은 repeat/unrepeat. 송휘가 원한 걸 이 칸들로 실제로 넣어서 다시 답해. 못 한다는 말은 하지 마. reply는 레나 말투로 짧게.' }] }]);
-        const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (did && r2.reply) { const sp2 = did.querySelector('span'); if (sp2) sp2.textContent = String(r2.reply).trim() + ' — ' + sp2.textContent; S.history.push({ role: 'assistant', content: String(r2.reply).trim(), at: Date.now() }); } } catch (e) {} }
+        const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (did && r2.reply) { const sp2 = did.querySelector('span'); if (sp2) sp2.textContent = String(r2.reply).trim() + ' — ' + sp2.textContent; S.history.push({ role: 'assistant', content: String(r2.reply).trim(), at: Date.now() }); } } catch (e) {}
+      if (!did) { did = el('div', 'note'); did.appendChild(el('span', null, '⚠ 앱에 아무것도 안 바뀌었어. 날짜·시간·과목을 붙여서 한 번 더 말해 줘(예: 화요일 8시~9시 수학).')); } }
     if (!did && /(넣었|넣어\s?놨|바꿨|바꿔\s?놨|붙였|붙여\s?놨|저장했|추가했|옮겼|지웠|등록|반영|잡아\s?놨|짰어|짜\s?놨)/.test(reply)) {
       try { const c2 = contents.concat([{ role: 'model', parts: [{ text: JSON.stringify(r).slice(0, 1500) }] }, { role: 'user', parts: [{ text: '(앱 확인) 방금 말한 변경이 JSON 칸(add·done·remove·callback·repeat·study 등)에 없어서 앱에 아무것도 안 바뀌었어. 같은 변경을 JSON 칸에 실제로 넣어서 다시 답해. reply는 짧게.' }] }]);
         const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (!did) { did = el('div', 'note'); did.appendChild(el('span', null, '⚠ 레나가 말만 하고 앱엔 안 바뀌었어. 한 번 더 구체적으로 말해 줘(예: 역사 수능특강 1~3단원).')); } } catch (e) {} }
