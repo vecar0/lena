@@ -301,7 +301,9 @@ SH[5] = { t: '음성사서함', s: () => `레나가 기억하는 것 ${S.memory.
   const c = el('div', 'card'), t = inp('text', '예: 나 오이 싫어해');
   const go = () => { const v = t.value.trim(); if (!v) return; if (!S.memory.includes(v)) S.memory.push(v.slice(0, 120)); save(); t.value = ''; refreshSheet(); say(pick(['메시지 잘 받았어요. 안 까먹어요.', '…녹음해 뒀어요. 몇 번 더 들어 볼게요.']), 'happy', false); };
   t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
-  c.append(row(t, btn('남기기', '', go))); B.appendChild(c);\n  B.appendChild(btn('메모 열기', 'ghost wide', () => { if (window.lenaMemo) window.lenaMemo.open(); else toast('메모를 불러오지 못했어.'); }));\n  B.appendChild(el('div', 'hint', '7번 다이얼에서 음성사서함과 메모를 함께 열 수 있어.'));
+  c.append(row(t, btn('남기기', '', go))); B.appendChild(c);
+  B.appendChild(btn('메모 열기', 'ghost wide', () => { if (window.lenaMemo) window.lenaMemo.open(); else toast('메모를 불러오지 못했어.'); }));
+  B.appendChild(el('div', 'hint', '7번 다이얼에서 음성사서함과 메모를 함께 열 수 있어.'));
   B.appendChild(lbl('저장된 메시지'));
   if (!S.memory.length) { B.appendChild(empty('아직 비어 있어요.\n취향, 사람, 습관을 남겨 주면 통화할 때 기억해요.', 'st_tape')); return; }
   const l = el('div', 'list card'); S.memory.slice().reverse().forEach(m => { const r = el('div', 'it'), ic = el('img', 'ic'); ic.src = 'assets/lena/st_tape.webp'; ic.alt = ''; r.append(ic, el('div', 't', m), xbtn(() => { S.memory = S.memory.filter(x => x !== m); save(); refreshSheet(); })); l.appendChild(r); }); B.appendChild(l);
