@@ -172,3 +172,21 @@ The follow-up branch `fix/voicemail-dial-vending-objects` is intended to be merg
 - If changing vending catalog rendering, check `P`, `pimg()`, the inventory/sales persistence keys, and all unlocked products; do not change existing product IDs because saved business data may refer to them.
 
 Manual verification still needed on an iPhone-sized viewport: dial 7 opens voicemail; memo opens from inside dial 7 and saves independently of voice-memory entries; # closes the dial; call-history tabs no longer show voicemail; all four revised vending products show image assets and retain existing prices, unlock levels, sales, and inventory behavior.
+
+
+---
+
+## Handoff — Lena employee, voicemail memo, visibility fixes (v115)
+
+Branch: `fix/lena-employee-voicemail-visibility`, merged to `main` after review.
+
+- Vending object labels should be the object itself, not a prepared-product description: `gum → 체리`, `kimbap → 오리`, `ramen → 디스코볼`, `hotpack → 북극곰`. Existing image assets and product IDs remain unchanged.
+- Removed the "레나에게 납품" mechanic from the vending business. The Lena tab now offers an earned manager hire: after cumulative business profit reaches 50,000 KRW (rank 1), Lena notices the growing operation and offers to become store manager. Hire fee 15,000 KRW, daily wage 6,000 KRW. While employed, she automatically replenishes stock below 40% and increases foot traffic by 12%. Salary is charged through the existing STAFF wage settlement. Contract can be ended from the Lena tab.
+- Dial key 7 and the phone's quick-access button named "음성사서함" now open a memo-only screen titled "음성사서함". The memo data remains in `S.memo` and is separate from study notes.
+- The original memory feature (`S.memory`, preferences/facts Lena uses in conversation) has moved into 0 > Settings > "레나의 기억 · 기존 음성사서함". Preserve this distinction: `S.memo` = user's notes; `S.memory` = facts Lena remembers.
+- Voice-call chat visibility was fixed with explicit outside-mode chat panel sizing, z-index, opaque message bubbles, avatar sizing, and input/action stacking. The Lena avatar appears beside every Lena message.
+- Vending KPI cards now have a minimum height and non-rotated, centered content; the activity feed is a horizontally scrollable row of separate chips with no simultaneous marquee animation (prevents overlapping ticker text).
+- Study > Subject/Books cards now use a paper background, near-black high-contrast labels, larger titles, thicker progress bars, and high-contrast unit buttons.
+- Cache version: v115.
+
+Manual iPhone checks: dial 7 and quick-access button open memo-only voice mailbox; memo CRUD works; Settings memory CRUD works and is still used by conversation prompt; Lena hiring unlocks at cumulative profit 50,000 KRW and deducts 15,000 + 6,000/day; automatic restock and +12% customer traffic apply; feed chips do not overlap; study cards are legible; voice-call chat and Lena avatars are visible above the input area. If the layout is still cramped on a short viewport, adjust `.app.outside .log` and `.app.outside .agrid` together.
