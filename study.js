@@ -3,6 +3,9 @@
 'use strict';
 (() => {
 const css = `
+.mat-subhead{margin:10px 0 5px;padding:5px 9px;background:var(--teal);color:#071411;border:1px solid #111;font-size:13px;font-weight:900;box-shadow:2px 2px 0 #111}
+.mat-subgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:start}.mat-subgrid .mat{margin:0;min-width:0;padding:7px}.mat-subgrid .mat .h{display:grid;grid-template-columns:1fr auto;gap:4px;align-items:start}.mat-subgrid .mat .h b{font-size:13px;line-height:1.25;overflow-wrap:anywhere}.mat-subgrid .mat .h em{font-size:10px;white-space:normal;text-align:right}.mat-subgrid .mat .pg{height:5px;margin-top:5px}@media(max-width:390px){.mat-subgrid{gap:5px}.mat-subgrid .mat{padding:6px}.mat-subgrid .mat .h b{font-size:12px}}
+
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .cal .wd{text-align:center;font-size:11.5px;font-weight:800;color:var(--mute);padding:2px 0}
 .cal .wd.su{color:#ff7a9c}.cal .wd.sa{color:#7fb6ff}
@@ -203,8 +206,7 @@ function busyOn(d) {
   const L = [], k = dkey(d), wd = d.getDay();
   S.items.forEach(t => { if (t.done || !t.due || t.due.slice(0, 10) !== k || t.rid || !isEv(t)) return; /* v84: 할 일 마감은 시간을 막지 않음 */ const s = toM(t.due.slice(11, 16)); L.push([s, s + (t.mins || 60), t.text]); });
   (S.reps || []).forEach(r => { if (r.days.length && !r.days.includes(wd)) return; if ((S.repSkip || {})[r.id + '_' + k]) return; L.push([toM(r.time), toM(r.end || toT(toM(r.time) + 60)), r.text]); });
-  // v105: 대화로 정한 '공부 안 하는 시간'(blk)과 '여기에 공부'(pins)는 다른 공부가 못 들어오게
-  const sd = S.study || {}; (sd.blk || []).forEach(b => { if (b.d ? b.d === k : (b.days || []).includes(wd)) L.push([b.s, b.e, '공부 안 함']); }); (sd.pins || []).forEach(p => { if (p.d === k) L.push([p.s, p.e, '공부 고정']); });
+  // 기존 '공부 안 함/공부 고정' 항목은 더 이상 시간표에 반영하지 않는다.
   return L.sort((a, b) => a[0] - b[0]);
 }
 const ACAD = /학원|클리닉|과외|수업/;
@@ -571,7 +573,9 @@ function stExam(B) {
   B.appendChild(f);
 }
 function stMat(B) {
-  ST().mats.slice().sort((a, b) => a.sub.localeCompare(b.sub)).forEach(m => {
+  const groups = [...new Set(ST().mats.map(m => m.sub))].sort((a,b)=>a.localeCompare(b));
+  groups.forEach(subject => { B.appendChild(el('div','mat-subhead',subject)); const grid = el('div','mat-subgrid');
+  ST().mats.filter(m => m.sub === subject).sort((a,b)=>a.title.localeCompare(b.title)).forEach(m => {
     const c = el('div', 'mat paperc slim' + (m.kind === 'hw' ? ' yel' : '')), h = el('div', 'h'), dn = m.units.filter(u => u.done).length;
     h.append(chip(m.sub), el('b', null, (m.kind === 'hw' ? (/^숙제$/.test(m.title) ? '학원 ' : '숙제 · ') : m.kind === 'perf' ? '수행 · ' : '') + m.title), el('em', null, m.rep ? `매주 ${m.rep.days.slice().sort().map(d => WD[d]).join('·')} · ${m.rep.mins}분` : m.kind !== 'book' ? (m.due ? `${m.kind === 'perf' ? '수행' : '학원'} ${m.due.slice(5).replace('-', '/')}` : '') : !m.units.length ? '시험 범위를 넣으면 단원이 생겨요' : `${dn}/${m.units.length} · ${hm(m.units.filter(u => !u.done).reduce((a, u) => a + Math.max(0, u.mins - (u.prog || 0)), 0))} 남음`), xbtnS(() => { if (!confirm(`'${m.title}' 지울까요?`)) return; ST().mats = ST().mats.filter(x => x !== m); ST().exams.forEach(e => e.ranges = e.ranges.filter(r => r.mat !== m.id)); save(); dirty(); refreshSheet(); }));
     const pg = el('div', 'pg'), i = el('i'); i.style.width = (m.units.length ? dn / m.units.length * 100 : 0) + '%'; pg.appendChild(i); c.append(h, pg);
@@ -582,8 +586,8 @@ function stMat(B) {
       const mi = inp('number', '분', String(m.units[0] ? m.units[0].mins : 40)); mi.style.maxWidth = '80px';
       if (!m.units.some(u => u.subs)) c.appendChild(row(el('span', 'hint', m.kind !== 'book' ? '걸리는 분' : '하나에 걸리는 분'), mi, btn('바꾸기', 'ghost', () => { const v = Math.max(10, Math.min(600, +mi.value || 40)); m.units.forEach(u => u.mins = v); save(); dirty(); refreshSheet(); toast(`${v}분으로 다시 짰어요.`); })));
     }
-    B.appendChild(c);
-  });
+    grid.appendChild(c);
+  }); B.appendChild(grid); });
   if (ST().mats.length && !formOpen) B.appendChild(el('div', 'hint', '누르면 단원이 펼쳐져요. 끝낸 단원을 누르면 체크돼요.'));
   if (!ST().mats.length && !formOpen) B.appendChild(el('div', 'hint', '문제집·교과서·학원 숙제를 넣으면 진도에 맞춰 나눠 넣어요.'));
   if (!formOpen) { B.appendChild(row(btn('+ 교재·숙제 넣기', 'teal wide', () => { formOpen = true; refreshSheet(); }))); return; }
