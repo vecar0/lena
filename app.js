@@ -422,8 +422,9 @@ $('aPad').onclick = () => { dtmf(0); openPad(); };
 $('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
 $('aCall').onclick = () => { dtmf(4); openSheet(6); };
 $('aMiss').onclick = () => { dtmf(5); openSheet('call'); };
-$('aSet').onclick = () => { dtmf(0); openSheet(0); };\nif ($('aMemo')) $('aMemo').onclick = () => { dtmf('#'); if (window.lenaMemo) window.lenaMemo.open(); };
-$('aMemo').onclick = () => { dtmf('#'); window.lenaMemo && window.lenaMemo.open(); };
+$('aSet').onclick = () => { dtmf(0); openSheet(0); };
+$('aMemo').onclick = () => { dtmf('#'); if (window.lenaMemo) window.lenaMemo.open(); };
+
 
 // ---------------- dial pad ----------------
 const KEYS = [[1, '전단지', 1], [2, '캘린더', 'cal'], [3, '시간표', 'tt'], [4, '공부', 6], [5, '전화', 'call'], [6, '모닝콜', 7], [7, '음성사서함', 5], [8, '오늘의 운세', 'fort'], [9, '자판기', 'shop'], ['*', '오락실', 8], [0, '설정', 0], ['#', '메모', 'memo']];
@@ -596,10 +597,10 @@ async function gemini(sys, contents, onPart) {
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:streamGenerateContent?alt=sse&key=${encodeURIComponent(S.key)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: ac.signal });
       if (r.status === 400 || r.status === 401 || r.status === 403) { let x = ''; try { x = await r.text(); } catch (e) {} if (r.status !== 400 || /API_KEY|api key/i.test(x)) { clearTimeout(t1); clearTimeout(t2); if (S.ckey) { COOL[m] = Date.now() + 600e3; lastErr = Object.assign(new Error('key'), { status: 403 }); break; } throw Object.assign(new Error('key'), { status: 403 }); } if (/think/i.test(x) && TH[m] == null && !tryN) { clearTimeout(t1); clearTimeout(t2); TH[m] = /gemini-3/.test(m) ? 'low' : /latest/.test(m) ? 'skip' : 512; continue; } }
       if (!r.ok || !r.body) { clearTimeout(t1); clearTimeout(t2); lastErr = Object.assign(new Error('http'), { status: r.status }); if (r.status >= 500 && !tryN) { await sleep(1200); continue; } if (r.status === 429 || r.status >= 500) COOL[m] = Date.now() + (r.status === 429 ? 90e3 : 30e3); break; }
-      const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', grounding = [];
+      const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', webSources = [];
       for (;;) { const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); let k;
         while ((k = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1); if (!line.startsWith('data:')) continue;
-          try { const j = JSON.parse(line.slice(5)); const gm = j.candidates?.[0]?.groundingMetadata; if (gm?.groundingChunks) grounding = gm.groundingChunks.map(x => x.web).filter(x => x?.uri).map(x => ({ title: x.title || '검색 결과', uri: x.uri })); const tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join(''); if (tx) { clearTimeout(t1); kick(); if (!first) first = Date.now() - t0; acc += tx; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } } catch (e) {} } }
+          try { const j = JSON.parse(line.slice(5)); const gm = j.candidates?.[0]?.groundingMetadata; if (gm?.groundingChunks) webSources = gm.groundingChunks.map(x => x.web).filter(x => x?.uri).map(x => ({ title: x.title || '검색 결과', uri: x.uri })); const tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join(''); if (tx) { clearTimeout(t1); kick(); if (!first) first = Date.now() - t0; acc += tx; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } } catch (e) {} } }
       clearTimeout(t1); clearTimeout(t2); if (acc.trim()) { S.model = m; lat(m, first || Date.now() - t0); const out = parseReply(acc); if (wantsSearch && webSources.length) out.reply = String(out.reply || '') + '\\n찾아본 곳: ' + webSources.slice(0, 4).map(x => `${x.title} (${x.uri})`).join(' · '); return out; } break;
     } catch (e) { clearTimeout(t1); clearTimeout(t2); if (e.status === 403) throw e; lastErr = e; if (acc.trim()) { S.model = m; return parseReply(acc); } if (e.name === 'AbortError') COOL[m] = Date.now() + 30e3; break; }
   }
@@ -674,7 +675,7 @@ async function sendText(raw, special) {
   window.lenaDeep = !special && (/(넣어|짜\s?줘|짜\s?봐|바꿔|옮겨|빼\s?줘|비워|미뤄|당겨|계획|일정|시간표|캘린더|공부|시험|범위|정리|어떻게|왜|추천|몇\s?시|언제)/.test(text) || text.length > 60); /* v108: 일·계획 얘기는 조금 더 생각하고 답함 */
   try {
     const r = await gemini(sysPrompt(special), contents, onPart);
-    const sourceText = Array.isArray(r.sources) && r.sources.length ? '\\n\\n찾아본 곳\\n' + r.sources.map(x => `· ${x.title}: ${x.uri}`).join('\\n') : ''; const reply = (String(r.reply || '…').trim() + sourceText); onPart(reply);
+    const sourceText = Array.isArray(r.sources) && r.sources.length ? '\n\n찾아본 곳\n' + r.sources.map(x => `· ${x.title}: ${x.uri}`).join('\\n') : ''; const reply = (String(r.reply || '…').trim() + sourceText); onPart(reply);
     S.history.push({ role: 'assistant', content: reply, at: Date.now() }); if (S.history.length > 200) S.history = S.history.slice(-200);
     try { fixDates(r, text); } catch (e) {}
     let did = apply(r);
