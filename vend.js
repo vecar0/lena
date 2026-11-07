@@ -256,27 +256,28 @@ function lenaView(Bx, b) {
   hb.append(bar, document.createTextNode(`「${LS.tierOf(n + 1).name}」까지 ${LS.need(n + 1) - a.pt}점`)); c.appendChild(hb);
   c.appendChild(el('div', 'hint', '레나가 이 매장의 매니저로 재고와 손님 흐름을 살피고 있어요.'));
   Bx.appendChild(c);
-  Bx.appendChild(lbl('부스 꾸미기 (사업 자금으로 스티커)'));
+
+}
+
+function boothDecor(Bx,b) {
   const D = LS.D(), Dg = el('div', 'dl'); LS.DECOR.forEach(d => { const own = D.own.includes(d.id), on = D.on.includes(d.id), price = d.p * 10000, t = el('button', 'dt' + (on ? ' on' : '') + (own ? '' : ' lock')), im = el('img'); im.src = LS.SI(d.i); im.alt = d.n; t.appendChild(im);
     t.onclick = () => { if (!own) { if (b.cash < price) { toast(`${d.n}: ${won(price)} 필요해요.`); return; } if (!confirm(`${d.n}을 ${won(price)}에 살까요?`)) return; b.cash -= price; D.own.push(d.id); if (D.on.length < 6) D.on.push(d.id); save(); refreshSheet(); renderHome(); return; }
       const o = D.on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 6) o.shift(); o.push(d.id); } save(); refreshSheet(); renderHome(); }; Dg.appendChild(t); });
-  Bx.appendChild(Dg);
-  if (D.on.length) Bx.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', LS.decorEdit)));
+  Bx.appendChild(Dg); if (D.on.length) Bx.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', LS.decorEdit)));
   Bx.appendChild(el('div', 'hint', `모은 스티커 ${D.own.length}/${LS.DECOR.length} · 잠긴 건 눌러서 사요 · 6개까지 붙여요`));
 }
-
 function wantP(s) { const k = Object.keys(P), r = rnd(dk(new Date()) + 'w'); const u = unlocked(B()); return u[Math.floor(r() * u.length)] || k[0]; }
 function book(Bx, b) {
-  const D = b.log.slice(-14); if (!D.length) { Bx.appendChild(empty('아직 결산한 날이 없어요.\n자정이 지나면 하루 장부가 생겨요.', 'st_coin')); return; }
+  const D = b.log.slice(-14); if (!D.length) Bx.appendChild(empty('아직 결산한 날이 없어요.\n자정이 지나면 하루 장부가 생겨요.', 'st_coin'));
   const mx = Math.max(1, ...D.map(l => Math.abs(l.profit))), C = el('div', 'bz-chart'); D.forEach(l => { const i = el('i', l.profit < 0 ? 'neg' : ''); i.style.height = Math.max(2, Math.abs(l.profit) / mx * 100) + '%'; i.title = l.d; C.appendChild(i); }); Bx.append(lbl('최근 14일 이익'), C);
-  const lg = el('div', 'bz-log'); D.slice().reverse().forEach(l => { const r = el('div'); r.innerHTML = `<b>${l.d.slice(5).replace('-', '/')}</b> 이익 <b style="color:${l.profit < 0 ? '#d0124f' : '#0b7d6e'}">${won(l.profit)}</b> · 매출 ${won(l.rev)} (${l.sold}개) · 도매 ${won(l.cogs)}${l.waste ? ` · 버림 ${won(l.waste)}` : ''} · 자릿세 ${won(l.rent)}${l.wage ? ` · 일당 ${won(l.wage)}` : ''}${l.int ? ` · 이자 ${won(l.int)}` : ''}${l.gc ? ` · 게임 동전 +${l.gc}` : ''}${l.ev.length ? '<br>' + l.ev.join('<br>') : ''}`; lg.appendChild(r); }); Bx.append(lbl('장부'), lg);
+  const lg = el('div', 'bz-log'); D.slice().reverse().forEach(l => { const r = el('div'); r.innerHTML = `<b>${l.d.slice(5).replace('-', '/')}</b> 이익 <b style="color:${l.profit < 0 ? '#d0124f' : '#0b7d6e'}">${won(l.profit)}</b> · 매출 ${won(l.rev)} (${l.sold}개) · 도매 ${won(l.cogs)}${l.waste ? ` · 버림 ${won(l.waste)}` : ''} · 자릿세 ${won(l.rent)}${l.wage ? ` · 일당 ${won(l.wage)}` : ''}${l.int ? ` · 이자 ${won(l.int)}` : ''}${l.gc ? ` · 게임 동전 +${l.gc}` : ''}${l.ev.length ? '<br>' + l.ev.join('<br>') : ''}`; lg.appendChild(r); }); Bx.append(lbl('장부'), lg); Bx.appendChild(lbl('부스 꾸미기')); boothDecor(Bx,b);
 }
 SH.shop = { t: '자판기', s: () => { const b = B(); return `${RANK[b.rank][0]} · 자리 ${Object.keys(b.locs).length}곳`; }, open: () => {}, r: Bx => {
   const b = B(); tick(true);
   if (lastSettles.length && !b.seen[lastSettles[0].d]) { const l = lastSettles[0]; b.seen = { [l.d]: 1 }; const c = el('div', 'ask lena'); c.append(el('span', 'who', '레나'), document.createTextNode(`어제(${l.d.slice(5).replace('-', '/')}) 장사 — 이익 ${won(l.profit)}${l.gc ? `, 게임 동전 +${l.gc}` : ''}${l.ev.length ? ' · ' + l.ev[0] : ''}. ${l.profit < 0 ? '…이러다 해골 사채 써요.' : '잘했어요, 사장님.'}`)); Bx.appendChild(c); }
   else if (tab === 'street') { const c = el('div', 'ask lena'), say = b.cash < 0 ? '사채 이자가 붙고 있어요. 값 내리고 잘 팔리는 것부터 채워요.' : pick(['비 오면 우산, 시험 기간엔 학원 앞. 장사는 눈치예요.', '빈 칸은 돈이 새는 구멍이에요. 채워 둬요.', '비싸게 걸면 안 팔려요. 손님은 송휘만큼 너그럽지 않거든요.']); c.append(el('span', 'who', '레나'), document.createTextNode(say)); Bx.appendChild(c); }
   top(Bx, b);
-  const T = el('div', 'tabs bz-tabs'); [['street', '거리'], ['staff', '알바·설비'], ['lena', '레나'], ['book', '장부']].forEach(([v, l]) => { const x = el('button', (tab === v || (v === 'street' && tab === 'loc')) ? 'on' : '', l); x.onclick = () => { tab = v; sel = null; refreshSheet(); }; T.appendChild(x); }); Bx.appendChild(T);
+  const T = el('div', 'tabs bz-tabs'); [['street', '골목 노점'], ['staff', '알바·설비'], ['book', LS.tierOf(LS.lv(LS.A().pt)).name]].forEach(([v, l]) => { const x = el('button', (tab === v || (v === 'street' && tab === 'loc')) ? 'on' : '', l); x.onclick = () => { tab = v; sel = null; refreshSheet(); }; T.appendChild(x); }); Bx.appendChild(T);
   ({ street, loc: locView, staff: staffView, lena: lenaView, book })[tab](Bx, b);
 } };
 SH[3] = SH.shop;

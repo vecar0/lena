@@ -342,7 +342,8 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .ab.on i{background:#fff}.ab.on svg{stroke:#111}
 .ab.vid i{background:var(--pink);border:2px solid #000;box-shadow:3px 3px 0 #000}
 .ab em{position:absolute;top:-4px;left:calc(50% + 16px);min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--hot);color:#fff;border:2px solid #000;font-style:normal;font-size:11.5px;font-weight:800;display:grid;place-items:center}
-.app.outside .log{-webkit-mask:linear-gradient(transparent,#000 18%);mask:linear-gradient(transparent,#000 18%)}
+.app.outside .log{flex:1;min-height:0;padding:10px 18px 12px;-webkit-mask:linear-gradient(transparent,#000 7%);mask:linear-gradient(transparent,#000 7%)}
+.app.outside .agrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 0;padding:4px 18px 6px}.app.outside .ab i{width:46px;height:46px}.app.outside .ab{font-size:11px;gap:3px}
 /* 음성통화: 기존 레이아웃 규칙을 그대로 사용 */
 .app.outside .pop{width:52px}
 .vtog{height:36px;padding:0 13px;border-radius:18px;background:rgba(0,0,0,.6);border:1.5px solid var(--green);box-shadow:2px 2px 0 #000;font-size:13px;font-weight:700;color:#e6eef0;display:flex;align-items:center;gap:6px}
@@ -351,9 +352,9 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 
 
 /* 영상통화 중: 레나가 보이게 대화는 아래쪽 반투명 판에 */
-.app.calling:not(.outside) .log{flex:none;height:min(28vh,236px);transition:height .25s;margin-top:auto;margin:auto 10px 6px;padding:12px 12px 8px;border-radius:18px;background:rgba(8,10,13,.62);-webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2);border:1px solid rgba(255,255,255,.1);-webkit-mask:linear-gradient(transparent,#000 14%);mask:linear-gradient(transparent,#000 14%);gap:9px}
+ .app.calling:not(.outside) .log{flex:none;height:min(44vh,390px);max-height:48vh;transition:height .25s;margin-top:auto;margin:auto 10px 6px;padding:12px 12px 8px;border-radius:18px;background:rgba(8,10,13,.62);-webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2);border:1px solid rgba(255,255,255,.1);-webkit-mask:linear-gradient(transparent,#000 14%);mask:linear-gradient(transparent,#000 14%);gap:9px}
 .app.calling:not(.outside) .log::before{display:none}
-.app.calling.lmin:not(.outside) .log{height:min(28vh,236px)}
+.app.calling.lmin:not(.outside) .log{height:min(44vh,390px)}
 .app.calling:not(.outside) .log>:first-child{margin-top:auto} /* 메시지가 적으면 아래부터 쌓임 */
 .ltog{height:36px;padding:0 12px;border-radius:18px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.5);color:#fff;font-size:13px;font-weight:700;margin-left:auto;margin-right:6px}
 .app.outside .ltog{display:none}
@@ -450,6 +451,14 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .mat.paperc.slim{padding:10px 12px;margin-bottom:10px}.mat.paperc .h b{color:#17181a}.mat.paperc .pg{background:rgba(0,0,0,.12)}
 .mat.paperc:nth-child(odd){transform:rotate(-.3deg)}.mat.paperc:nth-child(even){transform:rotate(.3deg)}
 .mat.paperc .us button{background:#fff;color:#111;border:2px solid #17181a;font-weight:800;min-height:36px}.mat.paperc .h{gap:7px;align-items:flex-start;flex-wrap:wrap}.mat.paperc .h b{flex:1 1 100%;font-size:16px;line-height:1.4;color:#111}.mat.paperc .h em{font-size:12px;color:#333!important;font-weight:800}.mat.paperc .pg{height:8px;border:1px solid #222;background:#d5d0c6}.mat.paperc .pg i{background:#087e72}.mat.paperc .sj{font-size:12px;color:#111;background:#fff;border:2px solid #111}.mat.paperc .us2{border-left:3px solid #111}.mat.paperc .us2 button{background:#f7f4ec;border:1.5px solid #333;color:#111}
+
+/* v117: 음성사서함을 기존 공부 노트 종이 카드와 같은 질감으로 */
+.memo-card{background:var(--paper,#f5edda);color:#342b24;border:1px solid #c9bda7;box-shadow:3px 4px 0 rgba(0,0,0,.18)}
+.memo-card .hint{color:#665b4d}.memo-card textarea{background:#fffdf6;color:#302820;border:1px solid #c9bda7}
+.memo-paper{background:var(--paper,#f5edda);color:#342b24;border:1px solid #c9bda7;box-shadow:3px 4px 0 rgba(0,0,0,.18);padding:16px 18px;line-height:1.65}
+.memo-paper h3{font-family:inherit;color:#302820;border-bottom:1px solid #b9aa91;padding-bottom:8px}
+.memo-paper h4{color:#70543b;margin:14px 0 5px}.memo-paper li,.memo-paper p{color:#342b24}
+.memo-paper .meta{color:#8a7a66;font-size:11px}
 </style>
 <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://api.anthropic.com" crossorigin>
@@ -482,11 +491,10 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
   <section class="callv" id="callv">
     <div class="arain" aria-hidden="true"><i></i><i></i></div>
     <div class="ahead"><div class="aring"><i></i><i></i><div class="aava"></div></div><div class="hd"><h1>레나</h1><p><span class="aeq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span id="aT">통화 중 00:00</span></p><div class="ainfo" id="aInfo"></div></div></div>
-    <div class="ctop"><div class="chip"><i></i><span id="callT">통화 중 00:00</span></div><button class="ltog" id="logTog">다이얼</button><button class="vtog" id="toAudio2"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z" fill="#21c55d" stroke="none"/></svg>음성통화로</button></div>
+    <div class="ctop"><div class="chip"><i></i><span id="callT">통화 중 00:00</span></div><button class="vtog" id="toAudio2"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z" fill="#21c55d" stroke="none"/></svg>음성통화로</button></div>
     <div class="log" id="log"></div>
     <div class="attp" id="attp"><img id="attImg" alt=""><span>사진을 같이 보낼게요</span><button id="attX" aria-label="사진 빼기">×</button></div>
     <div class="agrid" id="agrid">
-      <button class="ab" id="aPad"><i><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="1.3"/><circle cx="12" cy="6" r="1.3"/><circle cx="18" cy="6" r="1.3"/><circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/><circle cx="6" cy="18" r="1.3"/><circle cx="12" cy="18" r="1.3"/><circle cx="18" cy="18" r="1.3"/></svg></i>키패드</button>
       <button class="ab" id="aBoard"><i><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 11h8M8 15h8M8 19h5"/></svg></i>전단지</button>
       <button class="ab vid" id="aVid"><i><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5l6-3.5v10l-6-3.5z"/></svg></i>영상통화</button>
       <button class="ab" id="aCall"><i><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5z"/><path d="M4 20.5A2.5 2.5 0 016.5 18H20v3H6.5A2.5 2.5 0 014 20.5zM9 7.5h7M9 11h5"/></svg></i>공부</button>

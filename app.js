@@ -43,6 +43,7 @@ function load() {
     S.firstAt = Date.now(); S.ack = Date.now();
   }
   for (const k in DEF) if (S[k] == null) S[k] = Array.isArray(DEF[k]) ? [] : (typeof DEF[k] === 'object' && DEF[k]) ? {} : DEF[k];
+  if (!S.fired || typeof S.fired !== 'object' || Array.isArray(S.fired)) S.fired = {}; if (!Array.isArray(S.calls)) S.calls = [];
   // v64: 할 일 동전은 없앰 → 남아 있던 건 게임 동전으로 옮김(한 번만)
   if (S.coins > 0) { S.gc = Math.min(999, (S.gc || 0) + S.coins); S.coins = 0; }
 }
@@ -107,12 +108,12 @@ function coinPop(srcEl) {
 }
 
 // ---------------- missed calls (부재중) ----------------
-function mcAt(d) { if (!S.morning) return null; const [h, m] = S.morning.split(':').map(Number); const x = new Date(d); x.setHours(h, m, 0, 0); return x; }
+function mcAt(d) { if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(String(S.morning || ''))) return null; const [h, m] = S.morning.split(':').map(Number); const x = new Date(d); x.setHours(h, m, 0, 0); return x; }
 function missed() {
   const from = S.ack || 0, now = Date.now(), L = [];
   S.items.forEach(t => { if (t.done || !t.due || t.rid || isEv(t) || S.fired[t.id]) return; const a = new Date(t.due).getTime(); if (a > from && a <= now) L.push({ at: a, text: `${t.text} (마감)`, kind: '할 일', ref: t }); });
   S.calls.forEach(c => { if (c.done || S.fired[c.id]) return; if (c.at > from && c.at <= now) L.push({ at: c.at, text: c.text || '약속한 전화', kind: '예약 전화', ref: c }); });
-  for (let i = 0; i < 2; i++) { const d = new Date(); d.setDate(d.getDate() - i); const m = mcAt(d); if (!m) continue; const a = m.getTime(); if (a > from && a <= now && S.mcDone !== dk(d) && now - a > 2 * 3600e3) L.push({ at: a, text: '모닝콜', kind: '모닝콜' }); }
+  for (let i = 0; i < 2; i++) { const d = new Date(); d.setDate(d.getDate() - i); const m = mcAt(d); if (!m) continue; const a = m.getTime(); if (a > from && a <= now && S.mcDone !== dk(d)) L.push({ at: a, text: '모닝콜', kind: '모닝콜' }); }
   return L.sort((a, b) => b.at - a.at);
 }
 
@@ -381,8 +382,7 @@ function kissFromMouth() {
 }
 $('toAudio').onclick = $('toAudio2').onclick = () => { dtmf(1); toAudio(); };
 $('aVid').onclick = toVideo;
-$('logTog').textContent = '다이얼'; $('logTog').onclick = () => { dtmf(0); openPad(); };
-$('aPad').onclick = () => { dtmf(0); openPad(); };
+// 음성통화 중에는 다이얼을 노출하지 않는다.
 $('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
 $('aCall').onclick = () => { dtmf(4); openSheet(6); };
 $('aMiss').onclick = () => { dtmf(5); openSheet('call'); };
@@ -734,11 +734,11 @@ $('incNo').onclick = () => {
 function check() {
   tick(); const now = Date.now();
   if ($('inc').classList.contains('on')) return;
-  for (const c of S.calls) { if (c.done || S.fired[c.id] || c.at > now) continue; if (now - c.at < 15 * 60e3) { S.fired[c.id] = 1; save(); if (c.text === '모닝콜 다시') { c.done = true; incoming('morning'); } else incoming('callback', false, c); return; } }
+  for (const c of S.calls) { if (c.done || S.fired[c.id] || !Number.isFinite(+c.at) || c.at > now) continue; if (now - c.at < 24 * 3600e3) { S.fired[c.id] = 1; save(); if (c.text === '모닝콜 다시') { c.done = true; incoming('morning'); } else incoming('callback', false, c); return; } }
   for (const t of S.items) { if (t.done || !t.due) continue; const d = new Date(t.due).getTime() - now, k = t.id + '_10';
     if (!S.fired[k] && d <= 10 * 60e3 && d > 60e3) { S.fired[k] = 1; save(); say(`${nmc()}'${t.text}' ${Math.round(d / 60e3)}분 남았어요. 준비해요.`, 'worry'); return; }
     if (!S.fired[t.id] && d <= 0 && d > -10 * 60e3) { S.fired[t.id] = 1; save(); say(`'${t.text}' 시간이에요. …제가 말했죠?`, 'surprise'); renderHome(); knockAt = 0; knockNow(); return; } }
-  const m = mcAt(new Date()); if (m && now >= m.getTime() && now - m.getTime() < 2 * 3600e3 && S.mcDone !== dk(new Date())) { incoming('morning'); return; }
+  const today = new Date(), m = mcAt(today); if (m && now >= m.getTime() && now - m.getTime() < 24 * 3600e3 && S.mcDone !== dk(today)) { incoming('morning'); return; }
   renderHome();
 }
 
@@ -756,7 +756,7 @@ function plan() {
       if (at - 3 * 3600e3 > now) rem.push({ id: t.id + 'a', at: at - 3 * 3600e3, body: `${n}'${t.text}' 마감 3시간 전이에요. 했어요?` });
       if (at > now) rem.push({ id: t.id + 'b', at, body: `'${t.text}' 마감이에요. 끝냈으면 체크해 줘요.` }); } });
   S.calls.forEach(c => { if (!c.done && c.at > now) rem.push({ id: c.id, at: c.at, body: c.text ? `📞 레나예요. 약속한 전화 — ${c.text}` : `📞 레나예요. …그냥 목소리 듣고 싶어서요.` }); });
-  if (S.morning) for (let i = 0; i < 8; i++) { const d = new Date(); d.setDate(d.getDate() + i); const m = mcAt(d); if (m.getTime() <= now) continue; const ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
+  if (mcAt(new Date())) for (let i = 0; i < 8; i++) { const d = new Date(); d.setDate(d.getDate() + i); const m = mcAt(d); if (!m || m.getTime() <= now) continue; const ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
     if (S.mcDone === dk(d)) continue;
     rem.push({ id: 'mc_' + dk(d), at: m.getTime(), body: `📞 모닝콜 — ${n}일어나요.` + (ev.length ? ` 오늘 ${ev[0].due.slice(11, 16)} '${ev[0].text}'${ev.length > 1 ? ` 외 ${ev.length - 1}개` : ''}.` : ' 오늘은 비어 있어요.') });
     // 앱을 열어 받을 때까지 2분마다 다섯 번 더 울린다(받으면 다음 동기화 때 빠진다)
