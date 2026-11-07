@@ -3,7 +3,7 @@
 (() => {
   const get = () => { if (!S.memo || !Array.isArray(S.memo)) S.memo = []; return S.memo; };
   let editing = '';
-  SH.memo = { t: '메모', s: () => `저장한 메모 ${get().length}개`, r: B => {
+  SH.memo = { t: '음성사서함', s: () => `저장한 메모 ${get().length}개`, r: B => {
     const wrap = el('div', 'card paperc memo-card');
     const ta = el('textarea', 'in'); ta.placeholder = '잊지 말아야 할 생각이나 기록을 적어 둬…'; ta.rows = 4;
     const saveMemo = () => {
@@ -29,7 +29,9 @@
     });
     B.appendChild(list);
   }};
-  window.lenaMemo = { open: () => openSheet('memo') };
+  window.lenaMemo = { open: () => openSheet(5), render: B => SH.memo.r(B) };
   const css = '.memo-card textarea{width:100%;min-height:110px;padding:12px;border-radius:8px;background:#fff;color:#111;border:2px solid #17181a;resize:vertical}.memo-card .hint{color:#444}.memo-card .row{display:flex;gap:8px}';
   document.head.appendChild(Object.assign(document.createElement('style'), {textContent:css}));
 })();
+// 다이얼 7번과 음성사서함 바로가기는 같은 빠른 메모 화면을 연다.
+SH[5] = { t: '음성사서함', s: () => `저장한 메모 ${get().length}개`, r: B => SH.memo.r(B) };
