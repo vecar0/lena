@@ -3,21 +3,21 @@
 'use strict';
 (() => {
 const css = `
-.bz-led{margin:0 0 12px;padding:10px 10px 8px;background:#0d1f17;border:2px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;font-family:'Space Mono',monospace;color:#7dffb5}
+.bz-led{margin:0 0 8px;padding:10px 10px 8px;background:#0d1f17;border:2px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;font-family:'Space Mono',monospace;color:#7dffb5}
 .bz-led .g{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.bz-led .g div{text-align:center;padding:2px 0;border-right:1px dashed rgba(125,255,181,.25)}.bz-led .g div:last-child{border:0}
 .bz-led small{display:block;font-size:10px;opacity:.7;font-family:Pretendard,sans-serif;font-weight:700}.bz-led b{font-size:14px;text-shadow:0 0 6px rgba(125,255,181,.6)}
 .bz-led .tk{display:flex;gap:14px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(125,255,181,.2);overflow:hidden;white-space:nowrap;font-size:11px;-webkit-mask:linear-gradient(90deg,#000 85%,transparent);mask:linear-gradient(90deg,#000 85%,transparent)}
 .bz-led .tk span{flex:none;animation:bzTk 14s linear infinite}.bz-led .tk .on{color:#ff6fb0;animation:bzBl 1.2s steps(2) infinite}
 @keyframes bzTk{from{transform:translateX(0)}to{transform:translateX(-60%)}}@keyframes bzBl{50%{opacity:.3}}
 .bz-ls{display:flex;align-items:center;gap:7px;margin-top:5px;font-size:12px;font-weight:800}.bz-ls .rv{color:#0b7d6e;font-family:'Space Mono',monospace}.bz-ls i{flex:1;min-width:40px;height:7px;border:1.5px solid #17181a;border-radius:4px;background:rgba(0,0,0,.08);overflow:hidden}.bz-ls i u{display:block;height:100%;background:#2fe0c8}.bz-ls i.low u{background:#ff3d9a}.bz-ls .pc{font-size:11px;opacity:.65;font-family:'Space Mono',monospace}
-.bz-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0 12px}
+.bz-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0 8px}
 .bz-top div{position:relative;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;background-blend-mode:multiply;color:#111;border:2px solid #000;border-radius:4px;padding:9px 8px 7px;min-width:0;box-shadow:3px 3px 0 #000;transform:rotate(-1.2deg)}
 .bz-top div:nth-child(2){transform:rotate(1deg);background-image:url(assets/lena/paper_yellow.webp)}.bz-top div:nth-child(3){transform:rotate(-.4deg);background-image:url(assets/lena/paper_teal.webp)}
 .bz-top div::before{content:"";position:absolute;left:50%;top:-9px;width:36px;height:14px;margin-left:-18px;background:url(assets/lena/tape_pink1.webp) center/100% 100%;opacity:.95}
 .bz-top div:nth-child(2)::before{background-image:url(assets/lena/tape_white.webp)}.bz-top div:nth-child(3)::before{background-image:url(assets/lena/tape_yellow.webp)}
 .bz-top small{display:block;font-size:11px;font-weight:800;opacity:.7}.bz-top b{display:block;font-family:'Space Mono',monospace;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bz-top .neg b{color:#d0124f}.bz-top .pos b{color:#0b7d6e}
-.bz-rank{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 8px;font-size:12.5px;color:var(--mint);margin:-2px 2px 12px}.bz-rank>:first-child{font-family:'Black Han Sans'}.bz-rank i{flex:1 1 100%;order:2;height:10px;border-radius:5px;background:#0b0d10;border:2px solid #000;overflow:hidden}.bz-rank i u{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--pink) 0 6px,#ff79b8 6px 12px)}
+.bz-rank{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 8px;font-size:12.5px;color:var(--mint);margin:-2px 2px 8px;padding:7px 10px;border:1px solid rgba(47,224,200,.22);border-radius:8px;background:rgba(8,20,18,.7)}.bz-rank>:first-child{font-family:'Black Han Sans'}.bz-rank i{flex:1 1 100%;order:2;height:10px;border-radius:5px;background:#0b0d10;border:2px solid #000;overflow:hidden}.bz-rank i u{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--pink) 0 6px,#ff79b8 6px 12px)}
 .bz-loc{position:relative;display:flex;align-items:center;gap:10px;width:100%;min-height:68px;padding:12px 12px 10px;margin:4px 0 10px;border-radius:3px;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;color:#111;border:2px solid #000;box-shadow:4px 4px 0 var(--teal);text-align:left}
 .bz-loc:nth-of-type(odd){transform:rotate(-.6deg)}.bz-loc:nth-of-type(even){transform:rotate(.5deg);box-shadow:4px 4px 0 var(--pink)}
 .bz-loc::before{content:"";position:absolute;left:14px;top:-8px;width:44px;height:15px;background:url(assets/lena/tape_teal1.webp) center/100% 100%;transform:rotate(-6deg)}
@@ -249,7 +249,7 @@ function staffView(Bx, b) {
 }
 function lenaView(Bx, b) {
   LS.decay(); const a = LS.A(), n = LS.lv(a.pt), [, mt] = LS.mood(), s = LS.today();
-  const c = el('div', 'card'); c.append(el('b', null, LS.tierOf(n).name), el('div', 'hint', mt));
+  const c = el('div', 'card paperc'); c.append(el('b', null, LS.tierOf(n).name), el('div', 'hint', mt));
   const hb = el('div', 'bz-rank'), bar = el('i'), uu = el('u'); uu.style.width = Math.min(100, (a.pt - LS.need(n)) / Math.max(1, LS.need(n + 1) - LS.need(n)) * 100) + '%'; bar.appendChild(uu); hb.append(bar, document.createTextNode(`「${LS.tierOf(n + 1).name}」까지 ${LS.need(n + 1) - a.pt}점`)); c.appendChild(hb);
   const want = wantP(s); c.appendChild(el('div', 'hint', `오늘의 주파수: ${P[want].n} — 납품하면 회선 점수 2배`)); Bx.appendChild(c);
   Bx.appendChild(lbl('레나에게 납품 (도매가로 사서 바로 드림)'));
@@ -275,7 +275,7 @@ SH.shop = { t: '자판기', s: () => { const b = B(); return `${RANK[b.rank][0]}
   if (lastSettles.length && !b.seen[lastSettles[0].d]) { const l = lastSettles[0]; b.seen = { [l.d]: 1 }; const c = el('div', 'ask lena'); c.append(el('span', 'who', '레나'), document.createTextNode(`어제(${l.d.slice(5).replace('-', '/')}) 장사 — 이익 ${won(l.profit)}${l.gc ? `, 게임 동전 +${l.gc}` : ''}${l.ev.length ? ' · ' + l.ev[0] : ''}. ${l.profit < 0 ? '…이러다 해골 사채 써요.' : '잘했어요, 사장님.'}`)); Bx.appendChild(c); }
   else if (tab === 'street') { const c = el('div', 'ask lena'), say = b.cash < 0 ? '사채 이자가 붙고 있어요. 값 내리고 잘 팔리는 것부터 채워요.' : pick(['비 오면 우산, 시험 기간엔 학원 앞. 장사는 눈치예요.', '빈 칸은 돈이 새는 구멍이에요. 채워 둬요.', '비싸게 걸면 안 팔려요. 손님은 송휘만큼 너그럽지 않거든요.']); c.append(el('span', 'who', '레나'), document.createTextNode(say)); Bx.appendChild(c); }
   top(Bx, b);
-  const T = el('div', 'tabs'); [['street', '거리'], ['staff', '알바·설비'], ['lena', '레나'], ['book', '장부']].forEach(([v, l]) => { const x = el('button', (tab === v || (v === 'street' && tab === 'loc')) ? 'on' : '', l); x.onclick = () => { tab = v; sel = null; refreshSheet(); }; T.appendChild(x); }); Bx.appendChild(T);
+  const T = el('div', 'tabs bz-tabs'); [['street', '거리'], ['staff', '알바·설비'], ['lena', '레나'], ['book', '장부']].forEach(([v, l]) => { const x = el('button', (tab === v || (v === 'street' && tab === 'loc')) ? 'on' : '', l); x.onclick = () => { tab = v; sel = null; refreshSheet(); }; T.appendChild(x); }); Bx.appendChild(T);
   ({ street, loc: locView, staff: staffView, lena: lenaView, book })[tab](Bx, b);
 } };
 SH[3] = SH.shop;
