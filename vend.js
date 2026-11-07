@@ -7,17 +7,17 @@ const css = `
 
 .bz-led{margin:0 0 8px;padding:10px 10px 8px;background:#0d1f17;border:2px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;font-family:'Space Mono',monospace;color:#7dffb5}
 .bz-led .g{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.bz-led .g div{text-align:center;padding:2px 0;border-right:1px dashed rgba(125,255,181,.25)}.bz-led .g div:last-child{border:0}
-.bz-led small{display:block;font-size:clamp(9px,2.7vw,10px);line-height:1.3;opacity:.82;font-family:Pretendard,sans-serif;font-weight:800;white-space:nowrap}.bz-led b{display:block;font-size:clamp(12px,3.4vw,14px);line-height:1.3;white-space:nowrap;letter-spacing:-.3px;text-shadow:0 0 6px rgba(125,255,181,.6)}
+.bz-led small{display:block;font-size:10px;opacity:.7;font-family:Pretendard,sans-serif;font-weight:700}.bz-led b{font-size:14px;text-shadow:0 0 6px rgba(125,255,181,.6)}
 .bz-led .tk{display:flex;gap:10px;margin-top:8px;padding-top:7px;border-top:1px solid rgba(125,255,181,.25);overflow-x:auto;overflow-y:hidden;white-space:nowrap;font-size:11px;mask:none;-webkit-mask:none;scrollbar-width:none}.bz-led .tk::-webkit-scrollbar{display:none}
 .bz-led .tk span{flex:none;display:inline-flex;align-items:center;min-height:22px;padding:2px 5px;border-radius:5px;background:rgba(125,255,181,.08);animation:none}.bz-led .tk .on{color:#ff9bc9;background:rgba(255,111,176,.12);animation:none}
 @keyframes bzTk{from{transform:translateX(0)}to{transform:translateX(-60%)}}@keyframes bzBl{50%{opacity:.3}}
 .bz-ls{display:flex;align-items:center;gap:7px;margin-top:5px;font-size:12px;font-weight:800}.bz-ls .rv{color:#0b7d6e;font-family:'Space Mono',monospace}.bz-ls i{flex:1;min-width:40px;height:7px;border:1.5px solid #17181a;border-radius:4px;background:rgba(0,0,0,.08);overflow:hidden}.bz-ls i u{display:block;height:100%;background:#2fe0c8}.bz-ls i.low u{background:#ff3d9a}.bz-ls .pc{font-size:11px;opacity:.65;font-family:'Space Mono',monospace}
 .bz-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0 8px}
-.bz-top div{position:relative;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;background-blend-mode:multiply;color:#111;border:2px solid #000;border-radius:4px;padding:10px 6px 7px;min-width:0;min-height:72px;display:flex;flex-direction:column;justify-content:center;gap:4px;box-shadow:3px 3px 0 #000;transform:rotate(-.4deg)}
+.bz-top div{position:relative;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;background-blend-mode:multiply;color:#111;border:2px solid #000;border-radius:4px;padding:9px 8px 7px;min-width:0;box-shadow:3px 3px 0 #000;transform:rotate(-1.2deg)}
 .bz-top div:nth-child(2){transform:rotate(1deg);background-image:url(assets/lena/paper_yellow.webp)}.bz-top div:nth-child(3){transform:rotate(-.4deg);background-image:url(assets/lena/paper_teal.webp)}
 .bz-top div::before{content:"";position:absolute;left:50%;top:-9px;width:36px;height:14px;margin-left:-18px;background:url(assets/lena/tape_pink1.webp) center/100% 100%;opacity:.95}
 .bz-top div:nth-child(2)::before{background-image:url(assets/lena/tape_white.webp)}.bz-top div:nth-child(3)::before{background-image:url(assets/lena/tape_yellow.webp)}
-.bz-top small{display:block;font-size:clamp(10px,2.8vw,11px);line-height:1.2;font-weight:900;white-space:nowrap;opacity:.7}.bz-top b{display:block;font-family:'Space Mono',monospace;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bz-top small{display:block;font-size:11px;font-weight:800;opacity:.7}.bz-top b{display:block;font-family:'Space Mono',monospace;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bz-top .neg b{color:#d0124f}.bz-top .pos b{color:#0b7d6e}
 .bz-advisor{display:flex;gap:9px;align-items:center;margin:8px 0 12px;padding:9px 11px;border:1.5px solid rgba(47,224,200,.45);border-radius:10px;background:linear-gradient(120deg,rgba(47,224,200,.13),rgba(255,61,154,.1));color:#e9fff9}.bz-advisor img{width:38px;height:38px;flex:none;border-radius:50%;object-fit:cover;border:2px solid #000;box-shadow:2px 2px 0 var(--pink)}.bz-advisor b{display:block;color:var(--mint);font-size:12px;margin-bottom:2px}.bz-advisor span{font-size:12.5px;line-height:1.4;word-break:keep-all}.bz-rank{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 8px;font-size:12.5px;color:var(--mint);margin:-2px 2px 8px;padding:7px 10px;border:1px solid rgba(47,224,200,.22);border-radius:8px;background:rgba(8,20,18,.7)}.bz-rank>:first-child{font-family:'Black Han Sans'}.bz-rank i{flex:1 1 100%;order:2;height:10px;border-radius:5px;background:#0b0d10;border:2px solid #000;overflow:hidden}.bz-rank i u{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--pink) 0 6px,#ff79b8 6px 12px)}
 .bz-loc{position:relative;display:flex;align-items:center;gap:10px;width:100%;min-height:68px;padding:12px 12px 10px;margin:4px 0 10px;border-radius:3px;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;color:#111;border:2px solid #000;box-shadow:4px 4px 0 var(--teal);text-align:left}
@@ -80,7 +80,7 @@ const M = [
   { n: '냉온장 자판기', gc: 20, slots: 6, cap: 12, brk: .03, exp: 1, cls: 't1' },
   { n: '네온 VIP 자판기', gc: 50, slots: 8, cap: 15, brk: .02, boost: 1.2, cls: 't2' }
 ];
-const STAFF = { lena: { n: '레나 · 매장 매니저', w: 6000, d: '재고가 줄면 직접 보충하고 모든 자리의 손님을 조금 더 끌어와요' }, fill: { n: '채우기 해골', w: 4000, d: '앱을 안 열어도 반쯤 비면 가득 채워요(도매가는 사업 자금에서)' }, fix: { n: '수리 해골', w: 3000, d: '고장 나면 바로 고쳐요(수리비·쉬는 날 없음)' }, guard: { n: '경비 해골', w: 5000, d: '클럽 골목 기계 부숨·도둑을 막아요' } };
+const STAFF = { fill: { n: '채우기 해골', w: 4000, d: '앱을 안 열어도 반쯤 비면 가득 채워요(도매가는 사업 자금에서)' }, fix: { n: '수리 해골', w: 3000, d: '고장 나면 바로 고쳐요(수리비·쉬는 날 없음)' }, guard: { n: '경비 해골', w: 5000, d: '클럽 골목 기계 부숨·도둑을 막아요' } };
 const UP = { card: { n: '카드 결제 단말기', c: 50000, d: '모든 자판기 판매 +15%' }, cold: { n: '냉장 강화', c: 80000, d: '유통기한 +1일' }, sign: { n: '네온 간판', c: 120000, d: '모든 자리 손님 +10%' } };
 const RANK = [['골목 노점', 0, 1], ['부스 앞 사장', 50000, 1], ['동네 자판기', 200000, 2], ['밤거리 체인', 600000, 3], ['역세권 사장', 1500000, 4], ['네온 사업가', 3000000, 5], ['밤의 큰손', 6000000, 6], ['밤거리의 자판기왕', 12000000, 7]];
 const REPAIR = 15000;
@@ -166,7 +166,7 @@ function advance(b, t1, env) {
 }
 
 // ---------- 앱 쪽 ----------
-const B = () => { if (!S.biz) S.biz = fresh(Date.now()); return S.biz; };
+const B = () => { if (!S.biz) S.biz = fresh(Date.now()); S.biz.staff = S.biz.staff || {}; S.biz.staff.lena = true; return S.biz; };
 function env() {
   const d = S.wx && S.wx.on && S.wx.data && S.wx.data.days && S.wx.data.days[0], wx = {};
   if (d) { if (d.pop >= 60 || [61, 63, 65, 80, 81, 82].includes(d.code)) wx.rain = 1; else wx.dry = 1; if (d.max >= 28) wx.hot = 1; if (d.min <= 0) wx.cold = 1; if (!wx.hot && !wx.cold) wx.mild = 1; } else wx.dry = 1;
@@ -250,34 +250,17 @@ function staffView(Bx, b) {
     r.append(t, b.up[k] ? el('b', null, '설치됨') : btn(won(x.c), 'ghost', () => { if (b.cash < x.c) { toast('자금이 모자라요(설비는 사채로 못 사요).'); return; } b.cash -= x.c; b.up[k] = 1; save(); refreshSheet(); })); u.appendChild(r); } Bx.appendChild(u);
 }
 function lenaView(Bx, b) {
-  LS.decay(); const a = LS.A(), n = LS.lv(a.pt), [m, mt] = LS.mood();
-  const c = el('div', 'card paperc');
-  const profile = el('div', 'bz-advisor'), avatar = el('img'); avatar.src = 'assets/lena/face.jpg'; avatar.alt = '레나';
-  const words = el('div'); words.append(el('b', null, LS.tierOf(n).name), el('span', null, mt));
-  profile.append(avatar, words); c.appendChild(profile);
+  LS.decay(); const a = LS.A(), n = LS.lv(a.pt), s = LS.today(), [, mt] = LS.mood();
+  const c = el('div', 'card paperc'); c.append(el('b', null, LS.tierOf(n).name), el('div', 'hint', mt));
   const hb = el('div', 'bz-rank'), bar = el('i'), uu = el('u'); uu.style.width = Math.min(100, (a.pt - LS.need(n)) / Math.max(1, LS.need(n + 1) - LS.need(n)) * 100) + '%'; bar.appendChild(uu);
-  hb.append(bar, document.createTextNode(`「${LS.tierOf(n + 1).name}」까지 ${LS.need(n + 1) - a.pt}점`)); c.appendChild(hb); Bx.appendChild(c);
-
-  Bx.appendChild(lbl('레나 · 매장 매니저'));
-  const hire = el('div', 'card paperc');
-  if (b.staff.lena) {
-    hire.append(el('b', null, '직원으로 함께 일하고 있어요'), el('div', 'hint', '레나가 재고가 40% 아래로 떨어진 상품을 보충하고, 모든 자리의 손님을 12% 더 끌어와요. 일당은 하루 6,000원이에요.'));
-    hire.appendChild(row(btn('고용 계약 해지', 'ghost wide', () => { if (!confirm('레나와의 매니저 계약을 끝낼까요?')) return; b.staff.lena = false; save(); refreshSheet(); say('…알겠어요. 그래도 장사 잘되는지는 가끔 보러 올게요.', 'pout', false); })));
-  } else if (b.life >= 50000 || b.rank >= 1) {
-    hire.append(el('b', null, '레나가 먼저 매니저를 제안했어요'), el('div', 'hint', '자판기 자리가 늘고 장사가 바빠진 걸 본 레나가 재고 관리와 매장 운영을 돕겠다고 해요. 계약금 15,000원, 일당 6,000원.'));
-    hire.appendChild(btn('레나 고용하기 · 15,000원', 'teal wide', () => {
-      if (b.cash < 15000) { toast('계약금을 마련하면 레나를 고용할 수 있어요.'); return; }
-      b.cash -= 15000; b.staff.lena = true; save(); refreshSheet(); say('…직원증까지 만들었어요? 좋아요. 이제 사장님 혼자 다 하지 마요.', 'happy', false);
-    }));
-  } else {
-    hire.append(el('b', null, '아직은 사장님 혼자 운영 중'), el('div', 'hint', `누적 이익 50,000원을 달성하면 레나가 매장 매니저를 먼저 제안해요. 현재 ${won(b.life)} / 50,000원`));
-    const p = el('div', 'bz-rank'), fillBar = el('i'), u = el('u'); u.style.width = Math.min(100, b.life / 50000 * 100) + '%'; fillBar.appendChild(u); p.appendChild(fillBar); hire.appendChild(p);
-  }
-  Bx.appendChild(hire);
+  hb.append(bar, document.createTextNode(`「${LS.tierOf(n + 1).name}」까지 ${LS.need(n + 1) - a.pt}점`)); c.appendChild(hb);
+  c.appendChild(el('div', 'hint', '레나가 이 매장의 매니저로 재고와 손님 흐름을 살피고 있어요.'));
+  Bx.appendChild(c);
   Bx.appendChild(lbl('부스 꾸미기 (사업 자금으로 스티커)'));
   const D = LS.D(), Dg = el('div', 'dl'); LS.DECOR.forEach(d => { const own = D.own.includes(d.id), on = D.on.includes(d.id), price = d.p * 10000, t = el('button', 'dt' + (on ? ' on' : '') + (own ? '' : ' lock')), im = el('img'); im.src = LS.SI(d.i); im.alt = d.n; t.appendChild(im);
     t.onclick = () => { if (!own) { if (b.cash < price) { toast(`${d.n}: ${won(price)} 필요해요.`); return; } if (!confirm(`${d.n}을 ${won(price)}에 살까요?`)) return; b.cash -= price; D.own.push(d.id); if (D.on.length < 6) D.on.push(d.id); save(); refreshSheet(); renderHome(); return; }
-      const o = D.on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 6) o.shift(); o.push(d.id); } save(); refreshSheet(); renderHome(); }; Dg.appendChild(t); }); Bx.appendChild(Dg);
+      const o = D.on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 6) o.shift(); o.push(d.id); } save(); refreshSheet(); renderHome(); }; Dg.appendChild(t); });
+  Bx.appendChild(Dg);
   if (D.on.length) Bx.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', LS.decorEdit)));
   Bx.appendChild(el('div', 'hint', `모은 스티커 ${D.own.length}/${LS.DECOR.length} · 잠긴 건 눌러서 사요 · 6개까지 붙여요`));
 }
