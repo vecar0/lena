@@ -616,6 +616,26 @@ const _plan = window.plan; window.plan = function () {
   return p;
 };
 
+// ---------- v107: 다이얼 1~0 전체 정보(레나가 다 보게) ----------
+function dialAll() { const o = []; const J = x => JSON.stringify(x), ts = m => toT(m), safe = f => { try { return f(); } catch (e) { return '?'; } }; const st = ST(), WD = '일월화수목금토';
+  o.push('--- 다이얼 전체 (레나가 볼 수 있는 앱의 모든 정보) ---');
+  o.push('1 전단지 최근 끝낸 것: ' + safe(() => J(S.items.filter(t => t.done).slice(-8).map(t => ({ id: t.id, text: t.text, due: t.due || '' })))));
+  o.push('2 캘린더(14일, 날짜: 시험·일정·공부 분): ' + safe(() => { const P = splan(), out = []; for (let i = 0; i < 14; i++) { const d = dAdd(new Date(), i), k = dkey(d), ex = st.exams.filter(e => e.date === k).map(e => '시험 ' + e.name), ev = S.items.filter(t => !t.done && t.due && t.due.slice(0, 10) === k).map(t => `${t.due.slice(11, 16) || ''} ${t.text}`.trim()), D = P.days.find(x => x.k === k); const sm = D ? D.mins : 0; if (ex.length || ev.length || sm) out.push(`${k.slice(5)}(${WD[d.getDay()]}): ${[...ex, ...ev].join(', ')}${sm ? ` 공부 ${sm}분` : ''}`); } return out.join(' | ') || '비어 있음'; }));
+  o.push('3 시간표 고정(매주): ' + safe(() => J((S.reps || []).map(r => `${r.days.length ? r.days.map(d => WD[d]).join('') : '매일'} ${r.time}~${r.end || ''} ${r.text}`))));
+  o.push('3 공부 시간표(8~14일째): ' + safe(() => splan().days.slice(7, 14).map(D => `${D.k.slice(5)}: ${D.blocks.map(b => `${ts(b.s)}~${ts(b.e)} ${b.sub}`).join(', ') || '없음'}`).join(' | ')));
+  o.push('4 공부 교재: ' + safe(() => J(st.mats.map(m => ({ sub: m.sub, title: m.title, kind: m.kind, due: m.due || undefined, 요일: m.rep ? m.rep.days.map(d => WD[d]).join('') : undefined, 분: m.rep ? m.rep.mins : m.umins, 단원: m.units.map((u, i) => `${u.n || i + 1}${u.done ? '✓' : u.prog ? `(${u.prog}/${u.mins}분)` : ''}${u.due ? '~' + u.due.slice(5) : ''}`).join(' ') || undefined })))));
+  o.push('4 시험: ' + safe(() => J(st.exams.map(e => ({ name: e.name, date: e.date, subs: exSubs(e), 범위: e.ranges.map(r => { const m = st.mats.find(x => x.id === r.mat); return m ? `${m.sub} ${m.title} ${(m.units[r.from] || {}).n || r.from + 1}~${(m.units[r.to] || {}).n || r.to + 1}` : ''; }).filter(Boolean) })))));
+  o.push('4 공부 설정: ' + safe(() => { const P = st.pref; return J({ 평일시작: P.wdS, 주말시작: P.weS, 끝: P.end, 평일최대: P.wdMax || '자동', 주말최대: P.weMax || '자동', 과목수: `${P.wdSubs}/${P.weSubs}`, 블록: P.block, 학원끝휴식: P.acadGap, 학교공부: P.schoolMin, 평일휴식: P.wdPlay, 주말휴식: P.wePlay, 먼저: P.focus && P.focus.sub || '' }); }));
+  o.push('4 최근 7일 한 공부: ' + safe(() => { const r = []; for (let i = 6; i >= 0; i--) { const k = dkey(dAdd(new Date(), -i)), L = st.log[k] || []; if (L.length) r.push(`${k.slice(5)} ${L.reduce((a, b) => a + (b.mins || 0), 0)}분`); } return r.join(', ') || '기록 없음'; }));
+  o.push('4 노트: ' + safe(() => J((st.notes || []).slice(-15).map(n => `${n.sub} ${n.title}`))));
+  o.push('5 예약 전화(id 포함): ' + safe(() => J(S.calls.filter(c => !c.done && c.at > Date.now()).map(c => ({ id: c.id, at: new Date(c.at).toLocaleString('sv-SE').slice(0, 16), text: c.text })))));
+  o.push('5 부재중: ' + safe(() => J((window.missed ? missed() : []).slice(-8).map(x => `${x.kind} ${x.text}`))));
+  o.push('6 모닝콜: ' + (S.morning || '꺼짐'));
+  o.push('8 오늘의 운세: ' + safe(() => { const f = (S.fort || {})[todayK()]; return f ? `${f.total}점 ${f.line} / 행운의 색 ${f.color}, 숫자 ${f.number}` : '아직 안 펼침'; }));
+  o.push('9 자판기 사업: ' + safe(() => { const b = S.biz; if (!b) return '아직 안 함'; return `자금 ${Math.round(b.cash || 0)}원, 자리 ${Object.keys(b.locs || {}).length}곳, 오늘 매출 ${Math.round((b.today && b.today.rev) || 0)}원`; }));
+  o.push('✱ 오락실 게임 동전: ' + (S.gc || 0));
+  o.push('0 설정: ' + safe(() => J({ 모델: S.model || '자동', 알림: S.pushOn ? '켬' : '끔', 레나가먼저: S.pro || {}, 날씨: S.wx && S.wx.on ? '켬' : '끔' })));
+  return o.join('\n'); }
 // ---------- Gemini: 말로 넣기 ----------
 const _sys = sysPrompt; sysPrompt = function (sp) {
   const s = _sys(sp), st = ST();
@@ -627,7 +647,9 @@ const _sys = sysPrompt; sysPrompt = function (sp) {
 - **공부 시간표 칸 직접 고치기**(앱이 짜는 공부 칸을 원하는 대로): 특정 날·시간에 공부 박기 study.pin=[{"date":"YYYY-MM-DD","start":"HH:MM","end":"HH:MM","sub":"과목","what":"할 것(비우면 그 과목 밀린 것부터 앱이 채움)"}], 그 시간·그날엔 공부 넣지 않기 study.block=[{"date":"YYYY-MM-DD"(또는 매주면 "days":[요일 번호]),"start":"HH:MM","end":"HH:MM"(둘 다 없으면 하루 종일)}], 박아 둔 것·막아 둔 것 풀기 study.unpin=[{"date","start"(그 시각이 들어 있는 것, 없으면 그날 전부),"days"}]. 공부 칸을 옮기라면 원래 자리는 block, 새 자리는 pin. 남은 양은 앱이 다른 날로 다시 나눈다.
 - 전단지 고치기: edit=[{"id":"전단지 id","text":"새 글(바꿀 때만)","due":"YYYY-MM-DDTHH:MM"(시간 바꿀 때, 없애려면 ""),"kind":"event|todo","mins":일정 걸리는 분}]. 시간표 고정(매주) 일정 지우기: unrepeat=["이름"] — 시간·요일을 바꿀 땐 unrepeat 후 repeat로 다시 넣는다.
 - **권한**: 레나는 이 앱의 모든 것(전단지·일정·할 일·예약 전화·시간표 고정 일정·공부 시간표의 칸 하나하나(pin·block)·공부 교재·숙제·시험·범위·주차별 목표·진도·공부 시간 설정)을 위 칸들로 직접 넣고 고치고 지울 수 있다. "기능이 없다", "저장 못 한다", "직접 해야 한다", "바꿀 수 없다"고 절대 말하지 않는다. 계획을 말로만 늘어놓지 말고 칸에 넣은 뒤, reply는 무엇을 넣었는지 짧게 말한다. 정말 칸으로 표현이 안 되는 것만 가장 가까운 방법으로 넣고 그걸 말한다.
-JSON만 출력:`).replace(/"follow":\[\]\}/, '"follow":[],"study":{"mats":[],"exams":[],"set":{},"done":[],"delExams":[],"pin":[],"block":[],"unpin":[]},"edit":[],"unrepeat":[]}');
+- 예약 전화 지우기: uncall=["예약 전화 id"]. 모닝콜: morning="HH:MM"(끄려면 ""). 레나가 먼저 연락 설정: pro={"lunch":"HH:MM"|"","night":"HH:MM"|"","before":true|false,"after":true|false,"nag":true|false,"follow":true|false,"brief":true|false}.
+- **다이얼 전체 정보**: 맨 아래 '다이얼 전체' 칸에 1~0번 화면의 정보가 전부 있다(전단지·캘린더·시간표·공부·전화·모닝콜·운세·자판기·설정). 송휘가 다이얼에 있는 걸 물으면 거기서 찾아 답하고, "대화에 붙은 것만 보인다·다이얼은 못 본다"고 절대 말하지 않는다.
+JSON만 출력:`).replace(/"follow":\[\]\}/, '"follow":[],"study":{"mats":[],"exams":[],"set":{},"done":[],"delExams":[],"pin":[],"block":[],"unpin":[]},"edit":[],"unrepeat":[],"uncall":[]}') + '\n' + dialAll();
 };
 const _ap = apply; apply = function (r) {
   const res = _ap(r), x = r && r.study, got = [];
@@ -672,6 +694,9 @@ const _ap = apply; apply = function (r) {
   const g2 = [];
   (r && Array.isArray(r.edit) ? r.edit : []).forEach(o => { const t = o && S.items.find(y => y.id === o.id); if (!t) return; const ch = []; if (o.text && String(o.text).trim()) { t.text = String(o.text).slice(0, 80); ch.push('글'); } if (o.due !== undefined && /^(\d{4}-\d\d-\d\d(T\d\d:\d\d)?)?$/.test(o.due || '')) { t.due = o.due || null; delete t.fired; ch.push(o.due ? o.due.replace('T', ' ').slice(5) : '시간 없앰'); } if (o.kind === 'event' || o.kind === 'todo') { t.kind = o.kind; ch.push(o.kind === 'event' ? '일정' : '할 일'); } if (+o.mins > 0) { t.mins = Math.round(+o.mins); ch.push(t.mins + '분'); } if (ch.length) g2.push(`'${t.text}' 고침(${ch.join(', ')})`); });
   (r && Array.isArray(r.unrepeat) ? r.unrepeat : []).forEach(nm => { const L = (S.reps || []).filter(y => near(y.text, nm)); if (L.length) { S.reps = S.reps.filter(y => !L.includes(y)); S.items = S.items.filter(t => !t.rid || !L.some(y => y.id === t.rid)); g2.push(`고정 '${L[0].text}' 지움`); } });
+  (r && Array.isArray(r.uncall) ? r.uncall : []).forEach(id => { const c = S.calls.find(y => y.id === id && !y.done); if (c) { S.calls = S.calls.filter(y => y !== c); g2.push(`예약 전화 '${c.text || new Date(c.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })}' 지움`); } });
+  if (r && typeof r.morning === 'string' && (r.morning === '' || /^\d{1,2}:\d\d$/.test(r.morning))) { const v = r.morning ? r.morning.padStart(5, '0') : ''; if (v !== (S.morning || '')) { S.morning = v; g2.push(v ? `모닝콜 ${v}` : '모닝콜 끔'); } }
+  if (r && r.pro && typeof r.pro === 'object') { S.pro = S.pro || {}; const ch = []; Object.entries(r.pro).forEach(([k2, v]) => { if (['lunch', 'night'].includes(k2) && (v === '' || /^\d{1,2}:\d\d$/.test(v))) { S.pro[k2] = v; ch.push(k2); } else if (['before', 'after', 'nag', 'follow', 'brief'].includes(k2) && typeof v === 'boolean') { S.pro[k2] = v; ch.push(k2); } }); if (ch.length) g2.push('알림 설정 바꿈'); }
   if (g2.length) got.push(...g2);
   if (!got.length) return res;
   dirty(); save(); pushSync(true);
