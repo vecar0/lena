@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>레나 데이터 복구 확인</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:24px 18px 48px;background:#17141b;color:#f2ece0;font:16px -apple-system,BlinkMacSystemFont,sans-serif;line-height:1.55}main{max-width:680px;margin:auto}h1{font-size:22px}p{color:#c9c1b6}.panel{background:#28232c;border:1px solid #514653;border-radius:14px;padding:16px;margin:16px 0}button{width:100%;padding:15px;border:0;border-radius:10px;background:#d8313f;color:white;font-size:16px;font-weight:700}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;color:#e6dcc4;max-height:45vh;overflow:auto}.muted{font-size:13px;color:#b8aeb8}
+</style>
+</head>
+<body><main>
+<h1>레나 데이터 복구 확인</h1>
+<p>이 페이지는 저장된 값을 읽기만 합니다. 앱 기록을 수정·삭제·초기화하거나 새 저장 데이터를 만들지 않습니다.</p>
+<div class="panel"><strong>현재 접속 위치</strong><pre id="origin"></pre><strong>저장 데이터 확인</strong><pre id="status">확인 중…</pre></div>
+<div class="panel"><p>아래 버튼은 현재 이 웹앱 저장 공간에서 읽힌 내용을 JSON 파일로 내보냅니다. 기록이 있는지 먼저 확인한 뒤 눌러 주세요.</p><button id="export" disabled>읽힌 데이터 원본 JSON 저장</button><p class="muted" id="note"></p></div>
+<div class="panel"><strong>발견한 저장 키와 내용 미리보기</strong><pre id="preview"></pre></div>
+<script>
+(async()=>{
+ const status=document.getElementById('status'),preview=document.getElementById('preview'),btn=document.getElementById('export'),note=document.getElementById('note');
+ document.getElementById('origin').textContent=location.origin+' / '+location.pathname;
+ const snapshot={capturedAt:new Date().toISOString(),origin:location.origin,localStorage:{},indexedDB:[]};
+ try{
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k!==null)snapshot.localStorage[k]=localStorage.getItem(k)}
+ }catch(e){snapshot.localStorageError=String(e)}
+ try{
+  if(indexedDB.databases){
+   const dbs=await indexedDB.databases();
+   for(const info of dbs){
+    if(!info.name)continue;
+    const db=await new Promise((resolve,reject)=>{const r=indexedDB.open(info.name);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+    const entry={name:info.name,version:db.version,stores:{}};
+    for(const storeName of Array.from(db.objectStoreNames)){
+     entry.stores[storeName]=await new Promise(resolve=>{
+      try{const tx=db.transaction(storeName,'readonly'),req=tx.objectStore(storeName).getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve({readError:String(req.error)})}catch(e){resolve({readError:String(e)})}
+     });
+    }
+    db.close();snapshot.indexedDB.push(entry);
+   }
+  }
+ }catch(e){snapshot.indexedDBError=String(e)}
+ const keys=Object.keys(snapshot.localStorage);
+ const lena=snapshot.localStorage.lena1;
+ status.textContent='localStorage 키 '+keys.length+'개\n'+(keys.length?keys.join(', '):'저장된 키가 보이지 않습니다.')+'\n\nlena1: '+(typeof lena==='string'?'발견됨 ('+lena.length+'자)':'발견되지 않음')+'\nIndexedDB: '+snapshot.indexedDB.length+'개 데이터베이스';
+ preview.textContent=JSON.stringify(snapshot,null,2).slice(0,24000)+(JSON.stringify(snapshot,null,2).length>24000?'\n… 미리보기 일부 생략 (내보내기 파일에는 전체 내용 포함)':'');
+ btn.disabled=keys.length===0&&snapshot.indexedDB.length===0;
+ note.textContent=btn.disabled?'이 저장 공간에서는 내보낼 데이터가 발견되지 않았습니다.':'이 페이지가 접근할 수 있는 저장 공간의 원본을 내보낼 수 있습니다.';
+ btn.addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(snapshot,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='lena-recovery-readonly.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+ });
+})().catch(e=>{document.getElementById('status').textContent='읽기 오류: '+String(e)});
+</script></main></body></html>
