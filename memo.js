@@ -32,14 +32,23 @@
       S.memo = get().filter(y => y !== x); if (editing === x.id) editing = ''; save(); refreshSheet();
     })));
   }
+  async function saveFromText(raw) {
+    const value = String(raw || '').trim();
+    if (!value) throw new Error('정리할 대화 내용이 없어요.');
+    if (!window.lenaNotes || !window.lenaNotes.summarizeMemo) throw new Error('노트 정리 기능을 불러오지 못했어요.');
+    const summary = await window.lenaNotes.summarizeMemo(value);
+    get().unshift({ id: 'memo_' + Date.now().toString(36), source: value.slice(0, 6000), ...summary });
+    save();
+    return summary.title;
+  }
   async function saveMemo(ta) {
     if (busy) return;
     const value = ta.value.trim(); if (!value) { toast('정리할 내용을 적어 줘.'); return; }
     if (!window.lenaNotes || !window.lenaNotes.summarizeMemo) { toast('노트 정리 기능을 불러오지 못했어요.'); return; }
     busy = true; error = ''; refreshSheet();
     try {
-      const summary = await window.lenaNotes.summarizeMemo(value);
       const old = editing ? get().find(x => x.id === editing) : null;
+      const summary = await window.lenaNotes.summarizeMemo(value);
       const item = { id: old ? old.id : 'memo_' + Date.now().toString(36), source: value.slice(0, 6000), ...summary };
       if (old) Object.assign(old, item); else get().unshift(item);
       editing = ''; save(); toast('레나가 정리해서 음성사서함에 저장했어요.');
@@ -61,7 +70,7 @@
     if (!get().length) { B.appendChild(empty('아직 저장된 내용이 없어요.\n위에 적고 레나에게 정리를 맡겨 보세요.', 'st_tape')); return; }
     get().slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach(x => renderPaper(B, typeof x === 'string' ? { text: x, at: Date.now() } : x));
   }};
-  window.lenaMemo = { open: () => openSheet(5), render: B => SH.memo.r(B) };
+  window.lenaMemo = { open: () => openSheet(5), render: B => SH.memo.r(B), saveFromText };
   const css = `
 .memo-card textarea{width:100%;min-height:120px;padding:12px;border-radius:8px;background:#fff;color:#111;border:2px solid #17181a;resize:vertical;font-size:15px;line-height:1.55}
 .memo-card .hint{color:#444;line-height:1.5}
