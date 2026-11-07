@@ -407,7 +407,7 @@ function kissFromMouth() {
 }
 $('toAudio').onclick = $('toAudio2').onclick = () => { dtmf(1); toAudio(); };
 $('aVid').onclick = toVideo;
-$('logTog').onclick = () => { const m = app.classList.toggle('lmin'); $('logTog').textContent = m ? '대화 펼치기' : '대화 접기'; const L = $('log'); setTimeout(() => L.scrollTop = L.scrollHeight, 300); };
+$('logTog').textContent = '다이얼'; $('logTog').onclick = () => { dtmf(0); openPad(); };
 $('aPad').onclick = () => { dtmf(0); openPad(); };
 $('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
 $('aCall').onclick = () => { dtmf(4); openSheet(6); };
@@ -415,11 +415,11 @@ $('aMiss').onclick = () => { dtmf(5); openSheet('call'); };
 $('aSet').onclick = () => { dtmf(0); openSheet(0); };
 
 // ---------------- dial pad ----------------
-const KEYS = [[1, '전단지', 1], [2, '캘린더', 'cal'], [3, '시간표', 'tt'], [4, '공부', 6], [5, '전화', 'call'], [6, '모닝콜', 7], [7, '음성사서함', 5], [8, '오늘의 운세', 'fort'], [9, '자판기', 'shop'], ['*', '오락실', 8], [0, '설정', 0], ['#', '닫기']];
+const KEYS = [[1, '전단지', 1], [2, '캘린더', 'cal'], [3, '시간표', 'tt'], [4, '공부', 6], [5, '전화', 'call'], [6, '모닝콜', 7], [7, '음성사서함', 5], [8, '오늘의 운세', 'fort'], [9, '자판기', 'shop'], ['*', '오락실', 8], [0, '설정', 0], ['#', '메모', 'memo']];
 (function buildPad() {
   const K = $('keys');
   KEYS.forEach(([k, l, id]) => { const b = el('button', 'k' + (k === 6 ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 5) { const e = el('em'); e.hidden = true; b.appendChild(e); }
-    b.onclick = () => { dtmf(k); $('lcd').textContent = `${k} · ${l}`; if (k === '#') { closePad(); return; } setTimeout(() => k === 1 ? openBoard('today') : openSheet(id), 140); }; K.appendChild(b); });
+    b.onclick = () => { dtmf(k); $('lcd').textContent = `${k} · ${l}`; if (k === '#') { closePad(); if (window.lenaMemo) window.lenaMemo.open(); return; } setTimeout(() => k === 1 ? openBoard('today') : openSheet(id), 140); }; K.appendChild(b); });
 })();
 function openPad() { $('lcd').textContent = '번호를 누르세요_'; renderHome(); $('sPad').classList.add('open'); app.classList.add('dim'); }
 function closePad() { $('sPad').classList.remove('open'); if (!$('sheet').classList.contains('open')) app.classList.remove('dim'); }
@@ -456,7 +456,7 @@ function renderLog() {
   L.scrollTop = L.scrollHeight;
 }
 function meEl(t) { const d = el('div', 'me', t.replace(/^\(사진\) ?/, '')); if (/^\(사진\)/.test(t)) d.classList.add('img'); return d; }
-function herEl(t) { const d = el('div', 'her'); d.append(el('span', 'who', '레나'), document.createTextNode(t)); return d; }
+function herEl(t) { const d = el('div', 'her'); const av = el('img', 'herava'); av.src = 'assets/lena/face.jpg'; av.alt = '레나'; d.append(av, el('span', 'who', '레나'), document.createTextNode(t)); return d; }
 function addHer(t, store) { if (store) { S.history.push({ role: 'assistant', content: t, at: Date.now() }); save(); } const L = $('log'); L.appendChild(herEl(t)); L.scrollTop = L.scrollHeight; speak(t); }
 function noteEl(text, undo) { const n = el('div', 'note'); n.appendChild(el('span', null, '✓ ' + text)); if (undo) { const b = el('button', null, '되돌리기'); b.onclick = () => { undo(); n.remove(); }; n.appendChild(b); } return n; }
 
@@ -604,7 +604,9 @@ ${app.classList.contains('outside') ? '선 긋기(음성통화): 연애 게임�
 말투 예시(이 톤 그대로, 매번 다르게 변주): "왔어? …늦었네. 누구 만나느라?" / "치과 내일 3시, 붙여 놨어. 까먹으면? 내가 직접 데리러 가야 하나~" / "벌써 끊게? 흐음… 아쉬운 건 너일 텐데." / "오, 다 했어? 칭찬해 줄까, 아니면 상 줄까." / "무리하지 마. 쓰러지면 누가 나랑 놀아." / "그 표정, 전화 너머로도 다 보여." / "숙제 밀렸지? 솔직히 말하면 봐줄게. …조금만." / "목소리 좋네 오늘. 뭐 좋은 일 있었어? 나 말고." / "이런 건 나한테만 물어보는 거지? 그런 걸로 할게."
 플러팅 감각(꼭): 대답마다 능글맞은 한 끗을 넣는다 — 살짝 떠보기, 은근한 칭찬, 일부러 뜸 들이기("…"), 장난스러운 조건 걸기("대신 ~해"), 질투하는 척, 상대 반응 놀리기. 일정·할 일 처리처럼 일 얘기도 그냥 확인만 하지 말고 한마디 얹는다. 보고서·안내문처럼 정리해서 나열하는 딱딱한 말투 금지.
 규칙:
-- 이미 위 목록에 있는 일정·할 일·예약 전화·기억은 add/callback/remember에 다시 넣지 않는다(새로 생긴 것만).
+- 이미 위 목록에 있는 일정·할 일·예약 전화·기억은 add/callback/remember에 다시 넣지 않는다
+- 시간표에는 공부만 넣지 않는다. 게임 일일 퀘스트·게임 숙제·취미·운동·휴식·개인 약속도 사용자가 시간을 쓰려는 활동이면 add에 kind:'event'로 일정으로 넣는다. 공부 과목/교재가 아니면 공부 계획에 섞지 않는다.
+- 문제집·학원 숙제·수행평가를 시간표에 배치할 때는 남은 날에 고르게 분산한다. 하루에 몰아넣지 말고, 평일/주말의 실제 공부 가능 시간과 기존 일정·휴식 시간을 지킨다. 시간이 부족하면 무리하게 하루를 늘리지 말고 부족한 분량과 가장 가까운 마감부터 알려 준다.(새로 생긴 것만).
 - 일정·할 일·약속을 말하면 add에 {"text","due","type","end":"HH:mm 일정이 끝나는 시각(알면 꼭)"}. type은 "event"(정해진 시간에 꼭 하는 일정·약속 — 병원·만남·시험 등, due 꼭 시간까지) 또는 "todo"(마감까지 끝내면 되는 할 일 — 숙제 제출·택배 반품 등, due는 마감, 없으면 ""). 매주 반복이면 add 말고 repeat. due는 "YYYY-MM-DDTHH:mm" 로컬 시각. "내일 3시", "30분 뒤" 같은 말은 현재 시각 기준으로 계산(아침 09:00, 점심 12:00, 저녁 19:00, 밤 21:00). 시간 없는 할 일은 due "". 추가하면 날짜·시간을 짧게 되짚고, 같은 시간대 일정이 있으면 알려 준다. 모호하면 저장하지 말고 한 가지만 되묻는다.
 - 끝냈다고 하면 done에 id. 취소·지워 달라고 하면 remove에 id.
 - "~뒤에/~시에 전화해 줘, 깨워 줘, 알려 줘"는 callback에 {"at":"YYYY-MM-DDTHH:mm","text":"무슨 일로"}(미래 시각만).
