@@ -192,7 +192,7 @@ function top(Bx, b) {
   [['사업 자금', won(b.cash), b.cash < 0 ? 'neg' : ''], ['게임 동전', String(S.gc || 0), ''], ['오늘 이익', won(today), today >= 0 ? 'pos' : 'neg']].forEach(([a, v, c]) => { const d = el('div', c); d.append(el('small', null, a), el('b', null, v)); t.appendChild(d); });
   Bx.appendChild(t);
   const nx = RANK[b.rank + 1], rk = el('div', 'bz-rank'), bar = el('i'), u = el('u'); u.style.width = nx ? Math.min(100, b.life / nx[1] * 100) + '%' : '100%'; bar.appendChild(u);
-  rk.append(document.createTextNode(`${RANK[b.rank][0]}`), bar, document.createTextNode(nx ? `다음: 누적 이익 ${won(nx[1])}·자리 ${nx[2]}곳` : '최고 등급')); Bx.appendChild(rk);
+  rk.append(el('b', 'bz-tier', RANK[b.rank][0]), bar, document.createTextNode(nx ? `다음: 누적 이익 ${won(nx[1])} · 자리 ${nx[2]}곳` : '최고 등급')); Bx.appendChild(rk);
   { // v92: 매출 전광판 — 오늘 매출·판매·원가·재고 + 방금 팔린 것
     let cap = 0, have = 0; Object.values(b.locs).forEach(st => st.machines.forEach(m => m.slots.forEach(s => { if (s.p) { cap += capOf(b, m); have += s.n; } })));
     const D = el('div', 'bz-led'), g = el('div', 'g'); [['오늘 매출', won(b.today.rev)], ['판매', b.today.sold + '개'], ['도매·버림', won(b.today.cogs + b.today.waste)], ['재고', cap ? Math.round(have / cap * 100) + '%' : '—']].forEach(([a, v]) => { const x = el('div'); x.append(el('small', null, a), el('b', null, v)); g.appendChild(x); });
@@ -249,20 +249,20 @@ function staffView(Bx, b) {
   const u = el('div', 'card pedit'); for (const k in UP) { const x = UP[k], r = el('div', 'r'), t = el('span'); t.append(el('b', null, x.n), el('br'), el('small', null, x.d)); t.lastChild.style.cssText = 'font-size:12px;color:var(--mute)';
     r.append(t, b.up[k] ? el('b', null, '설치됨') : btn(won(x.c), 'ghost', () => { if (b.cash < x.c) { toast('자금이 모자라요(설비는 사채로 못 사요).'); return; } b.cash -= x.c; b.up[k] = 1; save(); refreshSheet(); })); u.appendChild(r); } Bx.appendChild(u);
 }
-function lenaView(Bx, b) {
-  LS.decay(); const a = LS.A(), n = LS.lv(a.pt), s = LS.today(), [, mt] = LS.mood();
-  const c = el('div', 'card paperc'); c.append(el('b', null, LS.tierOf(n).name), el('div', 'hint', mt));
-  const hb = el('div', 'bz-rank'), bar = el('i'), uu = el('u'); uu.style.width = Math.min(100, (a.pt - LS.need(n)) / Math.max(1, LS.need(n + 1) - LS.need(n)) * 100) + '%'; bar.appendChild(uu);
-  hb.append(bar, document.createTextNode(`「${LS.tierOf(n + 1).name}」까지 ${LS.need(n + 1) - a.pt}점`)); c.appendChild(hb);
-  c.appendChild(el('div', 'hint', '레나가 이 매장의 매니저로 재고와 손님 흐름을 살피고 있어요.'));
-  Bx.appendChild(c);
-  Bx.appendChild(lbl('부스 꾸미기 (사업 자금으로 스티커)'));
+function decorView(Bx, b) {
+  Bx.appendChild(lbl('부스 꾸미기'));
   const D = LS.D(), Dg = el('div', 'dl'); LS.DECOR.forEach(d => { const own = D.own.includes(d.id), on = D.on.includes(d.id), price = d.p * 10000, t = el('button', 'dt' + (on ? ' on' : '') + (own ? '' : ' lock')), im = el('img'); im.src = LS.SI(d.i); im.alt = d.n; t.appendChild(im);
     t.onclick = () => { if (!own) { if (b.cash < price) { toast(`${d.n}: ${won(price)} 필요해요.`); return; } if (!confirm(`${d.n}을 ${won(price)}에 살까요?`)) return; b.cash -= price; D.own.push(d.id); if (D.on.length < 6) D.on.push(d.id); save(); refreshSheet(); renderHome(); return; }
       const o = D.on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 6) o.shift(); o.push(d.id); } save(); refreshSheet(); renderHome(); }; Dg.appendChild(t); });
   Bx.appendChild(Dg);
   if (D.on.length) Bx.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', LS.decorEdit)));
   Bx.appendChild(el('div', 'hint', `모은 스티커 ${D.own.length}/${LS.DECOR.length} · 잠긴 건 눌러서 사요 · 6개까지 붙여요`));
+}
+
+}
+function lenaView(Bx, b) {
+  LS.decay(); const a = LS.A(), n = LS.lv(a.pt), [, mt] = LS.mood();
+  const c = el('div', 'card paperc'); c.append(el('div', 'hint', mt), el('div', 'hint', '매장 매니저 레나가 재고와 손님 흐름을 관리하고 있어요.')); Bx.appendChild(c);
 }
 
 function wantP(s) { const k = Object.keys(P), r = rnd(dk(new Date()) + 'w'); const u = unlocked(B()); return u[Math.floor(r() * u.length)] || k[0]; }
@@ -276,13 +276,15 @@ SH.shop = { t: '자판기', s: () => { const b = B(); return `${RANK[b.rank][0]}
   if (lastSettles.length && !b.seen[lastSettles[0].d]) { const l = lastSettles[0]; b.seen = { [l.d]: 1 }; const c = el('div', 'ask lena'); c.append(el('span', 'who', '레나'), document.createTextNode(`어제(${l.d.slice(5).replace('-', '/')}) 장사 — 이익 ${won(l.profit)}${l.gc ? `, 게임 동전 +${l.gc}` : ''}${l.ev.length ? ' · ' + l.ev[0] : ''}. ${l.profit < 0 ? '…이러다 해골 사채 써요.' : '잘했어요, 사장님.'}`)); Bx.appendChild(c); }
   else if (tab === 'street') { const c = el('div', 'ask lena'), say = b.cash < 0 ? '사채 이자가 붙고 있어요. 값 내리고 잘 팔리는 것부터 채워요.' : pick(['비 오면 우산, 시험 기간엔 학원 앞. 장사는 눈치예요.', '빈 칸은 돈이 새는 구멍이에요. 채워 둬요.', '비싸게 걸면 안 팔려요. 손님은 송휘만큼 너그럽지 않거든요.']); c.append(el('span', 'who', '레나'), document.createTextNode(say)); Bx.appendChild(c); }
   top(Bx, b);
-  const T = el('div', 'tabs bz-tabs'); [['street', '거리'], ['staff', '알바·설비'], ['lena', '레나'], ['book', '장부']].forEach(([v, l]) => { const x = el('button', (tab === v || (v === 'street' && tab === 'loc')) ? 'on' : '', l); x.onclick = () => { tab = v; sel = null; refreshSheet(); }; T.appendChild(x); }); Bx.appendChild(T);
-  ({ street, loc: locView, staff: staffView, lena: lenaView, book })[tab](Bx, b);
+  const T = el('div', 'tabs bz-tabs'); [['street', '거리'], ['staff', '알바·설비'], ['book', '장부']].forEach(([v, l]) => { const x = el('button', (tab === v || (v === 'street' && tab === 'loc')) ? 'on' : '', l); x.onclick = () => { tab = v; sel = null; refreshSheet(); }; T.appendChild(x); }); Bx.appendChild(T);
+  ({ street, loc: locView, staff: staffView, book })[tab](Bx, b); if (tab === 'book') decorView(Bx, b);
 } };
 SH[3] = SH.shop;
 // 화면이 열려 있으면 10초마다 장사 진행·숫자 갱신
-setInterval(() => { if (curSheet === 'shop' || curSheet === 3) { tick(false); if (!document.querySelector('.bz-ed') && tab !== 'lena') refreshSheet(); } }, 10000);
+setInterval(() => { if (curSheet === 'shop' || curSheet === 3) { tick(false); if (!document.querySelector('.bz-ed') ) refreshSheet(); } }, 10000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { try { tick(true); } catch (e) {} } });
 try { tick(true); } catch (e) {}
 window.lenaBiz = { P, L, M, RANK, fresh, advance, settle, fill, minute, conv, newMachine, B, tick, env };
 })();
+
+(() => { const css = `.bz-rank .bz-tier{display:block;flex:0 0 100%;font-family:'Black Han Sans';font-size:17px;color:#fff;text-shadow:2px 2px 0 #000}.bz-s button.ghost,.bz-slot button.ghost,.bz-stock button.ghost{background:#f3efe6!important;color:#111!important;border:2px solid #111!important;text-shadow:none!important}`;document.head.appendChild(Object.assign(document.createElement('style'),{textContent:css}));})();
