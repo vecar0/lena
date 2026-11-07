@@ -626,6 +626,21 @@ async function sendText(raw, special) {
   S.history.push({ role: 'user', content: (img ? '(사진) ' : '') + shown, at: Date.now() }); L.appendChild(meEl((img ? '(사진) ' : '') + shown)); L.scrollTop = L.scrollHeight;
   // 처음 전화: 이름 → 키 순서로 받는다
   if (!S.name) { const nmv = text.replace(/(이?라고|으로|로)?\s*(불러\s*줘|불러|해\s*줘|요)$/g, '').replace(/[.!~?]+$/, '').trim().slice(0, 12); if (nmv) { S.name = nmv; save(); addHer(`${S.name}. …입에 착 붙네. 앞으로 그렇게 부를게.\n${aiOn() ? '자, 오늘 뭐 할지 말해 봐.' : '나랑 제대로 떠들려면 Gemini 키가 필요해. 키를 여기 붙여 넣거나, 다이얼 0번 설정에 넣어 줘.'}`, true); return; } }
+  // 음성사서함 명령: 최근 대화 또는 콜론 뒤 원문을 공부 노트처럼 정리해 저장
+  if (/(정리|요약).{0,24}(저장|음성사서함)/i.test(text)) {
+    const m = text.match(/(?:정리|요약)(?:해서|한\s*뒤)?\s*(?:음성사서함에\s*)?저장(?:해\s*줘|해줘)?\s*[:：\-]?\s*([\s\S]*)$/i);
+    const inline = m && m[1] ? m[1].trim() : '';
+    const prior = S.history.slice(0, -1).slice(-8).filter(h => h.content).map(h => (h.role === 'assistant' ? '레나: ' : '나: ') + h.content).join('\n');
+    const source = inline || prior;
+    if (!source.trim()) { addHer('정리할 내용을 먼저 얘기해 줘. 그다음 “정리해서 저장해줘”라고 하면 음성사서함에 넣어 둘게.', true); return; }
+    busy = true; app.classList.add('talking'); addHer('…잠깐만. 방금 얘기한 내용부터 깔끔하게 묶어 볼게.', false);
+    try {
+      const title = await window.lenaMemo.saveFromText(source);
+      addHer("'" + title + "'로 정리해서 음성사서함에 저장했어. 다이얼 7번에서 확인해.", true);
+    } catch (e) { addHer(e.message || '정리해서 저장하지 못했어. Gemini 키와 연결을 확인해 줘.', true); }
+    finally { busy = false; app.classList.remove('talking'); }
+    return;
+  }
   if (!aiOn() && /^sk-ant-[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.ckey = text; save(); addHer('Claude 키 받았어. …이제 얘기 길어져도 괜찮지?', true); return; }
   if (!aiOn()) { if (/^AIza[\w-]{20,}$/.test(text)) { S.history.pop(); L.lastChild.textContent = '(키 보냄)'; S.key = text; save(); loadModels(); addHer('키 받았어. …이제 얘기 길어져도 괜찮지?', true); return; } const [t] = pick(LOCAL); addHer(t, true); return; }
   busy = true; app.classList.add('talking'); const her = herEl(''); her.lastChild.remove(); const dots = el('span', 'dots'); dots.innerHTML = '<i></i><i></i><i></i>'; her.appendChild(dots); L.appendChild(her); L.scrollTop = L.scrollHeight;

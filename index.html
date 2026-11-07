@@ -343,16 +343,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .ab.vid i{background:var(--pink);border:2px solid #000;box-shadow:3px 3px 0 #000}
 .ab em{position:absolute;top:-4px;left:calc(50% + 16px);min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--hot);color:#fff;border:2px solid #000;font-style:normal;font-size:11.5px;font-weight:800;display:grid;place-items:center}
 .app.outside .log{-webkit-mask:linear-gradient(transparent,#000 18%);mask:linear-gradient(transparent,#000 18%)}
-/* v115: 음성통화 대화창을 항상 입력 영역 위에 보이도록 고정 */
-.app.outside .log{position:relative;z-index:3;display:flex!important;flex:1 1 0;min-height:120px;max-height:none;height:auto;overflow-y:auto;padding:16px 14px 12px;margin:8px 10px 10px;border-radius:18px;background:rgba(7,12,16,.74);border:1px solid rgba(47,224,200,.28);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);-webkit-mask:none;mask:none;gap:12px}
-.app.outside .log::before{display:block;content:"";flex:1 0 4px}
-.app.outside .her{display:flex;align-items:flex-start;gap:9px;max-width:94%;padding:9px 11px;border-radius:4px 15px 15px 15px;background:rgba(32,45,51,.96);border:1px solid rgba(47,224,200,.35);color:#fff;font-size:14.5px;line-height:1.5;text-shadow:none;box-shadow:2px 3px 0 rgba(0,0,0,.45)}
-.app.outside .her .who{display:none}
-.app.outside .herava{width:34px;height:34px;margin-top:1px;border:2px solid var(--pink);box-shadow:none}
-.app.outside .me{max-width:82%;padding:9px 12px;border-radius:15px 4px 15px 15px;background:#f3efe6;color:#151515;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
-.app.outside .agrid{position:relative;z-index:4;flex:none}
-.app.outside .inrow{position:relative;z-index:5;flex:none}
-
+/* 음성통화: 기존 레이아웃 규칙을 그대로 사용 */
 .app.outside .pop{width:52px}
 .vtog{height:36px;padding:0 13px;border-radius:18px;background:rgba(0,0,0,.6);border:1.5px solid var(--green);box-shadow:2px 2px 0 #000;font-size:13px;font-weight:700;color:#e6eef0;display:flex;align-items:center;gap:6px}
 .vtog svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
