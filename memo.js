@@ -56,26 +56,23 @@
     busy = false; refreshSheet();
   }
   SH.memo = { t: '음성사서함', s: () => `저장한 메모 ${get().length}개`, r: B => {
-    const wrap = el('div', 'card paperc memo-card');
+    const wrap = el('div', 'memo-compose');
     const ta = el('textarea', 'in'); ta.rows = 5;
     const old = editing && get().find(x => x.id === editing);
     ta.placeholder = '정리해서 저장하고 싶은 내용을 편하게 적어 줘…';
     if (old) ta.value = sourceOf(old);
     const actions = row(btn(busy ? '정리하는 중…' : '레나에게 정리해서 저장', 'teal wide', () => saveMemo(ta)), btn('새로 쓰기', 'ghost', () => { editing = ''; error = ''; refreshSheet(); }));
     if (busy) actions.querySelectorAll('button').forEach(b => b.disabled = true);
-    wrap.append(el('div', 'hint', editing ? '원문을 고치면 레나가 다시 정리해 저장해요.' : '생각·할 일·아이디어를 편하게 적어 주세요. 레나가 공부 노트처럼 제목과 핵심 내용으로 정리해 둘게요.'), ta, actions);
+    wrap.append(el('div', 'memo-compose-title', editing ? '음성사서함 수정' : '새 음성사서함'), el('p', 'memo-compose-hint', '내용을 편하게 적어 두면 레나가 제목과 핵심 내용으로 정리해 저장해요.'), ta, actions);
     if (error) wrap.appendChild(el('div', 'warn', error));
     B.appendChild(wrap);
-    B.appendChild(lbl('저장된 음성사서함'));
+    B.appendChild(el('div', 'memo-section-title', '보관된 음성사서함'));
     if (!get().length) { B.appendChild(empty('아직 저장된 내용이 없어요.\n위에 적고 레나에게 정리를 맡겨 보세요.', 'st_tape')); return; }
     get().slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach(x => renderPaper(B, typeof x === 'string' ? { text: x, at: Date.now() } : x));
   }};
   window.lenaMemo = { open: () => openSheet(5), render: B => SH.memo.r(B), saveFromText };
   const css = `
-.memo-card textarea{width:100%;min-height:120px;padding:12px;border-radius:8px;background:#fff;color:#111;border:2px solid #17181a;resize:vertical;font-size:15px;line-height:1.55}
-.memo-card .hint{color:#444;line-height:1.5}
-.memo-card .row{display:flex;gap:8px;flex-wrap:wrap}
-.memo-paper{margin-top:16px}
+.memo-compose{position:relative;margin:4px 0 18px;padding:18px 14px 14px;background:#f3efe6 url(assets/lena/paper_white.webp) center/cover;color:#17181a;border:2px solid #111;box-shadow:3px 4px 0 rgba(0,0,0,.45)}.memo-compose::before{content:'';position:absolute;top:-8px;left:42%;width:68px;height:16px;background:url(assets/lena/tape_pink1.webp) center/100% 100%}.memo-compose-title{font-family:'Black Han Sans';font-size:18px;margin-bottom:4px}.memo-compose-hint{font-size:12.5px;color:#555;line-height:1.45;margin:0 0 10px}.memo-compose textarea{display:block;width:100%;min-height:110px;padding:11px;border:1.5px solid #333;border-radius:2px;background:rgba(255,255,255,.8);color:#111;font-size:14px;line-height:1.55;resize:vertical}.memo-compose .row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.memo-section-title{margin:10px 0 8px;font-size:14px;font-weight:900;color:var(--mint);letter-spacing:.04em}.memo-paper{margin-top:10px}
 .memo-paper .qa{border-top:1px dashed rgba(0,0,0,.2);padding:7px 0}
 .memo-paper .qa b{display:block;font-size:14px;line-height:1.45}
 .memo-paper .qa p{font-size:13.5px;line-height:1.5;color:#0f6f62}
