@@ -422,7 +422,7 @@ $('aPad').onclick = () => { dtmf(0); openPad(); };
 $('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
 $('aCall').onclick = () => { dtmf(4); openSheet(6); };
 $('aMiss').onclick = () => { dtmf(5); openSheet('call'); };
-$('aSet').onclick = () => { dtmf(0); openSheet(0); };
+$('aSet').onclick = () => { dtmf(0); openSheet(0); };\nif ($('aMemo')) $('aMemo').onclick = () => { dtmf('#'); if (window.lenaMemo) window.lenaMemo.open(); };
 $('aMemo').onclick = () => { dtmf('#'); window.lenaMemo && window.lenaMemo.open(); };
 
 // ---------------- dial pad ----------------
