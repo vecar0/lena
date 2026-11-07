@@ -675,7 +675,7 @@ async function sendText(raw, special) {
   window.lenaDeep = !special && (/(넣어|짜\s?줘|짜\s?봐|바꿔|옮겨|빼\s?줘|비워|미뤄|당겨|계획|일정|시간표|캘린더|공부|시험|범위|정리|어떻게|왜|추천|몇\s?시|언제)/.test(text) || text.length > 60); /* v108: 일·계획 얘기는 조금 더 생각하고 답함 */
   try {
     const r = await gemini(sysPrompt(special), contents, onPart);
-    const sourceText = Array.isArray(r.sources) && r.sources.length ? '\n\n찾아본 곳\n' + r.sources.map(x => `· ${x.title}: ${x.uri}`).join('\\n') : ''; const reply = (String(r.reply || '…').trim() + sourceText); onPart(reply);
+    const sourceText = Array.isArray(r.sources) && r.sources.length ? '\n\n찾아본 곳\n' + r.sources.map(x => `· ${x.title}: ${x.uri}`).join('\n') : ''; const reply = (String(r.reply || '…').trim() + sourceText); onPart(reply);
     S.history.push({ role: 'assistant', content: reply, at: Date.now() }); if (S.history.length > 200) S.history = S.history.slice(-200);
     try { fixDates(r, text); } catch (e) {}
     let did = apply(r);
