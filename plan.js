@@ -78,7 +78,7 @@ const durOf = t => { if (t.rid) { const r = (S.reps || []).find(x => x.id === t.
 const B0 = () => { if (!S.pro) S.pro = {}; if (S.pro.brief === undefined) S.pro.brief = true; return S.pro; };
 
 // ---------- 시간표 탭 (전단지 시트 안) ----------
-let ttEd = null, ttAdd = false; let ttW = 0;
+let ttEd = null, ttAdd = false, ttOneAdd = false; let ttW = 0;
 const _bt = boardTabs; boardTabs = function (B) {
   const T = el('div', 'tabs'); [['today', '오늘'], ['week', '이번 주'], ['tt', '시간표'], ['all', '전체']].forEach(([v, l]) => { const b = el('button', boardTab === v ? 'on' : '', l); b.onclick = () => { boardTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
 };
@@ -144,7 +144,23 @@ const _br = boardRender; boardRender = function (B) {
   if (!R.length) B.appendChild(el('div', 'hint', '아직 비어 있어요. 학원·수업·운동처럼 매주 정해진 걸 넣으면, 레나가 그 시간은 피해서 하루를 짜 줘요.'));
   // 넣기/고치기: 프리셋을 누르면 칸이 채워지고, 시간표 칸을 누르면 그 블록을 고친다
   const E = ttEd && (S.reps || []).includes(ttEd) ? ttEd : null; if (!E) ttEd = null;
-  if (!E && !ttAdd) { const ob = btn('+ 고정 일정 넣기 (매주 반복)', 'ghost wide', () => { ttAdd = true; refreshSheet(); }); ob.style.marginTop = '12px'; B.appendChild(ob); B.appendChild(el('div', 'hint', '한 번만 있는 일정·할 일은 1번 전단지에서 붙여요.')); return; }
+  if (!E && !ttAdd) {
+    const actions = row(btn('+ 고정 일정 넣기 (매주 반복)', 'ghost wide', () => { ttAdd = true; ttOneAdd = false; refreshSheet(); }), btn('+ 일회성 활동·약속', 'teal wide', () => { ttOneAdd = true; refreshSheet(); }));
+    actions.style.marginTop = '12px'; B.appendChild(actions);
+    if (ttOneAdd) {
+      B.appendChild(lbl('일회성 활동·약속 넣기'));
+      const c = el('div', 'card paperc'), nm = inp('text', '예: 게임 일일 퀘스트, 운동, 친구 약속'), date = inp('date', '', dk(new Date())), tm = inp('time', '', '20:00'), mins = inp('number', '분', '60');
+      c.append(row(nm), row(date, tm), row(el('span','hint','걸리는 시간'), mins));
+      c.append(row(btn('취소','ghost',()=>{ttOneAdd=false;refreshSheet();}),btn('시간표에 넣기','teal wide',()=>{
+        if(!nm.value.trim()||!date.value||!tm.value){toast('이름·날짜·시작 시간을 적어 줘.');return;}
+        const duration=Math.max(10,Math.min(720,Math.round((+mins.value||60)/5)*5));
+        const item=addItem(nm.value.trim(),date.value+'T'+tm.value,'event'); item.mins=duration; save(); pushSync(true); ttOneAdd=false; dirty && dirty(); refreshSheet(); renderHome(); toast('활동을 시간표에 넣었어.');
+      })));
+      c.appendChild(el('div','hint','공부가 아닌 게임·취미·운동·약속도 일정으로 등록돼. 공부 시간과 겹치지 않게 계산해.'));
+      B.appendChild(c);
+    } else B.appendChild(el('div', 'hint', '게임·취미·운동·약속은 일회성 활동으로, 학원·수업은 매주 반복으로 넣어 줘.'));
+    return;
+  }
   B.appendChild(lbl(E ? `'${E.text}' 고치기` : '고정 일정 넣기'));
   const c = el('div', 'card'), t = inp('text', '이름 (예: 영어 학원)', E ? E.text : ''), s1 = inp('time', '', E ? E.time : '19:00'), e1 = inp('time', '', E ? repEnd(E) : '21:00'); let sel = E ? E.days.slice() : [];
   const P2 = el('div', 'pills'); P2.style.margin = '10px 0';
