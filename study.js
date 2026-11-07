@@ -201,12 +201,11 @@ const nextExam = () => ST().exams.filter(e => e.date >= todayK()).sort((a, b) =>
 // ---------- 그날 빈 시간 ----------
 function busyOn(d) {
   const L = [], k = dkey(d), wd = d.getDay();
-  S.items.forEach(t => { if (t.done || !t.due || t.due.slice(0, 10) !== k || t.rid || !isEv(t)) return; /* v84: 할 일 마감은 시간을 막지 않음 */ const s = toM(t.due.slice(11, 16)); L.push([s, s + (t.mins || 60), t.text]); });
+  // One-off calendar activities and appointments do not reserve study time.
   (S.reps || []).forEach(r => { if (r.days.length && !r.days.includes(wd)) return; if ((S.repSkip || {})[r.id + '_' + k]) return; L.push([toM(r.time), toM(r.end || toT(toM(r.time) + 60)), r.text]); });
-  // v105: 대화로 정한 '공부 안 하는 시간'(blk)과 '여기에 공부'(pins)는 다른 공부가 못 들어오게
-  const sd = S.study || {}; (sd.blk || []).forEach(b => { if (b.d ? b.d === k : (b.days || []).includes(wd)) L.push([b.s, b.e, '공부 안 함']); }); (sd.pins || []).forEach(p => { if (p.d === k) L.push([p.s, p.e, '공부 고정']); });
   return L.sort((a, b) => a[0] - b[0]);
 }
+
 const ACAD = /학원|클리닉|과외|수업/;
 const SUBJN = /^(국어|영어|수학|사회|과학|한국사|역사|윤리|경제|물리|화학|생명|생명과학|지구|지구과학|정보|일본어|중국어|문학|독서|화법|언어|미적분|확통|기하)$/;
 const isAcad = tx => !/학교|등교/.test(tx || '') && (ACAD.test(tx || '') || SUBJN.test(String(tx || '').replace(/[\s\d:~·-]/g, ''))); // v108: '학교 수업'은 학원 아님 · v94: '국어'처럼 과목 이름만 있는 고정 일정도 학원
@@ -571,7 +570,10 @@ function stExam(B) {
   B.appendChild(f);
 }
 function stMat(B) {
-  ST().mats.slice().sort((a, b) => a.sub.localeCompare(b.sub)).forEach(m => {
+  const mats = ST().mats.slice().sort((a, b) => a.sub.localeCompare(b.sub) || a.title.localeCompare(b.title));
+  let lastSub = '';
+  mats.forEach(m => {
+    if (m.sub !== lastSub) { lastSub = m.sub; const hd = el('div', 'mat-subhead'); hd.append(el('b', null, lastSub), el('span', null, mats.filter(x => x.sub === lastSub).length + '개')); B.appendChild(hd); }
     const c = el('div', 'mat paperc slim' + (m.kind === 'hw' ? ' yel' : '')), h = el('div', 'h'), dn = m.units.filter(u => u.done).length;
     h.append(chip(m.sub), el('b', null, (m.kind === 'hw' ? (/^숙제$/.test(m.title) ? '학원 ' : '숙제 · ') : m.kind === 'perf' ? '수행 · ' : '') + m.title), el('em', null, m.rep ? `매주 ${m.rep.days.slice().sort().map(d => WD[d]).join('·')} · ${m.rep.mins}분` : m.kind !== 'book' ? (m.due ? `${m.kind === 'perf' ? '수행' : '학원'} ${m.due.slice(5).replace('-', '/')}` : '') : !m.units.length ? '시험 범위를 넣으면 단원이 생겨요' : `${dn}/${m.units.length} · ${hm(m.units.filter(u => !u.done).reduce((a, u) => a + Math.max(0, u.mins - (u.prog || 0)), 0))} 남음`), xbtnS(() => { if (!confirm(`'${m.title}' 지울까요?`)) return; ST().mats = ST().mats.filter(x => x !== m); ST().exams.forEach(e => e.ranges = e.ranges.filter(r => r.mat !== m.id)); save(); dirty(); refreshSheet(); }));
     const pg = el('div', 'pg'), i = el('i'); i.style.width = (m.units.length ? dn / m.units.length * 100 : 0) + '%'; pg.appendChild(i); c.append(h, pg);
@@ -753,3 +755,12 @@ window.lenaStudy = { dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen
   `;
   document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 })();
+
+/* v117: compact grouped material list */
+(() => { const css = `
+.mat-subhead{display:flex;justify-content:space-between;margin:12px 2px 6px;padding:5px 9px;border-left:4px solid #087e72;background:rgba(8,126,114,.10);color:#17181a}
+.mat-subhead b{font-size:14px;font-weight:900}.mat-subhead span{font-size:11px;color:#555}
+.mat.paperc.slim{padding:8px 10px!important;margin:0 0 6px!important;box-shadow:2px 2px 0 rgba(0,0,0,.45)!important}
+.mat.paperc .h{gap:3px 7px!important}.mat.paperc .h b{font-size:14px!important;line-height:1.25!important}.mat.paperc .h em{font-size:11px!important;line-height:1.25!important}
+.mat.paperc .pg{height:5px!important;margin-top:5px!important}.mat.paperc .h .x{width:26px!important;height:26px!important}
+`;document.head.appendChild(Object.assign(document.createElement('style'),{textContent:css}));})();
