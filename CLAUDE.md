@@ -178,7 +178,7 @@ Manual verification still needed on an iPhone-sized viewport: dial 7 opens voice
 
 ## Handoff — Lena employee, voicemail memo, visibility fixes (v115)
 
-Branch: `fix/lena-employee-voicemail-visibility`, merged to `main` after review.
+Branch: `fix/lena-employee-voicemail-visibility`, created from `main`; check the pull request state before assuming it has been merged.
 
 - Vending object labels should be the object itself, not a prepared-product description: `gum → 체리`, `kimbap → 오리`, `ramen → 디스코볼`, `hotpack → 북극곰`. Existing image assets and product IDs remain unchanged.
 - Removed the "레나에게 납품" mechanic from the vending business. The Lena tab now offers an earned manager hire: after cumulative business profit reaches 50,000 KRW (rank 1), Lena notices the growing operation and offers to become store manager. Hire fee 15,000 KRW, daily wage 6,000 KRW. While employed, she automatically replenishes stock below 40% and increases foot traffic by 12%. Salary is charged through the existing STAFF wage settlement. Contract can be ended from the Lena tab.
