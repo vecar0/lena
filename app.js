@@ -413,6 +413,7 @@ $('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
 $('aCall').onclick = () => { dtmf(4); openSheet(6); };
 $('aMiss').onclick = () => { dtmf(5); openSheet('call'); };
 $('aSet').onclick = () => { dtmf(0); openSheet(0); };
+$('aMemo').onclick = () => { dtmf('#'); window.lenaMemo && window.lenaMemo.open(); };
 
 // ---------------- dial pad ----------------
 const KEYS = [[1, '전단지', 1], [2, '캘린더', 'cal'], [3, '시간표', 'tt'], [4, '공부', 6], [5, '전화', 'call'], [6, '모닝콜', 7], [7, '음성사서함', 5], [8, '오늘의 운세', 'fort'], [9, '자판기', 'shop'], ['*', '오락실', 8], [0, '설정', 0], ['#', '메모', 'memo']];
