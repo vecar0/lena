@@ -297,24 +297,14 @@ SH[4] = { t: '예약 전화', s: '정한 시간에 레나가 전화해요', r: B
 } };
 
 // 5 음성사서함 (기억)
-SH[5] = { t: '음성사서함', s: () => `저장된 메시지 ${S.memory.length}개`, r: B => {
-  const c = el('div', 'card paperc'), t = el('textarea', 'in'); t.rows = 3; t.placeholder = '레나에게 남길 음성 메시지를 적거나 녹음해…';
-  const SR2 = window.SpeechRecognition || window.webkitSpeechRecognition; let activeRec = null;
-  const record = btn('음성으로 남기기', 'ghost', () => {
-    if (activeRec) { try { activeRec.stop(); } catch (e) {} return; }
-    if (!SR2) { toast('이 브라우저에서는 음성 입력을 지원하지 않아. 글로 남겨 줘.'); return; }
-    const rec = new SR2(); activeRec = rec; rec.lang = 'ko-KR'; rec.continuous = false; rec.interimResults = true;
-    record.textContent = '듣는 중… 눌러서 중지'; record.classList.add('on');
-    rec.onresult = e => { let v = ''; for (let i = 0; i < e.results.length; i++) v += e.results[i][0].transcript; t.value = v; };
-    rec.onerror = () => { activeRec = null; record.textContent = '음성으로 남기기'; record.classList.remove('on'); toast('음성을 인식하지 못했어. 다시 해 봐.'); };
-    rec.onend = () => { activeRec = null; record.textContent = '음성으로 남기기'; record.classList.remove('on'); };
-    try { rec.start(); } catch (e) { activeRec = null; record.textContent = '음성으로 남기기'; record.classList.remove('on'); toast('마이크를 사용할 수 없어.'); }
-  });
-  const go = () => { const v = t.value.trim(); if (!v) return; if (!S.memory.includes(v)) S.memory.push(v.slice(0, 500)); save(); t.value = ''; refreshSheet(); say('메시지 잘 받았어. …몇 번이고 다시 들어 볼게.', 'happy', false); };
-  c.append(el('div', 'hint', '마이크로 말하면 글로 받아 적어 저장해. 저장한 내용은 레나가 다음 통화에서도 기억해.'), t, row(record, btn('메시지 저장', 'teal wide', go)));
-  B.appendChild(c); B.appendChild(lbl('저장된 메시지'));
-  if (!S.memory.length) { B.appendChild(empty('아직 남긴 메시지가 없어.\n위에서 말하거나 글로 남겨 줘.', 'st_tape')); return; }
-  const l = el('div', 'list card paperc'); S.memory.slice().reverse().forEach(m => { const r = el('div', 'it'), ic = el('img', 'ic'); ic.src = 'assets/lena/st_tape.webp'; ic.alt = ''; r.append(ic, el('div', 't', m), xbtn(() => { S.memory = S.memory.filter(x => x !== m); save(); refreshSheet(); })); l.appendChild(r); }); B.appendChild(l);
+SH[5] = { t: '음성사서함', s: () => `레나가 기억하는 것 ${S.memory.length}개`, r: B => {
+  const c = el('div', 'card'), t = inp('text', '예: 나 오이 싫어해');
+  const go = () => { const v = t.value.trim(); if (!v) return; if (!S.memory.includes(v)) S.memory.push(v.slice(0, 120)); save(); t.value = ''; refreshSheet(); say(pick(['메시지 잘 받았어요. 안 까먹어요.', '…녹음해 뒀어요. 몇 번 더 들어 볼게요.']), 'happy', false); };
+  t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
+  c.append(row(t, btn('남기기', '', go))); B.appendChild(c);\n  B.appendChild(btn('메모 열기', 'ghost wide', () => { if (window.lenaMemo) window.lenaMemo.open(); else toast('메모를 불러오지 못했어.'); }));\n  B.appendChild(el('div', 'hint', '7번 다이얼에서 음성사서함과 메모를 함께 열 수 있어.'));
+  B.appendChild(lbl('저장된 메시지'));
+  if (!S.memory.length) { B.appendChild(empty('아직 비어 있어요.\n취향, 사람, 습관을 남겨 주면 통화할 때 기억해요.', 'st_tape')); return; }
+  const l = el('div', 'list card'); S.memory.slice().reverse().forEach(m => { const r = el('div', 'it'), ic = el('img', 'ic'); ic.src = 'assets/lena/st_tape.webp'; ic.alt = ''; r.append(ic, el('div', 't', m), xbtn(() => { S.memory = S.memory.filter(x => x !== m); save(); refreshSheet(); })); l.appendChild(r); }); B.appendChild(l);
 } };
 
 // 6 공부 → study.js
@@ -364,8 +354,8 @@ SH['*'] = { t: '통화 기록', s: () => `최근 ${Math.min(S.history.length, 60
 } };
 // 5 전화 = 예약 전화 + 부재중 + 통화 기록 (탭)
 SH.call = { t: '전화', s: () => { const n = missed().length, c = S.calls.filter(x => !x.done && x.at > Date.now()).length; return `${n ? `부재중 ${n}통 · ` : ''}예약 ${c}개`; }, r: B => {
-  const T = el('div', 'tabs'), n = missed().length; [['res', '예약 전화'], ['miss', n ? `부재중 ${n}` : '부재중'], ['log', '통화 기록'], ['vm', '음성사서함']].forEach(([v, l]) => { const b = el('button', callTab === v ? 'on' : '', l); b.onclick = () => { callTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
-  if (callTab === 'vm') SH[5].r(B); else SH[{ res: 4, miss: 9, log: '*' }[callTab]].r(B);
+  const T = el('div', 'tabs'), n = missed().length; [['res', '예약 전화'], ['miss', n ? `부재중 ${n}` : '부재중'], ['log', '통화 기록']].forEach(([v, l]) => { const b = el('button', callTab === v ? 'on' : '', l); b.onclick = () => { callTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
+  SH[{ res: 4, miss: 9, log: '*' }[callTab]].r(B);
 } };
 
 // 0 설정
@@ -427,11 +417,11 @@ $('aMemo').onclick = () => { dtmf('#'); if (window.lenaMemo) window.lenaMemo.ope
 
 
 // ---------------- dial pad ----------------
-const KEYS = [[1, '전단지', 1], [2, '캘린더', 'cal'], [3, '시간표', 'tt'], [4, '공부', 6], [5, '전화', 'call'], [6, '모닝콜', 7], [7, '음성사서함', 5], [8, '오늘의 운세', 'fort'], [9, '자판기', 'shop'], ['*', '오락실', 8], [0, '설정', 0], ['#', '메모', 'memo']];
+const KEYS = [[1, '전단지', 1], [2, '캘린더', 'cal'], [3, '시간표', 'tt'], [4, '공부', 6], [5, '전화', 'call'], [6, '모닝콜', 7], [7, '음성사서함', 5], [8, '오늘의 운세', 'fort'], [9, '자판기', 'shop'], ['*', '오락실', 8], [0, '설정', 0], ['#', '닫기']];
 (function buildPad() {
   const K = $('keys');
   KEYS.forEach(([k, l, id]) => { const b = el('button', 'k' + (k === 6 ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 5) { const e = el('em'); e.hidden = true; b.appendChild(e); }
-    b.onclick = () => { dtmf(k); $('lcd').textContent = `${k} · ${l}`; if (k === '#') { closePad(); if (window.lenaMemo) window.lenaMemo.open(); return; } setTimeout(() => k === 1 ? openBoard('today') : openSheet(id), 140); }; K.appendChild(b); });
+    b.onclick = () => { dtmf(k); $('lcd').textContent = `${k} · ${l}`; if (k === '#') { closePad(); return; } setTimeout(() => k === 1 ? openBoard('today') : openSheet(id), 140); }; K.appendChild(b); });
 })();
 function openPad() { $('lcd').textContent = '번호를 누르세요_'; renderHome(); $('sPad').classList.add('open'); app.classList.add('dim'); }
 function closePad() { $('sPad').classList.remove('open'); if (!$('sheet').classList.contains('open')) app.classList.remove('dim'); }
