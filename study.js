@@ -4,7 +4,14 @@
 (() => {
 const css = `
 .mat-subhead{margin:10px 0 5px;padding:5px 9px;background:var(--teal);color:#071411;border:1px solid #111;font-size:13px;font-weight:900;box-shadow:2px 2px 0 #111}
-.mat-subgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:start}.mat-subgrid .mat{margin:0;min-width:0;padding:7px}.mat-subgrid .mat .h{display:grid;grid-template-columns:1fr auto;gap:4px;align-items:start}.mat-subgrid .mat .h b{font-size:13px;line-height:1.25;overflow-wrap:anywhere}.mat-subgrid .mat .h em{font-size:10px;white-space:normal;text-align:right}.mat-subgrid .mat .pg{height:5px;margin-top:5px}@media(max-width:390px){.mat-subgrid{gap:5px}.mat-subgrid .mat{padding:6px}.mat-subgrid .mat .h b{font-size:12px}}
+.mat-subgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;align-items:start}.mat-subgrid .mat{margin:0;min-width:0;max-width:100%;padding:7px;transform:none;overflow:hidden}.mat-subgrid .mat .h{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px}.mat-subgrid .mat .h .sj{font-size:10px;padding:1px 5px}.mat-subgrid .mat .h b{flex:1 1 100%;min-width:0;font-size:13px;line-height:1.35;overflow-wrap:anywhere;word-break:normal}.mat-subgrid .mat .h em{flex:1 1 auto;min-width:0;font-size:10px;line-height:1.35;white-space:normal;text-align:left;overflow-wrap:anywhere}.mat-subgrid .mat .h .x{flex:none}.mat-subgrid .mat .pg{height:5px;margin-top:5px}@media(max-width:390px){.mat-subgrid{gap:5px}.mat-subgrid .mat{padding:6px}.mat-subgrid .mat .h b{font-size:12px}}
+/* 시간표의 긴 과목명·할 일 문구가 시간/완료 버튼과 겹치지 않도록 */
+.sheetp .pr{grid-template-columns:56px minmax(0,1fr) 36px;gap:6px;align-items:center;min-height:0;padding:8px 0}
+.sheetp .pr .t{white-space:normal;overflow-wrap:anywhere;font-size:12px;line-height:1.25}
+.sheetp .pr .w{display:block;min-width:0;width:100%;padding:5px 2px;font-size:14px;line-height:1.4;white-space:normal;overflow-wrap:anywhere;word-break:normal}
+.sheetp .pr .st{width:34px;height:34px;justify-self:end}
+.sheetp .pr .st img{width:29px;height:29px}
+@media(max-width:390px){.sheetp .pr{grid-template-columns:49px minmax(0,1fr) 32px;gap:4px}.sheetp .pr .w{font-size:13px}.sheetp .pr .t{font-size:11px}.sheetp .pr .st{width:30px;height:30px}}
 
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .cal .wd{text-align:center;font-size:11.5px;font-weight:800;color:var(--mute);padding:2px 0}
