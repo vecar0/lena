@@ -183,7 +183,7 @@ function tick(opened) {
 const won = n => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString() + '원';
 const LS = window.lenaShop;
 let tab = 'street', cur = null, sel = null;
-function pimg(p, cls) { const x = P[p]; if (!x.i || x.t === 'L') return el('span', 'tx', x.t); const i = el('img', cls); i.src = IMG(x.i); i.alt = ''; return i; }
+function pimg(p, cls) { const x = P[p]; const objects = { gum: '🍬', kimbap: '🍙', ramen: '🍜', hotpack: '🧤' }; if (objects[p]) return el('span', 'bz-object', objects[p]); if (!x.i || x.t === 'L') return el('span', 'bz-object', '★'); const i = el('img', cls); i.src = IMG(x.i); i.alt = ''; return i; }
 const unlocked = b => Object.keys(P).filter(k => P[k].rk <= b.rank);
 function top(Bx, b) {
   const t = el('div', 'bz-top'), today = b.today.rev - b.today.cogs;
@@ -270,7 +270,7 @@ function book(Bx, b) {
   const mx = Math.max(1, ...D.map(l => Math.abs(l.profit))), C = el('div', 'bz-chart'); D.forEach(l => { const i = el('i', l.profit < 0 ? 'neg' : ''); i.style.height = Math.max(2, Math.abs(l.profit) / mx * 100) + '%'; i.title = l.d; C.appendChild(i); }); Bx.append(lbl('최근 14일 이익'), C);
   const lg = el('div', 'bz-log'); D.slice().reverse().forEach(l => { const r = el('div'); r.innerHTML = `<b>${l.d.slice(5).replace('-', '/')}</b> 이익 <b style="color:${l.profit < 0 ? '#d0124f' : '#0b7d6e'}">${won(l.profit)}</b> · 매출 ${won(l.rev)} (${l.sold}개) · 도매 ${won(l.cogs)}${l.waste ? ` · 버림 ${won(l.waste)}` : ''} · 자릿세 ${won(l.rent)}${l.wage ? ` · 일당 ${won(l.wage)}` : ''}${l.int ? ` · 이자 ${won(l.int)}` : ''}${l.gc ? ` · 게임 동전 +${l.gc}` : ''}${l.ev.length ? '<br>' + l.ev.join('<br>') : ''}`; lg.appendChild(r); }); Bx.append(lbl('장부'), lg);
 }
-SH.shop = { t: '자판기 사업', s: () => { const b = B(); return `${RANK[b.rank][0]} · 자리 ${Object.keys(b.locs).length}곳`; }, open: () => {}, r: Bx => {
+SH.shop = { t: '자판기', s: () => { const b = B(); return `${RANK[b.rank][0]} · 자리 ${Object.keys(b.locs).length}곳`; }, open: () => {}, r: Bx => {
   const b = B(); tick(true);
   if (lastSettles.length && !b.seen[lastSettles[0].d]) { const l = lastSettles[0]; b.seen = { [l.d]: 1 }; const c = el('div', 'ask lena'); c.append(el('span', 'who', '레나'), document.createTextNode(`어제(${l.d.slice(5).replace('-', '/')}) 장사 — 이익 ${won(l.profit)}${l.gc ? `, 게임 동전 +${l.gc}` : ''}${l.ev.length ? ' · ' + l.ev[0] : ''}. ${l.profit < 0 ? '…이러다 해골 사채 써요.' : '잘했어요, 사장님.'}`)); Bx.appendChild(c); }
   else if (tab === 'street') { const c = el('div', 'ask lena'), say = b.cash < 0 ? '사채 이자가 붙고 있어요. 값 내리고 잘 팔리는 것부터 채워요.' : pick(['비 오면 우산, 시험 기간엔 학원 앞. 장사는 눈치예요.', '빈 칸은 돈이 새는 구멍이에요. 채워 둬요.', '비싸게 걸면 안 팔려요. 손님은 송휘만큼 너그럽지 않거든요.']); c.append(el('span', 'who', '레나'), document.createTextNode(say)); Bx.appendChild(c); }
