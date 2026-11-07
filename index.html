@@ -571,3 +571,14 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 .app.outside .inrow #attBtn,.app.outside .inrow #micBtn{display:none!important}
 .app.outside .inrow .f{min-height:48px;font-size:16px}
 @media(max-height:700px){.app.outside .log{margin-top:calc(var(--st) + 4px)!important}}
+
+/* v117: prevent incoming morning-call content/buttons from being clipped on short phones */
+.inc{box-sizing:border-box;overflow-y:auto;padding:calc(var(--st) + clamp(18px,5vh,58px)) 16px calc(var(--sb) + 112px)!important;justify-content:flex-start}
+.inc .ava{width:clamp(76px,20vh,124px);height:clamp(76px,20vh,124px);flex:none}
+.inc h1{font-size:clamp(30px,8vw,42px);margin-top:clamp(10px,2.5vh,20px)}
+.inc p{font-size:11px;margin-top:5px}
+.inc .q{margin-top:clamp(12px,3vh,24px);padding:0 14px;font-size:clamp(14px,4vw,17px);line-height:1.45;max-width:520px}
+.ans{position:fixed;bottom:calc(var(--sb) + 20px)!important;left:0;right:0;z-index:2;padding:0 28px!important;justify-content:space-evenly}
+.ans .rb{width:62px;height:62px}
+@media(max-height:680px){.inc{padding-top:calc(var(--st) + 10px)!important;padding-bottom:calc(var(--sb) + 88px)!important}.inc .ava{width:68px;height:68px}.inc h1{margin-top:7px;font-size:29px}.inc .q{margin-top:10px;font-size:14px}.ans{bottom:calc(var(--sb) + 12px)!important}.ans .rb{width:54px;height:54px}}
+@media(max-height:580px){.inc .ava{width:54px;height:54px}.inc h1{font-size:25px;margin-top:4px}.inc .q{font-size:13px;margin-top:6px}.ans{bottom:calc(var(--sb) + 6px)!important}.ans .rb{width:48px;height:48px}}
