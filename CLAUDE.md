@@ -154,3 +154,21 @@
 - 오늘의 자판기 `S.shop`: 날짜로 정해지는 4칸(선물 2, 부스 장식 1, 쓸모 1: 게임 동전 5·리액션 스티커 뽑기·레나 손편지). 자정에 바뀜.
 - 리액션 스티커 9종(`d_bheart d_bdots d_bshout d_anger d_blush d_notes d_crown d_halo d_arrow`, DECOR의 `rx:1`, 원본 `art/new/icons/react2.png`): 레나 머리 둘레 기본 자리 `RXS`. 자판기 쓸모 칸 '리액션 스티커 뽑기'(할 일 동전 2, 예전 전화국 부스트 자리). 장식은 6개까지 붙임.
 - 부스 장식(`S.decor` own/on/gl, 6개까지). `#decorL`은 `.dots` 바로 앞 층, dotmask로 레나·수화기·벽 전화기 뒤에 가려짐. 유리판 `PLANES` 셋(0 뒤쪽, 1 왼쪽 옆판, 2 오른쪽 창 — 폰에선 옆판·창이 좁게 보여 스티커가 화면 밖으로 걸침), 각 원근 사각형 `q`와 붙일 수 있는 다각형 `poly`(그림 1050×1872 비율 좌표). 위치 `gl[id]={g,a,b,r 기울기,s 크기(그림 px),f 뒤집기}`. 편집(`decorEdit`): 끌기(손가락이 옆 유리로 넘어가면 그 유리판으로), 작게/크게/⇋ 뒤집기, 기울기 슬라이더(−60~60°). 스티커 고르기는 브라우저 판정 대신 화면 속 네 모서리로(`corners`). 유리 밖 위치는 `freeSpot`으로 빈자리. 물방울 `.gdrop`.
+
+
+---
+
+## Handoff notes — November 2026 (voicemail dial / vending object pass)
+
+The follow-up branch `fix/voicemail-dial-vending-objects` is intended to be merged into `main`. Preserve these decisions if continuing the work:
+
+- The phone's call-history sheet (`SH.call`) contains only reservation calls, missed calls, and call history. Do not add voicemail as another call-history tab.
+- Voicemail is the existing memory/message feature at dial key **7** (`SH[5]`). It stores short facts/preferences in `S.memory` for Lena to remember. Keep the original text-entry behavior; do not replace it with browser speech-to-text or raw audio recording.
+- The **7** voicemail sheet also has a direct **메모 열기** action that opens the separate quick memo feature (`window.lenaMemo.open()`, implemented in `memo.js`). The memo feature stores `S.memo` and remains separate from `S.memory`.
+- The dial pad **#** key is the original close action. A separate on-screen memo shortcut may remain, but the memo must also be reachable from dial key 7.
+- Vending products that previously displayed text/emoji stand-ins now use existing object art from `assets/lena/s/`: `d_cherry` (체리 캔디), `d_duck` (덕키 도시락), `d_disco` (디스코 컵라면), and `d_polar` (북극곰 핫팩). Keep all product art references within the existing `IMG()` helper convention; avoid text-only product tiles.
+- These are deliberately playful, slightly absurd convenience-store products to fit the Y2K vending-machine concept.
+- If changing dial routing, check `KEYS`, `NUMOF`, `SH[5]`, `SH.call`, `memo.js`, and the home-screen memo shortcut together.
+- If changing vending catalog rendering, check `P`, `pimg()`, the inventory/sales persistence keys, and all unlocked products; do not change existing product IDs because saved business data may refer to them.
+
+Manual verification still needed on an iPhone-sized viewport: dial 7 opens voicemail; memo opens from inside dial 7 and saves independently of voice-memory entries; # closes the dial; call-history tabs no longer show voicemail; all four revised vending products show image assets and retain existing prices, unlock levels, sales, and inventory behavior.
