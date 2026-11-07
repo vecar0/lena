@@ -713,4 +713,43 @@ try { dedupExams(); if (window.dedupItems && dedupItems()) save(); } catch (e) {
 window.lenaStudy = { dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, colOf, plan: () => splan(), splan: () => { dirty(); return splan(); }, tasks, parseOutline, simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
 })();
 
-// v115: 교재 목록 대비 강화 — 종이 카드 위에 어두운 글자, 진한 진도 막대와 단원 버튼.
+
+/* v116: 실제 공부 화면의 시간표·교재 카드 가독성 보정 */
+(() => {
+  const css = `
+  .sheetp{box-sizing:border-box;width:calc(100% - 8px);max-width:100%;padding-left:14px;padding-right:14px}
+  .sheetp .hd{gap:10px;align-items:center}
+  .sheetp .hd b{font-size:22px;line-height:1.25;color:#111;word-break:keep-all}
+  .sheetp .hd span{font-size:14px;color:#111;white-space:nowrap}
+  .sheetp .pr{display:grid;grid-template-columns:62px minmax(0,1fr) 44px;align-items:center;gap:7px;min-height:66px;padding:7px 0;box-sizing:border-box}
+  .sheetp .pr .t{width:auto;min-width:0;font-size:14px;line-height:1.3;color:#111;font-weight:900;white-space:nowrap}
+  .sheetp .pr .t small{font-size:11px;color:#444;opacity:1;font-weight:800}
+  .sheetp .pr .w{min-width:0;width:100%;min-height:0;padding:6px 2px;font-size:16px;line-height:1.48;font-weight:800;color:#171717;white-space:normal;word-break:normal;overflow-wrap:anywhere}
+  .sheetp .pr .w i{font-size:14px}
+  .sheetp .pr .st{width:38px;height:38px;justify-self:end}
+  .sheetp .pr.pfx{min-height:42px}
+  .sheetp .pr.pfx .w{font-size:14px;line-height:1.4;color:#555}
+  .sheetp .pr.pplay .w{font-size:14px;color:#075e54}
+  .sheetp .pfoot{font-size:12.5px;line-height:1.55;color:#444}
+  .mat.paperc{box-sizing:border-box;width:100%;max-width:100%;padding:13px 13px 12px;overflow:visible}
+  .mat.paperc:nth-child(n){transform:none!important}
+  .mat.paperc .h{display:grid!important;grid-template-columns:minmax(0,1fr) 34px;grid-template-rows:auto auto auto;align-items:center;gap:5px 8px}
+  .mat.paperc .h .sj{grid-column:1;grid-row:1;justify-self:start;font-size:12px;line-height:1.5;padding:1px 7px}
+  .mat.paperc .h b{grid-column:1;grid-row:2;min-width:0;width:100%;font-size:17px!important;line-height:1.4!important;color:#111!important;font-weight:900;white-space:normal;overflow-wrap:anywhere}
+  .mat.paperc .h em{grid-column:1;grid-row:3;min-width:0;white-space:normal!important;overflow-wrap:anywhere;font-size:13px!important;line-height:1.4;color:#333!important}
+  .mat.paperc .h .x{grid-column:2;grid-row:1;align-self:start;justify-self:end;width:32px;height:32px;font-size:18px}
+  .mat.paperc .pg{height:10px!important;margin-top:11px!important;background:#d4d0c7!important;border:1px solid #777!important}
+  .mat.paperc .pg i{background:#087e72!important;min-width:0}
+  .mat.paperc .us{gap:7px;margin-top:11px}
+  .mat.paperc .us button{min-height:40px!important;height:auto!important;padding:7px 11px!important;font-size:13.5px!important;line-height:1.35;white-space:normal}
+  .mat.paperc .us2{margin:7px 0 8px 5px;padding:8px 0 3px 9px;gap:7px}
+  .mat.paperc .us2 button{min-height:38px!important;height:auto!important;font-size:13px!important;line-height:1.35;white-space:normal}
+  @media(max-width:390px){
+    .sheetp .pr{grid-template-columns:56px minmax(0,1fr) 38px;gap:5px}
+    .sheetp .pr .w{font-size:15px}
+    .mat.paperc .h b{font-size:16px!important}
+    .mat.paperc .h em{font-size:12px!important}
+  }
+  `;
+  document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
+})();
