@@ -556,3 +556,18 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 </script>
 </body>
 </html>
+
+/* v117: call screen focus */
+.app.outside .ahead,.app.outside .ctop,.app.outside .attp{display:none!important}
+.app.outside .log{display:flex!important;flex:1 1 auto!important;min-height:0!important;height:auto!important;max-height:none!important;margin:calc(var(--st) + 8px) 10px 8px!important;padding:16px 14px 12px!important;overflow-y:auto!important;-webkit-mask:none!important;mask:none!important;gap:13px!important;background:rgba(7,12,16,.48);border:1px solid rgba(159,245,228,.16);border-radius:16px}
+.app.outside .log::before{display:none!important}
+.app.outside .agrid{display:flex!important;flex:none!important;justify-content:center!important;align-items:center!important;padding:4px 0 8px!important;margin:0!important}
+.app.outside .agrid>.ab:not(#aPad){display:none!important}
+.app.outside #aPad{display:flex!important;flex-direction:row;gap:9px;width:auto;height:44px;padding:0 18px;border-radius:24px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);font-size:13px}
+.app.outside #aPad i{width:30px;height:30px;background:transparent;backdrop-filter:none}
+.app.outside #aPad svg{width:19px;height:19px}
+.app.outside .quick{display:none!important}
+.app.outside .inrow{flex:none!important;margin:0 10px calc(var(--sb) + 8px)!important}
+.app.outside .inrow #attBtn,.app.outside .inrow #micBtn{display:none!important}
+.app.outside .inrow .f{min-height:48px;font-size:16px}
+@media(max-height:700px){.app.outside .log{margin-top:calc(var(--st) + 4px)!important}}
