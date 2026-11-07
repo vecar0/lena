@@ -314,7 +314,7 @@ function splan() {
   let r, strained = false; const n = (() => { try { return horizon(); } catch (e) { return 31; } })();
   try { r = simulate(n); } catch (e) { console.warn('plan', e); S.planErr = String(e && e.message || e).slice(0, 120); cache = { sig, ...EMPTY, strained }; return cache; }
   S.planErr = '';
-  if (r.late.length) { const r2 = simulate(n, 'max'); if (r2.late.length < r.late.length) { r = r2; strained = true; } }
+  if (r.late.length) { /* 일정이 밀려도 24시간 몰아넣는 강제 배치는 하지 않는다. 실제 가능한 시간 안에서 분산한 계획을 유지한다. */ strained = true; }
   cache = { sig, ...r, strained };
   try { const k = todayK(), D = r.days[0], tot = (D ? D.mins : 0) + (ST().log[k] || []).reduce((a, b) => a + b.mins, 0); if (tot > (ST().pl[k] || 0)) { ST().pl[k] = tot; const ks = Object.keys(ST().pl).sort(); while (ks.length > 14) delete ST().pl[ks.shift()]; } } catch (e) {}
   return cache;
