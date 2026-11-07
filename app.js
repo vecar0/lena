@@ -581,7 +581,7 @@ const REFUSE = /(기능.{0,12}(없|안\s?돼)|직접.{0,10}(못|수\s?(는|가)?
 function parseReply(t) { t = t.replace(/```json|```/g, '').trim(); try { return JSON.parse(t); } catch (e) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (x) {} } const m = t.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); return { reply: m ? unesc(m[1]) : t.slice(0, 400), mood: 'calm' }; } }
 async function gemini(sys, contents, onPart) {
   const userText = [...contents].reverse().find(x => x.role === 'user')?.parts?.map(x => x.text || '').join(' ') || '';
-  const wantsSearch = /(인터넷|웹에서|검색해|찾아봐|찾아 줘|최신 정보|최근 뉴스|자료 조사|출처 찾아)/i.test(userText);
+  const wantsSearch = /(인터넷|웹에서|구글|검색|서칭|찾아봐|찾아 줘|최신 정보|최근 뉴스|자료 조사|출처 찾아)/i.test(userText);
   let lastErr = null; const T0 = Date.now(); // v85: 전체 30초 넘게 붙잡지 않음(멈춘 것처럼 보이던 것)
   for (const m of mChain(wantsSearch)) for (let tryN = 0; tryN < 2; tryN++) {
     if (Date.now() - T0 > 30000) throw lastErr || Object.assign(new Error('slow'), { status: 503 });
