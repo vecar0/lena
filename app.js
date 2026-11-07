@@ -601,7 +601,7 @@ async function gemini(sys, contents, onPart) {
       for (;;) { const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); let k;
         while ((k = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1); if (!line.startsWith('data:')) continue;
           try { const j = JSON.parse(line.slice(5)); const gm = j.candidates?.[0]?.groundingMetadata; if (gm?.groundingChunks) webSources = gm.groundingChunks.map(x => x.web).filter(x => x?.uri).map(x => ({ title: x.title || '검색 결과', uri: x.uri })); const tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join(''); if (tx) { clearTimeout(t1); kick(); if (!first) first = Date.now() - t0; acc += tx; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } } catch (e) {} } }
-      clearTimeout(t1); clearTimeout(t2); if (acc.trim()) { S.model = m; lat(m, first || Date.now() - t0); const out = parseReply(acc); if (wantsSearch && webSources.length) out.reply = String(out.reply || '') + '\\n찾아본 곳: ' + webSources.slice(0, 4).map(x => `${x.title} (${x.uri})`).join(' · '); return out; } break;
+      clearTimeout(t1); clearTimeout(t2); if (acc.trim()) { S.model = m; lat(m, first || Date.now() - t0); const out = parseReply(acc); if (wantsSearch && webSources.length) out.sources = webSources.slice(0, 5); return out; } break;
     } catch (e) { clearTimeout(t1); clearTimeout(t2); if (e.status === 403) throw e; lastErr = e; if (acc.trim()) { S.model = m; return parseReply(acc); } if (e.name === 'AbortError') COOL[m] = Date.now() + 30e3; break; }
   }
   throw lastErr || new Error('none');
