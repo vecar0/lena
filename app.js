@@ -296,46 +296,10 @@ SH[4] = { t: '예약 전화', s: '정한 시간에 레나가 전화해요', r: B
   if (!S.pushOn) B.appendChild(el('div', 'hint', '앱을 닫아 두면 폰 알림으로 와요. 0번 설정에서 폰 알림을 켜 주세요.'));
 } };
 
-// 5 음성사서함 (기억)
-SH[5] = { t: '음성사서함', s: () => `레나가 기억하는 것 ${S.memory.length}개`, r: B => {
-  const c = el('div', 'card'), t = inp('text', '예: 나 오이 싫어해');
-  const go = () => { const v = t.value.trim(); if (!v) return; if (!S.memory.includes(v)) S.memory.push(v.slice(0, 120)); save(); t.value = ''; refreshSheet(); say(pick(['메시지 잘 받았어요. 안 까먹어요.', '…녹음해 뒀어요. 몇 번 더 들어 볼게요.']), 'happy', false); };
-  t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
-  c.append(row(t, btn('남기기', '', go))); B.appendChild(c);
-  B.appendChild(btn('메모 열기', 'ghost wide', () => { if (window.lenaMemo) window.lenaMemo.open(); else toast('메모를 불러오지 못했어.'); }));
-  B.appendChild(el('div', 'hint', '7번 다이얼에서 음성사서함과 메모를 함께 열 수 있어.'));
-  B.appendChild(lbl('저장된 메시지'));
-  if (!S.memory.length) { B.appendChild(empty('아직 비어 있어요.\n취향, 사람, 습관을 남겨 주면 통화할 때 기억해요.', 'st_tape')); return; }
-  const l = el('div', 'list card'); S.memory.slice().reverse().forEach(m => { const r = el('div', 'it'), ic = el('img', 'ic'); ic.src = 'assets/lena/st_tape.webp'; ic.alt = ''; r.append(ic, el('div', 't', m), xbtn(() => { S.memory = S.memory.filter(x => x !== m); save(); refreshSheet(); })); l.appendChild(r); }); B.appendChild(l);
-} };
-
-// 6 공부 → study.js
-
-// 7 모닝콜
-SH[7] = { t: '모닝콜', s: () => S.morning ? `매일 ${S.morning}에 전화해요` : '꺼져 있어요', r: B => {
-  const c = el('div', 'card'), t = inp('time', '', S.morning || '08:00');
-  c.append(row(t, btn(S.morning ? '시간 바꾸기' : '켜기', '', () => { S.morning = t.value || '08:00'; S.mcDone = new Date() >= mcAt(new Date()) ? dk(new Date()) : ''; save(); pushSync(true); refreshSheet(); say(`내일부터 ${S.morning}, 제가 깨워요. 안 받으면 부재중으로 남길 거예요.`, 'tease', false); })));
-  if (S.morning) c.appendChild(row(btn('끄기', 'ghost wide', () => { S.morning = ''; save(); pushSync(true); refreshSheet(); say('모닝콜 껐어요. …아쉽네.', 'pout', false); }), btn('지금 받아 보기', 'teal wide', () => { closeSheet(); incoming('morning', true); })));
-  c.appendChild(el('div', 'hint', '정한 시간에 폰 알림으로 전화가 오고, 받을 때까지 2분마다 다섯 번 더 와요. 앱을 열면 레나가 오늘 일정을 브리핑해요.'));
-  B.appendChild(c);
-  if (S.morning) {
-    B.appendChild(lbl('진짜 알람도 같이'));
-    const a = el('div', 'card');
-    a.append(row(btn(`아이폰 알람에 ${S.morning} 넣기`, 'teal wide', () => { location.href = `shortcuts://run-shortcut?name=${encodeURIComponent('레나 알람')}&input=text&text=${encodeURIComponent(S.morning)}`; })));
-    const h = el('div', 'hint'); h.innerHTML = '앱 알림은 한 번씩만 "띵" 울려요. 무음이어도 크게 계속 울리게 하려면 아이폰 <b>시계 알람</b>을 같이 쓰세요.<details class="fold"><summary>처음 한 번만 준비하는 법</summary>1. 단축어 앱 → + → 이름을 <b>레나 알람</b>으로<br>2. 동작 추가에서 <b>알람 생성</b>(시계)을 고르기<br>3. 시간 칸을 눌러 <b>단축어 입력</b>으로, 레이블은 "레나 모닝콜"<br>4. 완료 → 이제 위 버튼을 누르면 알람이 생겨요</details>';
-    a.appendChild(h); B.appendChild(a);
-  }
-  if (!S.pushOn) B.appendChild(el('div', 'hint', '폰 알림이 꺼져 있으면 앱을 열 때만 울려요. 0번 설정에서 켜 주세요.'));
-} };
-
-// 9 부재중
-SH[9] = { t: '부재중 전화', s: () => { const n = missed().length; return n ? `${n}통` : '없어요'; }, r: B => {
-  const M = missed();
-  if (!M.length) { B.appendChild(empty('놓친 전화가 없어요.\n…착하네요.', 'st_heart')); return; }
-  const l = el('div', 'list card');
-  M.forEach(m => { const r = el('div', 'it missed'), ic = el('img', 'ic'); ic.src = 'assets/lena/' + (m.kind === '전단지' ? 'st_bolt' : 'st_phone') + '.webp'; ic.alt = ''; const tx = el('div', 't', m.text); tx.appendChild(el('small', null, `${m.kind} · ${when(m.at)}`)); r.append(ic, tx); if (m.kind === '전단지') { const b = btn('뗐어요', 'teal', () => { setDone(m.ref, true, b); refreshSheet(); }); b.style.height = '36px'; r.appendChild(b); } l.appendChild(r); });
-  B.appendChild(l);
-  B.appendChild(row(btn('다 확인했어요', 'ghost wide', () => { S.ack = Date.now(); S.calls.forEach(c => { if (c.at <= Date.now()) c.done = true; }); save(); renderHome(); refreshSheet(); say('다음엔 받아요. …기다리는 것도 힘들거든요.', 'pout', false); })));
+// 7 음성사서함 = 빠른 메모 (기억 기능은 0번 설정으로 이동)
+SH[5] = { t: '음성사서함', s: () => `저장한 메모 ${(S.memo || []).length}개`, r: B => {
+  if (window.lenaMemo && window.lenaMemo.render) window.lenaMemo.render(B);
+  else B.appendChild(empty('음성사서함을 불러오는 중이에요.', 'st_tape'));
 } };
 
 // * 통화 기록
@@ -376,6 +340,14 @@ SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
     c.append(row(t, btn('저장', '', () => { const v = t.value.trim(); if (!v) return; if (!/^sk-ant-/.test(v)) { toast('sk-ant-로 시작하는 키를 넣어 주세요.'); return; } S.ckey = v; S.clErr = ''; delete COOL[CLM]; save(); refreshSheet(); say('Claude 키 받았어요. 누가 더 빠른지 제가 재 볼게요.', 'happy', false); })));
     if (S.ckey) c.appendChild(row(btn('Claude 키 지우기', 'ghost', () => { if (!confirm('Claude 키를 지울까요?')) return; S.ckey = ''; if (isCl(S.brain || '')) S.brain = ''; save(); refreshSheet(); })));
     c.appendChild(el('div', 'hint', S.ckey ? (S.clErr ? '⚠ ' + S.clErr + ' — console.anthropic.com에서 확인해 주세요.' : 'Claude Haiku 5.5도 두뇌로 써요. 자동이면 첫 글자가 더 빨리 오는 쪽을 먼저 써요(처음엔 하나씩 재 봐요). 한쪽이 막히면 다른 쪽으로 넘어가요.') : 'console.anthropic.com에서 키를 만들고 충전(5달러~)하면 Claude Haiku로도 대화해요. 하루 30번 쓰면 한 달 약 1,000원. 노트 정리는 Gemini로 해요.')); }
+  B.appendChild(lbl('레나의 기억 · 기존 음성사서함'));
+  { const c = B.appendChild(el('div', 'card')), t = inp('text', '예: 내가 좋아하는 건…');
+    const addMemory = () => { const v = t.value.trim(); if (!v) return; if (!S.memory.includes(v)) S.memory.push(v.slice(0, 120)); save(); refreshSheet(); };
+    c.append(row(t, btn('기억시키기', '', addMemory)));
+    c.appendChild(el('div', 'hint', '예전 음성사서함에 저장했던 취향·습관·사람에 관한 기억이에요. 레나가 대화할 때 참고해요.'));
+    if (!S.memory.length) c.appendChild(el('div', 'hint', '아직 저장된 기억이 없어요.'));
+    else S.memory.slice().reverse().forEach(m => { const r = el('div', 'it'), tx = el('div', 't', m); r.append(tx, xbtn(() => { S.memory = S.memory.filter(x => x !== m); save(); refreshSheet(); })); c.appendChild(r); });
+  }
   B.appendChild(lbl('폰 알림'));
   { const c = B.appendChild(el('div', 'card')), t = inp('url', 'https://…workers.dev', S.srv);
     c.append(row(t, btn('저장', 'ghost', () => { let v = t.value.trim(); if (v && !/^https?:\/\//.test(v)) v = 'https://' + v; S.srv = v; save(); refreshSheet(); })));
@@ -415,7 +387,7 @@ $('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
 $('aCall').onclick = () => { dtmf(4); openSheet(6); };
 $('aMiss').onclick = () => { dtmf(5); openSheet('call'); };
 $('aSet').onclick = () => { dtmf(0); openSheet(0); };
-$('aMemo').onclick = () => { dtmf('#'); if (window.lenaMemo) window.lenaMemo.open(); };
+$('aMemo').onclick = () => { dtmf(7); openSheet(5); };
 
 
 // ---------------- dial pad ----------------
