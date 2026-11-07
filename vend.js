@@ -8,8 +8,8 @@ const css = `
 .bz-led{margin:0 0 8px;padding:10px 10px 8px;background:#0d1f17;border:2px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;font-family:'Space Mono',monospace;color:#7dffb5}
 .bz-led .g{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.bz-led .g div{text-align:center;padding:2px 0;border-right:1px dashed rgba(125,255,181,.25)}.bz-led .g div:last-child{border:0}
 .bz-led small{display:block;font-size:10px;opacity:.7;font-family:Pretendard,sans-serif;font-weight:700}.bz-led b{font-size:14px;text-shadow:0 0 6px rgba(125,255,181,.6)}
-.bz-led .tk{display:flex;gap:10px;margin-top:8px;padding-top:7px;border-top:1px solid rgba(125,255,181,.25);overflow-x:auto;overflow-y:hidden;white-space:nowrap;font-size:11px;mask:none;-webkit-mask:none;scrollbar-width:none}.bz-led .tk::-webkit-scrollbar{display:none}
-.bz-led .tk span{flex:none;display:inline-flex;align-items:center;min-height:22px;padding:2px 5px;border-radius:5px;background:rgba(125,255,181,.08);animation:none}.bz-led .tk .on{color:#ff9bc9;background:rgba(255,111,176,.12);animation:none}
+.bz-led .tk{display:flex;gap:14px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(125,255,181,.2);overflow-x:auto;white-space:nowrap;font-size:11px;-webkit-mask:linear-gradient(90deg,#000 85%,transparent);mask:linear-gradient(90deg,#000 85%,transparent);scrollbar-width:none}.bz-led .tk::-webkit-scrollbar{display:none}
+.bz-led .tk span{flex:none;animation:none}.bz-led .tk .on{color:#ff6fb0;animation:none}
 @keyframes bzTk{from{transform:translateX(0)}to{transform:translateX(-60%)}}@keyframes bzBl{50%{opacity:.3}}
 .bz-ls{display:flex;align-items:center;gap:7px;margin-top:5px;font-size:12px;font-weight:800}.bz-ls .rv{color:#0b7d6e;font-family:'Space Mono',monospace}.bz-ls i{flex:1;min-width:40px;height:7px;border:1.5px solid #17181a;border-radius:4px;background:rgba(0,0,0,.08);overflow:hidden}.bz-ls i u{display:block;height:100%;background:#2fe0c8}.bz-ls i.low u{background:#ff3d9a}.bz-ls .pc{font-size:11px;opacity:.65;font-family:'Space Mono',monospace}
 .bz-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0 8px}
