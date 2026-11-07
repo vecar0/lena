@@ -224,8 +224,23 @@ function renderBundle(B) {
   }
 }
 
+async function summarizeMemo(text) {
+  const raw = String(text || '').trim();
+  if (!raw) throw new Error('정리할 내용을 먼저 적어 주세요.');
+  if (!S.key) throw new Error('Gemini 키가 없어요. 0번 설정에서 Gemini 키를 확인해 주세요.');
+  const parts = [{ text: `과목: 메모
+단원/주제: 사용자가 남긴 메모
+다음 내용을 공부 노트처럼 제목, 소제목별 핵심 내용, 필요한 경우 꼭 기억할 항목과 확인 질문으로 정리해 주세요. 원문에 없는 사실은 추가하지 말고, 날짜·시간·할 일·금액·고유명사는 정확히 보존해 주세요. 메모의 목적과 맥락을 바꾸지 말고, 짧고 명확한 한국어로 정리해 주세요.
+
+원문:
+${raw.slice(0, 60000)}` }];
+  const o = await askNote(parts, null, false);
+  return { title: String(o.title || '메모').slice(0, 40), ...clean(o), at: Date.now() };
+}
+
 window.lenaNotes = {
   render,
+  summarizeMemo,
   has: sb => ST().notes.some(n => n.sub === sb),
   open: (sb, m) => { filterSub = sb; view = m === 'cram' ? 'cram' : m === 'quiz' ? 'quiz' : 'list'; shown = {}; },
   reset: () => { if (keep) { keep = false; return; } if (!busy && view !== 'new') { view = 'list'; } },
