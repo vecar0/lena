@@ -354,8 +354,8 @@ SH['*'] = { t: '통화 기록', s: () => `최근 ${Math.min(S.history.length, 60
 } };
 // 5 전화 = 예약 전화 + 부재중 + 통화 기록 (탭)
 SH.call = { t: '전화', s: () => { const n = missed().length, c = S.calls.filter(x => !x.done && x.at > Date.now()).length; return `${n ? `부재중 ${n}통 · ` : ''}예약 ${c}개`; }, r: B => {
-  const T = el('div', 'tabs'), n = missed().length; [['res', '예약 전화'], ['miss', n ? `부재중 ${n}` : '부재중'], ['log', '통화 기록']].forEach(([v, l]) => { const b = el('button', callTab === v ? 'on' : '', l); b.onclick = () => { callTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
-  SH[{ res: 4, miss: 9, log: '*' }[callTab]].r(B);
+  const T = el('div', 'tabs'), n = missed().length; [['res', '예약 전화'], ['miss', n ? `부재중 ${n}` : '부재중'], ['log', '통화 기록'], ['vm', '음성사서함']].forEach(([v, l]) => { const b = el('button', callTab === v ? 'on' : '', l); b.onclick = () => { callTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
+  if (callTab === 'vm') SH[5].r(B); else SH[{ res: 4, miss: 9, log: '*' }[callTab]].r(B);
 } };
 
 // 0 설정
