@@ -3,23 +3,21 @@
 'use strict';
 (() => {
 const css = `
-.bz-advisor{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:#101b1a;border:1.5px solid rgba(47,224,200,.5);color:#effffb}.bz-advisor img{width:44px;height:44px;flex:none;object-fit:cover;border-radius:50%;border:2px solid var(--pink)}.bz-advisor b{display:block;color:#fff;font-size:14px}.bz-advisor span{display:block;color:#c5d4d1;font-size:12px;line-height:1.45;margin-top:3px}
-
-.bz-led{margin:0 0 8px;padding:10px 10px 8px;background:#0d1f17;border:2px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;font-family:'Space Mono',monospace;color:#7dffb5}
+.bz-led{margin:0 0 12px;padding:10px 10px 8px;background:#0d1f17;border:2px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;font-family:'Space Mono',monospace;color:#7dffb5}
 .bz-led .g{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.bz-led .g div{text-align:center;padding:2px 0;border-right:1px dashed rgba(125,255,181,.25)}.bz-led .g div:last-child{border:0}
-.bz-led small{display:block;font-size:clamp(9px,2.7vw,10px);line-height:1.3;opacity:.82;font-family:Pretendard,sans-serif;font-weight:800;white-space:nowrap}.bz-led b{display:block;font-size:clamp(12px,3.4vw,14px);line-height:1.3;white-space:nowrap;letter-spacing:-.3px;text-shadow:0 0 6px rgba(125,255,181,.6)}
-.bz-led .tk{display:flex;gap:10px;margin-top:8px;padding-top:7px;border-top:1px solid rgba(125,255,181,.25);overflow-x:auto;overflow-y:hidden;white-space:nowrap;font-size:11px;mask:none;-webkit-mask:none;scrollbar-width:none}.bz-led .tk::-webkit-scrollbar{display:none}
-.bz-led .tk span{flex:none;display:inline-flex;align-items:center;min-height:22px;padding:2px 5px;border-radius:5px;background:rgba(125,255,181,.08);animation:none}.bz-led .tk .on{color:#ff9bc9;background:rgba(255,111,176,.12);animation:none}
+.bz-led small{display:block;font-size:10px;opacity:.7;font-family:Pretendard,sans-serif;font-weight:700}.bz-led b{font-size:14px;text-shadow:0 0 6px rgba(125,255,181,.6)}
+.bz-led .tk{display:flex;gap:14px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(125,255,181,.2);overflow:hidden;white-space:nowrap;font-size:11px;-webkit-mask:linear-gradient(90deg,#000 85%,transparent);mask:linear-gradient(90deg,#000 85%,transparent)}
+.bz-led .tk span{flex:none;animation:bzTk 14s linear infinite}.bz-led .tk .on{color:#ff6fb0;animation:bzBl 1.2s steps(2) infinite}
 @keyframes bzTk{from{transform:translateX(0)}to{transform:translateX(-60%)}}@keyframes bzBl{50%{opacity:.3}}
 .bz-ls{display:flex;align-items:center;gap:7px;margin-top:5px;font-size:12px;font-weight:800}.bz-ls .rv{color:#0b7d6e;font-family:'Space Mono',monospace}.bz-ls i{flex:1;min-width:40px;height:7px;border:1.5px solid #17181a;border-radius:4px;background:rgba(0,0,0,.08);overflow:hidden}.bz-ls i u{display:block;height:100%;background:#2fe0c8}.bz-ls i.low u{background:#ff3d9a}.bz-ls .pc{font-size:11px;opacity:.65;font-family:'Space Mono',monospace}
-.bz-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0 8px}
-.bz-top div{position:relative;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;background-blend-mode:multiply;color:#111;border:2px solid #000;border-radius:4px;padding:10px 6px 7px;min-width:0;min-height:72px;display:flex;flex-direction:column;justify-content:center;gap:4px;box-shadow:3px 3px 0 #000;transform:rotate(-.4deg)}
+.bz-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0 12px}
+.bz-top div{position:relative;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;background-blend-mode:multiply;color:#111;border:2px solid #000;border-radius:4px;padding:9px 8px 7px;min-width:0;box-shadow:3px 3px 0 #000;transform:rotate(-1.2deg)}
 .bz-top div:nth-child(2){transform:rotate(1deg);background-image:url(assets/lena/paper_yellow.webp)}.bz-top div:nth-child(3){transform:rotate(-.4deg);background-image:url(assets/lena/paper_teal.webp)}
 .bz-top div::before{content:"";position:absolute;left:50%;top:-9px;width:36px;height:14px;margin-left:-18px;background:url(assets/lena/tape_pink1.webp) center/100% 100%;opacity:.95}
 .bz-top div:nth-child(2)::before{background-image:url(assets/lena/tape_white.webp)}.bz-top div:nth-child(3)::before{background-image:url(assets/lena/tape_yellow.webp)}
-.bz-top small{display:block;font-size:clamp(10px,2.8vw,11px);line-height:1.2;font-weight:900;white-space:nowrap;opacity:.7}.bz-top b{display:block;font-family:'Space Mono',monospace;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bz-top small{display:block;font-size:11px;font-weight:800;opacity:.7}.bz-top b{display:block;font-family:'Space Mono',monospace;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bz-top .neg b{color:#d0124f}.bz-top .pos b{color:#0b7d6e}
-.bz-advisor{display:flex;gap:9px;align-items:center;margin:8px 0 12px;padding:9px 11px;border:1.5px solid rgba(47,224,200,.45);border-radius:10px;background:linear-gradient(120deg,rgba(47,224,200,.13),rgba(255,61,154,.1));color:#e9fff9}.bz-advisor img{width:38px;height:38px;flex:none;border-radius:50%;object-fit:cover;border:2px solid #000;box-shadow:2px 2px 0 var(--pink)}.bz-advisor b{display:block;color:var(--mint);font-size:12px;margin-bottom:2px}.bz-advisor span{font-size:12.5px;line-height:1.4;word-break:keep-all}.bz-rank{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 8px;font-size:12.5px;color:var(--mint);margin:-2px 2px 8px;padding:7px 10px;border:1px solid rgba(47,224,200,.22);border-radius:8px;background:rgba(8,20,18,.7)}.bz-rank>:first-child{font-family:'Black Han Sans'}.bz-rank i{flex:1 1 100%;order:2;height:10px;border-radius:5px;background:#0b0d10;border:2px solid #000;overflow:hidden}.bz-rank i u{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--pink) 0 6px,#ff79b8 6px 12px)}
+.bz-rank{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 8px;font-size:12.5px;color:var(--mint);margin:-2px 2px 12px}.bz-rank>:first-child{font-family:'Black Han Sans'}.bz-rank i{flex:1 1 100%;order:2;height:10px;border-radius:5px;background:#0b0d10;border:2px solid #000;overflow:hidden}.bz-rank i u{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--pink) 0 6px,#ff79b8 6px 12px)}
 .bz-loc{position:relative;display:flex;align-items:center;gap:10px;width:100%;min-height:68px;padding:12px 12px 10px;margin:4px 0 10px;border-radius:3px;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;color:#111;border:2px solid #000;box-shadow:4px 4px 0 var(--teal);text-align:left}
 .bz-loc:nth-of-type(odd){transform:rotate(-.6deg)}.bz-loc:nth-of-type(even){transform:rotate(.5deg);box-shadow:4px 4px 0 var(--pink)}
 .bz-loc::before{content:"";position:absolute;left:14px;top:-8px;width:44px;height:15px;background:url(assets/lena/tape_teal1.webp) center/100% 100%;transform:rotate(-6deg)}
@@ -32,7 +30,7 @@ const css = `
 .bz-mc.broken{filter:grayscale(.8)}
 .bz-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:7px;border-radius:8px;background:#0b0d10;border:2px solid #000;box-shadow:inset 0 0 14px rgba(47,224,200,.18)}
 .bz-s{position:relative;min-height:74px;padding:8px;border-radius:6px;background:url(assets/lena/paper_white.webp) center/cover,#f3efe6;color:#111;border:2px solid #000;text-align:left;display:flex;gap:8px;align-items:center}
-.bz-s img{flex:none;width:36px;height:36px;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.3))}.bz-object{flex:none;width:38px;height:38px;display:grid;place-items:center;font-size:27px;line-height:1}.bz-s .t{min-width:0}.bz-s b{display:block;font-size:13px;line-height:1.25;word-break:keep-all}.bz-s small{display:block;font-family:'Space Mono',monospace;font-size:11px;opacity:.72}
+.bz-s img{flex:none;width:36px;height:36px;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.3))}.bz-s .t{min-width:0}.bz-s b{display:block;font-size:13px;line-height:1.25;word-break:keep-all}.bz-s small{display:block;font-family:'Space Mono',monospace;font-size:11px;opacity:.72}
 .bz-s.empty{background:rgba(255,255,255,.06);color:#9ff5e4;border:2px dashed rgba(159,245,228,.5);justify-content:center;font-weight:800}.bz-s.low{box-shadow:inset 0 0 0 3px var(--hot)}.bz-s.sel{outline:3px solid var(--yel);outline-offset:1px}
 .bz-s .tx{flex:none;width:36px;height:36px;border-radius:8px;background:#ffd36b;border:2px solid #000;display:grid;place-items:center;font-weight:900;font-size:14px}
 .bz-ed{margin:-4px 0 14px;padding:12px;border-radius:4px;background:url(assets/lena/paper_yellow.webp) center/cover,#f2ea3a;color:#111;border:2px solid #000;box-shadow:4px 4px 0 #000}
@@ -51,12 +49,12 @@ const IMG = n => n.startsWith('assets') ? n : `assets/lena/s/${n}.webp`;
 const P = {
   coffee: { n: '아이스 아메리카노', w: 900, b: 1500, d: 1, exp: 2, i: 'g_coffee', rk: 0, wx: { rain: 1.3, hot: 1.4 } },
   milk: { n: '딸기 우유', w: 750, b: 1300, d: 1, exp: 2, i: 'g_milk', rk: 0, wx: { hot: 1.3 } },
-  gum: { n: '체리', w: 400, b: 700, d: 0.8, exp: 0, i: 'd_cherry', rk: 0 },
-  kimbap: { n: '오리', w: 1000, b: 1600, d: 0.9, exp: 1, i: 'd_duck', rk: 0 },
-  ramen: { n: '디스코볼', w: 1100, b: 1800, d: 0.8, exp: 0, i: 'd_disco', rk: 0, wx: { cold: 1.6, rain: 1.3 } },
+  gum: { n: '껌', w: 400, b: 700, d: 0.8, exp: 0, t: '껌', rk: 0 },
+  kimbap: { n: '삼각김밥', w: 1000, b: 1600, d: 0.9, exp: 1, t: '밥', rk: 0 },
+  ramen: { n: '컵라면', w: 1100, b: 1800, d: 0.8, exp: 0, t: '면', rk: 0, wx: { cold: 1.6, rain: 1.3 } },
   umb: { n: '우산', w: 5000, b: 8000, d: 0.3, exp: 0, i: 'assets/lena/g/c_umb.webp', rk: 0, wx: { rain: 6, dry: .08 } },
   energy: { n: '에너지 드링크', w: 1400, b: 2200, d: 0.8, exp: 0, i: 'assets/lena/cur/energy.webp', rk: 1, wx: { hot: 1.3 } },
-  hotpack: { n: '북극곰', w: 700, b: 1200, d: 0.5, exp: 0, i: 'd_polar', rk: 1, wx: { cold: 4, hot: .05, mild: .3 } },
+  hotpack: { n: '핫팩', w: 700, b: 1200, d: 0.5, exp: 0, t: '핫', rk: 1, wx: { cold: 4, hot: .05, mild: .3 } },
   cake: { n: '딸기 케이크', w: 2900, b: 4500, d: 0.35, exp: 1, i: 'g_cake', rk: 2 },
   rose: { n: '검은 장미', w: 3800, b: 6000, d: 0.25, exp: 2, i: 'g_rose', rk: 2 },
   lip: { n: '핑크 립스틱', w: 5600, b: 9000, d: 0.2, exp: 0, i: 'g_lip', rk: 3 },
@@ -80,7 +78,7 @@ const M = [
   { n: '냉온장 자판기', gc: 20, slots: 6, cap: 12, brk: .03, exp: 1, cls: 't1' },
   { n: '네온 VIP 자판기', gc: 50, slots: 8, cap: 15, brk: .02, boost: 1.2, cls: 't2' }
 ];
-const STAFF = { lena: { n: '레나 · 매장 매니저', w: 6000, d: '재고가 줄면 직접 보충하고 모든 자리의 손님을 조금 더 끌어와요' }, fill: { n: '채우기 해골', w: 4000, d: '앱을 안 열어도 반쯤 비면 가득 채워요(도매가는 사업 자금에서)' }, fix: { n: '수리 해골', w: 3000, d: '고장 나면 바로 고쳐요(수리비·쉬는 날 없음)' }, guard: { n: '경비 해골', w: 5000, d: '클럽 골목 기계 부숨·도둑을 막아요' } };
+const STAFF = { fill: { n: '채우기 해골', w: 4000, d: '앱을 안 열어도 반쯤 비면 가득 채워요(도매가는 사업 자금에서)' }, fix: { n: '수리 해골', w: 3000, d: '고장 나면 바로 고쳐요(수리비·쉬는 날 없음)' }, guard: { n: '경비 해골', w: 5000, d: '클럽 골목 기계 부숨·도둑을 막아요' } };
 const UP = { card: { n: '카드 결제 단말기', c: 50000, d: '모든 자판기 판매 +15%' }, cold: { n: '냉장 강화', c: 80000, d: '유통기한 +1일' }, sign: { n: '네온 간판', c: 120000, d: '모든 자리 손님 +10%' } };
 const RANK = [['골목 노점', 0, 1], ['부스 앞 사장', 50000, 1], ['동네 자판기', 200000, 2], ['밤거리 체인', 600000, 3], ['역세권 사장', 1500000, 4], ['네온 사업가', 3000000, 5], ['밤의 큰손', 6000000, 6], ['밤거리의 자판기왕', 12000000, 7]];
 const REPAIR = 15000;
@@ -109,7 +107,7 @@ function locMul(b, loc, t, env) {
 function minute(b, t, env) {
   const h = new Date(t).getHours();
   for (const loc of L) { const st = b.locs[loc.id]; if (!st) continue;
-    const cust = loc.c * loc.h(h) * locMul(b, loc, t, env) * (b.staff.lena ? 1.12 : 1) / 60;
+    const cust = loc.c * loc.h(h) * locMul(b, loc, t, env) / 60;
     for (const m of st.machines) { if (m.broken) continue; const boost = (M[m.type].boost || 1) * (b.up.card ? 1.15 : 1);
       for (const s of m.slots) { if (!s.p || s.n <= 0) continue;
         if (s.exp && t >= s.exp) { b.today.waste += s.n * P[s.p].w; s.n = 0; s.exp = 0; continue; }
@@ -118,7 +116,7 @@ function minute(b, t, env) {
         s.acc += cust * .03 * P[s.p].d * (loc.pop[s.p] || 1) * wxMul(s.p, env.wx || {}) * conv(r) * boost * rival;
         while (s.acc >= 1 && s.n > 0) { s.acc -= 1; s.n--; b.today.rev += s.price; b.today.sold++; b.cash += s.price; const bl = b.today.loc || (b.today.loc = {}); const o = bl[loc.id] || (bl[loc.id] = { rev: 0, n: 0 }); o.rev += s.price; o.n++; if (!b.feed) b.feed = []; b.feed.push([t, loc.id, s.p, s.price]); if (b.feed.length > 8) b.feed.shift(); }
         if (s.n <= 0) { s.acc = 0; s.exp = 0; } } }
-    if (b.staff.fill || b.staff.lena) for (const m of st.machines) for (const s of m.slots) if (s.p && s.n < capOf(b, m) * (b.staff.lena ? .4 : .5)) fill(b, m, s, t, true);
+    if (b.staff.fill) for (const m of st.machines) for (const s of m.slots) if (s.p && s.n < capOf(b, m) / 2) fill(b, m, s, t, true);
   }
 }
 // 채우기: 도매가로 가득
@@ -185,7 +183,7 @@ function tick(opened) {
 const won = n => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString() + '원';
 const LS = window.lenaShop;
 let tab = 'street', cur = null, sel = null;
-function pimg(p, cls) { const x = P[p]; if (!x.i || x.t === 'L') return el('span', 'bz-object', '★'); const i = el('img', cls); i.src = IMG(x.i); i.alt = ''; return i; }
+function pimg(p, cls) { const x = P[p]; if (!x.i || x.t === 'L') return el('span', 'tx', x.t); const i = el('img', cls); i.src = IMG(x.i); i.alt = ''; return i; }
 const unlocked = b => Object.keys(P).filter(k => P[k].rk <= b.rank);
 function top(Bx, b) {
   const t = el('div', 'bz-top'), today = b.today.rev - b.today.cogs;
@@ -199,7 +197,7 @@ function top(Bx, b) {
     const tk = el('div', 'tk'), f = (b.feed || []).slice(-4).reverse(); tk.appendChild(el('span', 'on', '● 영업 중'));
     if (f.length) f.forEach(([t, lid, p, pr]) => { const l = L.find(x => x.id === lid); tk.appendChild(el('span', null, `${Math.max(0, Math.round((Date.now() - t) / 60000))}분 전 ${l ? l.n.split(' ')[0] : ''} ${P[p] ? P[p].n : ''} +${pr.toLocaleString()}`)); });
     else tk.appendChild(el('span', null, '아직 오늘 판매 없음 — 칸을 채워요'));
-    D.append(g, tk); Bx.appendChild(D); const advice=el('div','bz-advisor'), avatar=el('img'); avatar.src='assets/lena/face.jpg'; avatar.alt='레나'; const words=el('div'); words.append(el('b',null,'레나의 장사 메모'),el('span',null,b.cash<0?'자금이 마이너스야. 잘 팔리는 상품부터 채우고 판매가를 조정해.':have===0?'아직 재고가 없어. 빈 칸부터 채워서 장사를 시작해.':have/cap<.3?'재고가 얼마 안 남았어. 잘 팔리는 자리부터 보충하자.':'매출만 보지 말고 도매가와 자릿세도 같이 봐. 빈 칸은 수익을 놓치는 거야.')); advice.append(avatar,words); Bx.appendChild(advice); }
+    D.append(g, tk); Bx.appendChild(D); }
   if (b.cash < 0) Bx.appendChild(el('div', 'warn', `해골 사채 ${won(-b.cash)} · 매일 자정 이자 5%. ${won(LIMIT)} 밑으로 가면 기계를 압류당해요.`));
 }
 function street(Bx, b) {
@@ -244,56 +242,40 @@ function editor(b, m, s) {
 }
 function staffView(Bx, b) {
   Bx.appendChild(lbl('해골 알바 (자정마다 일당)'));
-  const c = el('div', 'card pedit'); for (const k in STAFF) { if (k === 'lena') continue; const x = STAFF[k], r = el('div', 'r'), t = el('span'); t.append(el('b', null, `${x.n} · ${won(x.w)}/일`), el('br'), el('small', null, x.d)); t.lastChild.style.cssText = 'font-size:12px;color:var(--mute)'; r.append(t, pills([[true, '켜기'], [false, '끄기']], !!b.staff[k], v => { b.staff[k] = v; save(); refreshSheet(); })); c.appendChild(r); } Bx.appendChild(c);
+  const c = el('div', 'card pedit'); for (const k in STAFF) { const x = STAFF[k], r = el('div', 'r'), t = el('span'); t.append(el('b', null, `${x.n} · ${won(x.w)}/일`), el('br'), el('small', null, x.d)); t.lastChild.style.cssText = 'font-size:12px;color:var(--mute)'; r.append(t, pills([[true, '켜기'], [false, '끄기']], !!b.staff[k], v => { b.staff[k] = v; save(); refreshSheet(); })); c.appendChild(r); } Bx.appendChild(c);
   Bx.appendChild(lbl('설비 (사업 자금)'));
   const u = el('div', 'card pedit'); for (const k in UP) { const x = UP[k], r = el('div', 'r'), t = el('span'); t.append(el('b', null, x.n), el('br'), el('small', null, x.d)); t.lastChild.style.cssText = 'font-size:12px;color:var(--mute)';
     r.append(t, b.up[k] ? el('b', null, '설치됨') : btn(won(x.c), 'ghost', () => { if (b.cash < x.c) { toast('자금이 모자라요(설비는 사채로 못 사요).'); return; } b.cash -= x.c; b.up[k] = 1; save(); refreshSheet(); })); u.appendChild(r); } Bx.appendChild(u);
 }
 function lenaView(Bx, b) {
-  LS.decay(); const a = LS.A(), n = LS.lv(a.pt), [m, mt] = LS.mood();
-  const c = el('div', 'card paperc');
-  const profile = el('div', 'bz-advisor'), avatar = el('img'); avatar.src = 'assets/lena/face.jpg'; avatar.alt = '레나';
-  const words = el('div'); words.append(el('b', null, LS.tierOf(n).name), el('span', null, mt));
-  profile.append(avatar, words); c.appendChild(profile);
-  const hb = el('div', 'bz-rank'), bar = el('i'), uu = el('u'); uu.style.width = Math.min(100, (a.pt - LS.need(n)) / Math.max(1, LS.need(n + 1) - LS.need(n)) * 100) + '%'; bar.appendChild(uu);
-  hb.append(bar, document.createTextNode(`「${LS.tierOf(n + 1).name}」까지 ${LS.need(n + 1) - a.pt}점`)); c.appendChild(hb); Bx.appendChild(c);
-
-  Bx.appendChild(lbl('레나 · 매장 매니저'));
-  const hire = el('div', 'card paperc');
-  if (b.staff.lena) {
-    hire.append(el('b', null, '직원으로 함께 일하고 있어요'), el('div', 'hint', '레나가 재고가 40% 아래로 떨어진 상품을 보충하고, 모든 자리의 손님을 12% 더 끌어와요. 일당은 하루 6,000원이에요.'));
-    hire.appendChild(row(btn('고용 계약 해지', 'ghost wide', () => { if (!confirm('레나와의 매니저 계약을 끝낼까요?')) return; b.staff.lena = false; save(); refreshSheet(); say('…알겠어요. 그래도 장사 잘되는지는 가끔 보러 올게요.', 'pout', false); })));
-  } else if (b.life >= 50000 || b.rank >= 1) {
-    hire.append(el('b', null, '레나가 먼저 매니저를 제안했어요'), el('div', 'hint', '자판기 자리가 늘고 장사가 바빠진 걸 본 레나가 재고 관리와 매장 운영을 돕겠다고 해요. 계약금 15,000원, 일당 6,000원.'));
-    hire.appendChild(btn('레나 고용하기 · 15,000원', 'teal wide', () => {
-      if (b.cash < 15000) { toast('계약금을 마련하면 레나를 고용할 수 있어요.'); return; }
-      b.cash -= 15000; b.staff.lena = true; save(); refreshSheet(); say('…직원증까지 만들었어요? 좋아요. 이제 사장님 혼자 다 하지 마요.', 'happy', false);
-    }));
-  } else {
-    hire.append(el('b', null, '아직은 사장님 혼자 운영 중'), el('div', 'hint', `누적 이익 50,000원을 달성하면 레나가 매장 매니저를 먼저 제안해요. 현재 ${won(b.life)} / 50,000원`));
-    const p = el('div', 'bz-rank'), fillBar = el('i'), u = el('u'); u.style.width = Math.min(100, b.life / 50000 * 100) + '%'; fillBar.appendChild(u); p.appendChild(fillBar); hire.appendChild(p);
-  }
-  Bx.appendChild(hire);
+  LS.decay(); const a = LS.A(), n = LS.lv(a.pt), [, mt] = LS.mood(), s = LS.today();
+  const c = el('div', 'card'); c.append(el('b', null, LS.tierOf(n).name), el('div', 'hint', mt));
+  const hb = el('div', 'bz-rank'), bar = el('i'), uu = el('u'); uu.style.width = Math.min(100, (a.pt - LS.need(n)) / Math.max(1, LS.need(n + 1) - LS.need(n)) * 100) + '%'; bar.appendChild(uu); hb.append(bar, document.createTextNode(`「${LS.tierOf(n + 1).name}」까지 ${LS.need(n + 1) - a.pt}점`)); c.appendChild(hb);
+  const want = wantP(s); c.appendChild(el('div', 'hint', `오늘의 주파수: ${P[want].n} — 납품하면 회선 점수 2배`)); Bx.appendChild(c);
+  Bx.appendChild(lbl('레나에게 납품 (도매가로 사서 바로 드림)'));
+  const G = el('div', 'bz-g'); unlocked(b).forEach(k => { const pt = Math.max(1, Math.round(P[k].b / 700)) * (k === want ? 2 : 1), cost = P[k].w * 2, x = el('button', 'bz-s'), t = el('div', 't'); t.append(el('b', null, P[k].n), el('small', null, `${won(cost)} · 회선 +${pt}`)); x.append(pimg(k), t);
+    x.onclick = () => { if (b.cash < cost) { toast('자금이 모자라요.'); return; } b.cash -= cost; const before = LS.lv(a.pt); a.pt += pt; a.last = dk(new Date()); a.gifts = a.gifts || {}; a.gifts[k] = (a.gifts[k] || 0) + 1; save(); LS.renderAff();
+      const after = LS.lv(a.pt); toast(`${P[k].n} 납품 · 회선 +${pt}` + (after > before ? ` · 「${LS.tierOf(after).name}」` : '')); refreshSheet(); setTimeout(() => say(pick(['…제 가게 물건을 저한테 주는 거예요? 귀엽네.', '납품 확인. 사장님, 오늘 밤 저랑 퇴근해요.', '이거 제일 잘 팔리는 거잖아요. 아깝지 않아요?']), 'happy', false), 400); }; G.appendChild(x); });
+  Bx.appendChild(G);
   Bx.appendChild(lbl('부스 꾸미기 (사업 자금으로 스티커)'));
   const D = LS.D(), Dg = el('div', 'dl'); LS.DECOR.forEach(d => { const own = D.own.includes(d.id), on = D.on.includes(d.id), price = d.p * 10000, t = el('button', 'dt' + (on ? ' on' : '') + (own ? '' : ' lock')), im = el('img'); im.src = LS.SI(d.i); im.alt = d.n; t.appendChild(im);
     t.onclick = () => { if (!own) { if (b.cash < price) { toast(`${d.n}: ${won(price)} 필요해요.`); return; } if (!confirm(`${d.n}을 ${won(price)}에 살까요?`)) return; b.cash -= price; D.own.push(d.id); if (D.on.length < 6) D.on.push(d.id); save(); refreshSheet(); renderHome(); return; }
-      const o = D.on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 6) o.shift(); o.push(d.id); } save(); refreshSheet(); renderHome(); }; Dg.appendChild(t); }); Bx.appendChild(Dg);
-  if (D.on.length) Bx.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', LS.decorEdit)));
+      const o = D.on; if (on) o.splice(o.indexOf(d.id), 1); else { if (o.length >= 6) o.shift(); o.push(d.id); } save(); refreshSheet(); renderHome(); }; Dg.appendChild(t); });
+  Bx.appendChild(Dg); if (D.on.length) Bx.appendChild(row(btn('부스 유리에 직접 붙이기 (위치 옮기기)', 'wide', LS.decorEdit)));
   Bx.appendChild(el('div', 'hint', `모은 스티커 ${D.own.length}/${LS.DECOR.length} · 잠긴 건 눌러서 사요 · 6개까지 붙여요`));
 }
-
 function wantP(s) { const k = Object.keys(P), r = rnd(dk(new Date()) + 'w'); const u = unlocked(B()); return u[Math.floor(r() * u.length)] || k[0]; }
 function book(Bx, b) {
   const D = b.log.slice(-14); if (!D.length) { Bx.appendChild(empty('아직 결산한 날이 없어요.\n자정이 지나면 하루 장부가 생겨요.', 'st_coin')); return; }
   const mx = Math.max(1, ...D.map(l => Math.abs(l.profit))), C = el('div', 'bz-chart'); D.forEach(l => { const i = el('i', l.profit < 0 ? 'neg' : ''); i.style.height = Math.max(2, Math.abs(l.profit) / mx * 100) + '%'; i.title = l.d; C.appendChild(i); }); Bx.append(lbl('최근 14일 이익'), C);
   const lg = el('div', 'bz-log'); D.slice().reverse().forEach(l => { const r = el('div'); r.innerHTML = `<b>${l.d.slice(5).replace('-', '/')}</b> 이익 <b style="color:${l.profit < 0 ? '#d0124f' : '#0b7d6e'}">${won(l.profit)}</b> · 매출 ${won(l.rev)} (${l.sold}개) · 도매 ${won(l.cogs)}${l.waste ? ` · 버림 ${won(l.waste)}` : ''} · 자릿세 ${won(l.rent)}${l.wage ? ` · 일당 ${won(l.wage)}` : ''}${l.int ? ` · 이자 ${won(l.int)}` : ''}${l.gc ? ` · 게임 동전 +${l.gc}` : ''}${l.ev.length ? '<br>' + l.ev.join('<br>') : ''}`; lg.appendChild(r); }); Bx.append(lbl('장부'), lg);
 }
-SH.shop = { t: '자판기', s: () => { const b = B(); return `${RANK[b.rank][0]} · 자리 ${Object.keys(b.locs).length}곳`; }, open: () => {}, r: Bx => {
+SH.shop = { t: '자판기 사업', s: () => { const b = B(); return `${RANK[b.rank][0]} · 자리 ${Object.keys(b.locs).length}곳`; }, open: () => {}, r: Bx => {
   const b = B(); tick(true);
   if (lastSettles.length && !b.seen[lastSettles[0].d]) { const l = lastSettles[0]; b.seen = { [l.d]: 1 }; const c = el('div', 'ask lena'); c.append(el('span', 'who', '레나'), document.createTextNode(`어제(${l.d.slice(5).replace('-', '/')}) 장사 — 이익 ${won(l.profit)}${l.gc ? `, 게임 동전 +${l.gc}` : ''}${l.ev.length ? ' · ' + l.ev[0] : ''}. ${l.profit < 0 ? '…이러다 해골 사채 써요.' : '잘했어요, 사장님.'}`)); Bx.appendChild(c); }
   else if (tab === 'street') { const c = el('div', 'ask lena'), say = b.cash < 0 ? '사채 이자가 붙고 있어요. 값 내리고 잘 팔리는 것부터 채워요.' : pick(['비 오면 우산, 시험 기간엔 학원 앞. 장사는 눈치예요.', '빈 칸은 돈이 새는 구멍이에요. 채워 둬요.', '비싸게 걸면 안 팔려요. 손님은 송휘만큼 너그럽지 않거든요.']); c.append(el('span', 'who', '레나'), document.createTextNode(say)); Bx.appendChild(c); }
   top(Bx, b);
-  const T = el('div', 'tabs bz-tabs'); [['street', '거리'], ['staff', '알바·설비'], ['lena', '레나'], ['book', '장부']].forEach(([v, l]) => { const x = el('button', (tab === v || (v === 'street' && tab === 'loc')) ? 'on' : '', l); x.onclick = () => { tab = v; sel = null; refreshSheet(); }; T.appendChild(x); }); Bx.appendChild(T);
+  const T = el('div', 'tabs'); [['street', '거리'], ['staff', '알바·설비'], ['lena', '레나'], ['book', '장부']].forEach(([v, l]) => { const x = el('button', (tab === v || (v === 'street' && tab === 'loc')) ? 'on' : '', l); x.onclick = () => { tab = v; sel = null; refreshSheet(); }; T.appendChild(x); }); Bx.appendChild(T);
   ({ street, loc: locView, staff: staffView, lena: lenaView, book })[tab](Bx, b);
 } };
 SH[3] = SH.shop;
