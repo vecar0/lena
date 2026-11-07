@@ -46,7 +46,7 @@ const css = `
 .ttp .tt .now{border-top:2px solid #d6204f}.ttp .tt .now::before{content:"";position:absolute;left:-3px;top:-5px;width:8px;height:8px;border-radius:50%;background:#d6204f}
 .ttwk{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.ttwk b{font-family:'Black Han Sans';font-weight:400;font-size:18px}.ttwk .btn{width:44px;height:40px;padding:0}
 .ttp .tt .blk.one{background:color-mix(in srgb,#ff5fa8 30%,#fff);border:2px dashed #d6204f}
-.ttp .tt .blk.dl{background:rgba(242,234,58,.85);border:1.5px solid #17181a;border-radius:2px;font-size:9px;box-shadow:none;z-index:2;display:flex;align-items:flex-end}
+.ttp .tt .blk.dl{background:#f2ea3a;border:1.5px solid #17181a;border-radius:8px;font-size:10px;font-weight:800;padding:1px 5px;line-height:12px;box-shadow:1px 1px 0 #17181a;z-index:4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ttp .tt .blk.sh{white-space:nowrap;text-overflow:ellipsis;font-size:9.5px;line-height:1.1;padding-top:1px}
 .ttp .ttlg i.one{border:2px dashed #d6204f;background:color-mix(in srgb,#ff5fa8 30%,#fff)}.ttp .ttlg i.dl{background:#f2ea3a;border:1.5px solid #17181a}
 .brief{display:flex;flex-direction:column;gap:12px}
@@ -128,12 +128,13 @@ const _br = boardRender; boardRender = function (B) {
     for (let h = lo + 1; h < hi; h++) { const l = el('div', 'ln'); l.style.top = ((h - lo) * PX) + 'px'; c.appendChild(l); }
     // 같은 시간에 겹치면 옆으로 나란히(덮지 않게)
     const evs = ev[dk(x)].sort((a, b) => a.s - b.s || b.e - a.e); let cl = [], clE = -1; const flush = () => { const n = Math.max(...cl.map(o => o.lane)) + 1; cl.forEach(o => { o.n = n; }); cl = []; clE = -1; };
-    evs.filter(o => !o.school).forEach(o => { if (cl.length && o.s >= clE) flush(); const used = new Set(cl.filter(y => y.e > o.s).map(y => y.lane)); let ln = 0; while (used.has(ln)) ln++; o.lane = ln; cl.push(o); clE = Math.max(clE, o.e); }); if (cl.length) flush();
+    evs.filter(o => !o.school && o.k !== 'dl').forEach(o => { if (cl.length && o.s >= clE) flush(); const used = new Set(cl.filter(y => y.e > o.s).map(y => y.lane)); let ln = 0; while (used.has(ln)) ln++; o.lane = ln; cl.push(o); clE = Math.max(clE, o.e); }); if (cl.length) flush();
     evs.forEach(o => {
       const b = el('button', 'blk ' + o.k); b.style.top = ((o.s - lo * 60) / 60 * PX) + 'px'; b.style.height = Math.max(16, (o.e - o.s) / 60 * PX - 2) + 'px';
-      if (o.school) { b.style.left = '22%'; b.style.right = '3px'; b.style.zIndex = 3; b.style.boxShadow = '0 0 0 2px #fff'; } /* v108: 학교 안에 겹쳐서 보이게 */
+      if (o.k === 'dl') { b.style.top = ((o.e - lo * 60) / 60 * PX - 16) + 'px'; b.style.height = '16px'; b.style.left = 'auto'; b.style.right = '1px'; b.style.width = 'auto'; b.style.maxWidth = '94%'; b.style.zIndex = 4; b.textContent = '⏰ ' + o.t.replace(/ 마감$/, ''); b.classList.add('sh'); } /* v109: 마감은 칸을 나누지 않고 오른쪽 위에 작은 꼬리표 */
+      else if (o.school) { b.style.left = '22%'; b.style.right = '3px'; b.style.zIndex = 3; b.style.boxShadow = '0 0 0 2px #fff'; } /* v108: 학교 안에 겹쳐서 보이게 */
       else if (o.n > 1) { b.style.left = `calc(${o.lane / o.n * 100}% + 1px)`; b.style.right = 'auto'; b.style.width = `calc(${100 / o.n}% - 2px)`; b.style.fontSize = '9px'; }
-      if (o.k !== 'play') b.style.setProperty('--bc', o.c); b.append(document.createTextNode(o.t)); if ((o.e - o.s) >= 45) b.appendChild(el('small', null, toT(o.s))); else b.classList.add('sh');
+      if (o.k !== 'play') b.style.setProperty('--bc', o.c); if (o.k !== 'dl') b.append(document.createTextNode(o.t)); if (o.k === 'dl') {} else if ((o.e - o.s) >= 45) b.appendChild(el('small', null, toT(o.s))); else b.classList.add('sh');
       if (o.k === 'fix' && ttEd === o.r) b.style.outline = '3px solid #fff';
       b.onclick = () => ttPop(o, x); /* v102: 누르면 이름·정확한 시간이 나오는 쪽지 */
       c.appendChild(b); });

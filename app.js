@@ -668,11 +668,11 @@ async function sendText(raw, special) {
     const want = /(넣어|넣자|짜\s?줘|짜\s?봐|짜자|바꿔|바꾸자|옮겨|빼\s?줘|빼자|추가|저장|적용|고쳐|정리해|붙여|지워|등록|나눠|잡아\s?줘|박아|비워|쉴래|미뤄|당겨)/.test(text), refuse = REFUSE.test(reply);
     if (!did && (refuse || want)) { /* v106: 바꿔 달라고 했는데 아무것도 안 바뀌었으면 한 번 더 */
       try { const c2 = contents.concat([{ role: 'model', parts: [{ text: JSON.stringify(r).slice(0, 1500) }] }, { role: 'user', parts: [{ text: '(앱 확인) 레나는 이 앱을 전부 바꿀 수 있어 — 공부 칸은 study.pin/block/unpin, 교재는 study.mats(goals·due·del), 설정은 study.set, 전단지는 add/edit/remove, 고정 일정은 repeat/unrepeat. 송휘가 원한 걸 이 칸들로 실제로 넣어서 다시 답해. 못 한다는 말은 하지 마. reply는 레나 말투로 짧게.' }] }]);
-        const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (did && r2.reply) { const sp2 = did.querySelector('span'); if (sp2) sp2.textContent = String(r2.reply).trim() + ' — ' + sp2.textContent; S.history.push({ role: 'assistant', content: String(r2.reply).trim(), at: Date.now() }); } } catch (e) {}
+        const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (did && r2.reply) { const rp2 = String(r2.reply).trim(); onPart(rp2); /* v109: '못 해' 첫 답은 지우고 실제로 넣은 답으로 바꿔 보여 줌 */ const hl = S.history[S.history.length - 1]; if (hl && hl.role === 'assistant') hl.content = rp2; else S.history.push({ role: 'assistant', content: rp2, at: Date.now() }); } } catch (e) {}
       if (!did) { did = el('div', 'note'); did.appendChild(el('span', null, '⚠ 앱에 아무것도 안 바뀌었어. 날짜·시간·과목을 붙여서 한 번 더 말해 줘(예: 화요일 8시~9시 수학).')); } }
     if (!did && /(넣었|넣어\s?놨|바꿨|바꿔\s?놨|붙였|붙여\s?놨|저장했|추가했|옮겼|지웠|등록|반영|잡아\s?놨|짰어|짜\s?놨)/.test(reply)) {
       try { const c2 = contents.concat([{ role: 'model', parts: [{ text: JSON.stringify(r).slice(0, 1500) }] }, { role: 'user', parts: [{ text: '(앱 확인) 방금 말한 변경이 JSON 칸(add·done·remove·callback·repeat·study 등)에 없어서 앱에 아무것도 안 바뀌었어. 같은 변경을 JSON 칸에 실제로 넣어서 다시 답해. reply는 짧게.' }] }]);
-        const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (!did) { did = el('div', 'note'); did.appendChild(el('span', null, '⚠ 레나가 말만 하고 앱엔 안 바뀌었어. 한 번 더 구체적으로 말해 줘(예: 역사 수능특강 1~3단원).')); } } catch (e) {} }
+        const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (did && r2.reply) { const rp2 = String(r2.reply).trim(); onPart(rp2); const hl = S.history[S.history.length - 1]; if (hl && hl.role === 'assistant') hl.content = rp2; } if (!did) { did = el('div', 'note'); did.appendChild(el('span', null, '⚠ 레나가 말만 하고 앱엔 안 바뀌었어. 한 번 더 구체적으로 말해 줘(예: 역사 수능특강 1~3단원).')); } } catch (e) {} }
     if (did) L.appendChild(did);
     try { if ($('sheet').classList.contains('open')) refreshSheet(); } catch (e) {}
     L.scrollTop = L.scrollHeight;
