@@ -108,12 +108,12 @@ function coinPop(srcEl) {
 }
 
 // ---------------- missed calls (부재중) ----------------
-function mcAt(d) { if (!S.morning) return null; const [h, m] = S.morning.split(':').map(Number); const x = new Date(d); x.setHours(h, m, 0, 0); return x; }
+function mcAt(d) { if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(String(S.morning || ''))) return null; const [h, m] = S.morning.split(':').map(Number); const x = new Date(d); x.setHours(h, m, 0, 0); return x; }
 function missed() {
   const from = S.ack || 0, now = Date.now(), L = [];
   S.items.forEach(t => { if (t.done || !t.due || t.rid || isEv(t) || S.fired[t.id]) return; const a = new Date(t.due).getTime(); if (a > from && a <= now) L.push({ at: a, text: `${t.text} (마감)`, kind: '할 일', ref: t }); });
   S.calls.forEach(c => { if (c.done || S.fired[c.id]) return; if (c.at > from && c.at <= now) L.push({ at: c.at, text: c.text || '약속한 전화', kind: '예약 전화', ref: c }); });
-  for (let i = 0; i < 2; i++) { const d = new Date(); d.setDate(d.getDate() - i); const m = mcAt(d); if (!m) continue; const a = m.getTime(); if (a > from && a <= now && S.mcDone !== dk(d) && now - a > 2 * 3600e3) L.push({ at: a, text: '모닝콜', kind: '모닝콜' }); }
+  for (let i = 0; i < 2; i++) { const d = new Date(); d.setDate(d.getDate() - i); const m = mcAt(d); if (!m) continue; const a = m.getTime(); if (a > from && a <= now && S.mcDone !== dk(d)) L.push({ at: a, text: '모닝콜', kind: '모닝콜' }); }
   return L.sort((a, b) => b.at - a.at);
 }
 
@@ -756,7 +756,7 @@ function plan() {
       if (at - 3 * 3600e3 > now) rem.push({ id: t.id + 'a', at: at - 3 * 3600e3, body: `${n}'${t.text}' 마감 3시간 전이에요. 했어요?` });
       if (at > now) rem.push({ id: t.id + 'b', at, body: `'${t.text}' 마감이에요. 끝냈으면 체크해 줘요.` }); } });
   S.calls.forEach(c => { if (!c.done && c.at > now) rem.push({ id: c.id, at: c.at, body: c.text ? `📞 레나예요. 약속한 전화 — ${c.text}` : `📞 레나예요. …그냥 목소리 듣고 싶어서요.` }); });
-  if (S.morning) for (let i = 0; i < 8; i++) { const d = new Date(); d.setDate(d.getDate() + i); const m = mcAt(d); if (m.getTime() <= now) continue; const ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
+  if (mcAt(new Date())) for (let i = 0; i < 8; i++) { const d = new Date(); d.setDate(d.getDate() + i); const m = mcAt(d); if (!m || m.getTime() <= now) continue; const ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
     if (S.mcDone === dk(d)) continue;
     rem.push({ id: 'mc_' + dk(d), at: m.getTime(), body: `📞 모닝콜 — ${n}일어나요.` + (ev.length ? ` 오늘 ${ev[0].due.slice(11, 16)} '${ev[0].text}'${ev.length > 1 ? ` 외 ${ev.length - 1}개` : ''}.` : ' 오늘은 비어 있어요.') });
     // 앱을 열어 받을 때까지 2분마다 다섯 번 더 울린다(받으면 다음 동기화 때 빠진다)
