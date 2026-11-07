@@ -212,3 +212,13 @@ Manual device checks still required:
 3. Verify Gemini-key error handling and edit/delete of new and legacy voicemail entries.
 4. Open a new and existing vending save: Lena should be manager immediately, with no hire fee or daily salary; verify restock and customer traffic behavior.
 5. Check study day-paper and subject/book list at 375px and 390px widths, especially long Korean titles, progress text, and expanded unit buttons.
+
+
+## Handoff v117
+- Voice-call mode hides Lena portrait/status header, toolbar, attachment preview, quick controls, and all shortcuts except the keypad/dial button. Chat log expands to fill available height; text composer remains.
+- Vending: current business level is displayed in the main rank progress strip. Removed separate Lena tab; moved booth decoration to ledger. Improved empty-slot action contrast.
+- Study planner: one-off calendar appointments/activities and special "공부 안 함"/"공부 고정" blocks no longer reserve study time; recurring commitments remain.
+- Materials are grouped by subject and compacted for a denser first-screen list.
+- Voicemail composer restyled as a taped paper note.
+- Cache: lena-v117.
+- Device checks needed: call at 375x667 and 390x844; long material list; vending empty-slot button; ledger decoration; voicemail edit; morning-call overlay.
