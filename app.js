@@ -674,7 +674,7 @@ async function sendText(raw, special) {
       try { const c2 = contents.concat([{ role: 'model', parts: [{ text: JSON.stringify(r).slice(0, 1500) }] }, { role: 'user', parts: [{ text: '(앱 확인) 방금 말한 변경이 JSON 칸(add·done·remove·callback·repeat·study 등)에 없어서 앱에 아무것도 안 바뀌었어. 같은 변경을 JSON 칸에 실제로 넣어서 다시 답해. reply는 짧게.' }] }]);
         const r2 = await gemini(sysPrompt(special), c2); did = apply(r2); if (did && r2.reply) { const rp2 = String(r2.reply).trim(); onPart(rp2); const hl = S.history[S.history.length - 1]; if (hl && hl.role === 'assistant') hl.content = rp2; } if (!did) { did = el('div', 'note'); did.appendChild(el('span', null, '⚠ 레나가 말만 하고 앱엔 안 바뀌었어. 한 번 더 구체적으로 말해 줘(예: 역사 수능특강 1~3단원).')); } } catch (e) {} }
     if (did) L.appendChild(did);
-    try { if ($('sheet').classList.contains('open')) refreshSheet(); } catch (e) {}
+    try { if (did) { save(); renderHome(); } if ($('sheet').classList.contains('open')) refreshSheet(); } catch (e) {}
     L.scrollTop = L.scrollHeight;
     speak(reply); popSticker(r.mood);
     $('line').textContent = reply;

@@ -309,7 +309,7 @@ function tidy() { const sp = ST(), tk = todayK(); sp.pins = (sp.pins || []).filt
 const EMPTY = { days: [], late: [] };
 function splan() {
   try { tidy(); } catch (e) {}
-  const sig = JSON.stringify([S.study, S.reps, S.items.filter(t => t.due && !t.done).map(t => t.due), todayK(), Math.floor(Date.now() / 300000)]);
+  const sig = JSON.stringify([S.study, S.reps, S.repSkip || 0, S.items.filter(t => t.due).map(t => [t.id, t.due, t.mins || 0, t.kind || '', t.done ? 1 : 0]), todayK(), Math.floor(Date.now() / 300000)]); /* v110: 일정 길이·종류·끝냄이 바뀌어도 바로 다시 계산 */
   if (cache && cache.sig === sig) return cache;
   let r, strained = false; const n = (() => { try { return horizon(); } catch (e) { return 31; } })();
   try { r = simulate(n); } catch (e) { console.warn('plan', e); S.planErr = String(e && e.message || e).slice(0, 120); cache = { sig, ...EMPTY, strained }; return cache; }
@@ -703,6 +703,7 @@ const _ap = apply; apply = function (r) {
   if (r && typeof r.morning === 'string' && (r.morning === '' || /^\d{1,2}:\d\d$/.test(r.morning))) { const v = r.morning ? r.morning.padStart(5, '0') : ''; if (v !== (S.morning || '')) { S.morning = v; g2.push(v ? `모닝콜 ${v}` : '모닝콜 끔'); } }
   if (r && r.pro && typeof r.pro === 'object') { S.pro = S.pro || {}; const ch = []; Object.entries(r.pro).forEach(([k2, v]) => { if (['lunch', 'night'].includes(k2) && (v === '' || /^\d{1,2}:\d\d$/.test(v))) { S.pro[k2] = v; ch.push(k2); } else if (['before', 'after', 'nag', 'follow', 'brief'].includes(k2) && typeof v === 'boolean') { S.pro[k2] = v; ch.push(k2); } }); if (ch.length) g2.push('알림 설정 바꿈'); }
   if (g2.length) got.push(...g2);
+  if (res || got.length) { delete ST().fix[todayK()]; dirty(); } /* v110: 대화로 뭔가 바뀌면 손으로 굳혀 둔 오늘 시간표를 풀고 바로 다시 짬 */
   if (!got.length) return res;
   dirty(); save(); pushSync(true);
   const only = g2.length && got.length === g2.length, txt = only ? got.join(', ') : `공부에 넣음: ${got.join(', ')} · 4번 공부에서 확인`;
