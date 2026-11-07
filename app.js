@@ -562,7 +562,7 @@ async function claudeCall(m, sys, contents, onPart, ac, t1, kick) {
   const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal: ac.signal, headers: { 'content-type': 'application/json', 'x-api-key': S.ckey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
     body: JSON.stringify({ model: m, max_tokens: 6000, stream: true, system: sys + '\n(답은 JSON 객체 하나만. 앞뒤에 다른 글·코드블록 없이.)', messages: toClaude(contents), thinking: { type: 'disabled' }, output_config: { effort: window.lenaDeep ? 'medium' : 'low' } }) });
   if (!r.ok || !r.body) { let x = ''; try { x = await r.text(); } catch (e) {} throw Object.assign(new Error('claude ' + r.status + ' ' + x.slice(0, 200)), { status: r.status, cl: 1 }); }
-  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', acc = '', first = 0;
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', acc = '', first = 0, webSources = [];
   for (;;) { let rr; try { rr = await rd.read(); } catch (e) { if (acc.trim()) break; throw e; } const { value, done } = rr; if (done) break; buf += dec.decode(value, { stream: true }); let k;
     while ((k = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1); if (!line.startsWith('data:')) continue;
       try { const j = JSON.parse(line.slice(5)); if (j.type === 'content_block_delta' && j.delta && j.delta.type === 'text_delta') { clearTimeout(t1); kick && kick(); if (!first) first = Date.now(); acc += j.delta.text; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } else if (j.type === 'error') throw Object.assign(new Error('claude stream'), { status: 529, cl: 1 }); } catch (e) { if (e.cl) throw e; } } }
@@ -570,18 +570,20 @@ async function claudeCall(m, sys, contents, onPart, ac, t1, kick) {
 // 모델마다 첫 글자가 오기까지 걸린 시간(ms)을 기억(S.mlat, 평균). '자동'이면 후보 셋 중 가장 빠른 것부터.
 const TH = {};
 function lat(m, ms) { if (!S.mlat) S.mlat = {}; const o = S.mlat[m]; S.mlat[m] = o ? Math.round(o * .7 + ms * .3) : ms; }
-function mChain() {
+function mChain(forceSearch = false) {
   const G = S.key ? [mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash'] : [], C = S.ckey ? [CLM] : [];
   const brain = S.brain && ((isCl(S.brain) && S.ckey) || (!isCl(S.brain) && S.key)) ? S.brain : '';
-  const fast = brain ? [brain] : [...new Set([...G, ...C])].sort((a, b) => ((S.mlat || {})[a] ?? 0) - ((S.mlat || {})[b] ?? 0));
+  const fast = forceSearch && G.length ? [...new Set(G)].sort((a, b) => ((S.mlat || {})[a] ?? 0) - ((S.mlat || {})[b] ?? 0)) : brain ? [brain] : [...new Set([...G, ...C])].sort((a, b) => ((S.mlat || {})[a] ?? 0) - ((S.mlat || {})[b] ?? 0));
   const all = [...new Set([...fast, ...C, ...(S.key ? [mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-flash-lite-latest'] : [])])], ok = all.filter(m => !(COOL[m] > Date.now())); return ok.length ? ok : all; }
 async function loadModels() { if (!S.key) return; try { const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key=${encodeURIComponent(S.key)}`); if (!r.ok) return; const j = await r.json(); S.mlist = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, '')).filter(n => mRank(n) > 0).sort((a, b) => mRank(b) - mRank(a)); save(); } catch (e) {} }
 function unesc(s) { try { return JSON.parse('"' + s.replace(/\\$/, '') + '"'); } catch (e) { return s.replace(/\\n/g, '\n').replace(/\\"/g, '"'); } }
 const REFUSE = /(기능.{0,12}(없|안\s?돼)|직접.{0,10}(못|수\s?(는|가)?\s?없)|(바꿔|고쳐|저장해|적용해|넣어|짜)\s?줄\s?수.{0,3}없|(바꿀|고칠|저장할|넣을)\s?수.{0,3}없|권한.{0,4}없)/;
 function parseReply(t) { t = t.replace(/```json|```/g, '').trim(); try { return JSON.parse(t); } catch (e) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (x) {} } const m = t.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); return { reply: m ? unesc(m[1]) : t.slice(0, 400), mood: 'calm' }; } }
 async function gemini(sys, contents, onPart) {
+  const userText = [...contents].reverse().find(x => x.role === 'user')?.parts?.map(x => x.text || '').join(' ') || '';
+  const wantsSearch = /(인터넷|웹에서|검색해|찾아봐|찾아 줘|최신 정보|최근 뉴스|자료 조사|출처 찾아)/i.test(userText);
   let lastErr = null; const T0 = Date.now(); // v85: 전체 30초 넘게 붙잡지 않음(멈춘 것처럼 보이던 것)
-  for (const m of mChain()) for (let tryN = 0; tryN < 2; tryN++) {
+  for (const m of mChain(wantsSearch)) for (let tryN = 0; tryN < 2; tryN++) {
     if (Date.now() - T0 > 30000) throw lastErr || Object.assign(new Error('slow'), { status: 503 });
     // 대화는 빠르게: 생각 최소(3.x minimal, 2.5 Flash 0). 그 모델이 안 받아 주면(400) 한 단계 올려 다시.
     const dp = window.lenaDeep, th = /gemini-3/.test(m) ? { thinkingConfig: { thinkingLevel: TH[m] || (dp ? 'low' : 'minimal') } } : /2\.5/.test(m) ? { thinkingConfig: { thinkingBudget: TH[m] != null ? TH[m] : dp ? 1024 : (/pro/.test(m) ? 128 : 0) } } : /latest/.test(m) && TH[m] !== 'skip' ? { thinkingConfig: { thinkingBudget: 0 } } : {};
@@ -598,7 +600,7 @@ async function gemini(sys, contents, onPart) {
       for (;;) { const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); let k;
         while ((k = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1); if (!line.startsWith('data:')) continue;
           try { const j = JSON.parse(line.slice(5)); const gm = j.candidates?.[0]?.groundingMetadata; if (gm?.groundingChunks) grounding = gm.groundingChunks.map(x => x.web).filter(x => x?.uri).map(x => ({ title: x.title || '검색 결과', uri: x.uri })); const tx = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join(''); if (tx) { clearTimeout(t1); kick(); if (!first) first = Date.now() - t0; acc += tx; const mm = acc.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm && onPart) onPart(unesc(mm[1])); } } catch (e) {} } }
-      clearTimeout(t1); clearTimeout(t2); if (acc.trim()) { S.model = m; lat(m, first || Date.now() - t0); return parseReply(acc); } break;
+      clearTimeout(t1); clearTimeout(t2); if (acc.trim()) { S.model = m; lat(m, first || Date.now() - t0); const out = parseReply(acc); if (wantsSearch && webSources.length) out.reply = String(out.reply || '') + '\\n찾아본 곳: ' + webSources.slice(0, 4).map(x => `${x.title} (${x.uri})`).join(' · '); return out; } break;
     } catch (e) { clearTimeout(t1); clearTimeout(t2); if (e.status === 403) throw e; lastErr = e; if (acc.trim()) { S.model = m; return parseReply(acc); } if (e.name === 'AbortError') COOL[m] = Date.now() + 30e3; break; }
   }
   throw lastErr || new Error('none');
