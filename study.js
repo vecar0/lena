@@ -209,7 +209,7 @@ function busyOn(d) {
 }
 const ACAD = /학원|클리닉|과외|수업/;
 const SUBJN = /^(국어|영어|수학|사회|과학|한국사|역사|윤리|경제|물리|화학|생명|생명과학|지구|지구과학|정보|일본어|중국어|문학|독서|화법|언어|미적분|확통|기하)$/;
-const isAcad = tx => ACAD.test(tx || '') || SUBJN.test(String(tx || '').replace(/[\s\d:~·-]/g, '')); // v94: '국어'처럼 과목 이름만 있는 고정 일정도 학원
+const isAcad = tx => !/학교|등교/.test(tx || '') && (ACAD.test(tx || '') || SUBJN.test(String(tx || '').replace(/[\s\d:~·-]/g, ''))); // v108: '학교 수업'은 학원 아님 · v94: '국어'처럼 과목 이름만 있는 고정 일정도 학원
 // 학원 다니는 과목: 시간표(고정) 이름에 '과목+학원/클리닉/과외'가 있거나 그 과목 학원 숙제가 있으면
 const acadSub = sub => (S.reps || []).some(r => r.text.includes(sub) && (ACAD.test(r.text) || r.text.replace(/[\s\d:~·-]/g, '').length <= sub.length + 1)) /* v86: 시간표에 '국어'처럼 과목 이름만 있어도 학원으로 봄 */ || ST().mats.some(m => m.kind === 'hw' && (m.sub === sub || (m.title || '').includes(sub)));
 function freeIv(d, isToday, loose) {
@@ -222,7 +222,7 @@ function freeIv(d, isToday, loose) {
   const res = out.filter(([a, b]) => b - a >= 30); // v84: 30분 안 되는 자투리는 안 씀
   // v102: 학교에서도 조금(기본 30분) 공부 — 학교(고정 일정) 끝나기 전 마지막 N분
   const sm = +P.schoolMin || 0;
-  if (!loose && sm >= 10) { const now = isToday ? new Date().getHours() * 60 + new Date().getMinutes() + 5 : -1; busyOn(d).filter(y => /학교|등교/.test(y[2] || '') && y[1] - y[0] >= sm + 30).forEach(([bs, be]) => { const a = be - sm; if (a >= now && !res.some(([p, q]) => p < be && q > a)) res.unshift([a, be]); }); res.sort((x, y) => x[0] - y[0]); }
+  if (!loose && sm >= 10) { const now = isToday ? new Date().getHours() * 60 + new Date().getMinutes() + 5 : -1; busyOn(d).filter(y => /학교|등교/.test(y[2] || '') && y[1] - y[0] >= sm + 30).forEach(([bs, be]) => { const a = be - sm; if (a >= now && !res.some(([p, q]) => p < be && q > a)) res.unshift([a, be, 'school']); }); res.sort((x, y) => x[0] - y[0]); }
   return res;
 }
 
@@ -249,7 +249,7 @@ function simulate(nDays, capMode) {
   for (let di = 0; di < nDays; di++) {
     const d = dAdd(today, di), k = dkey(d), we = d.getDay() === 0 || d.getDay() === 6;
     if (di === 0 && st.fix[k]) { // 손으로 고친 오늘은 그대로
-      const blocks = st.fix[k].map(b => ({ s: b.s, e: b.e, sub: b.sub, parts: b.parts.map(p => { const t = T.find(x => x.key === p.key); if (t) t.rem = Math.max(0, t.rem - p.mins); return { t: t || { key: p.key, label: p.label, sub: b.sub, rev: 1 }, mins: p.mins }; }) }));
+      const blocks = st.fix[k].map(b => ({ s: b.s, e: b.e, sub: b.sub, school: b.school, parts: b.parts.map(p => { const t = T.find(x => x.key === p.key); if (t) t.rem = Math.max(0, t.rem - p.mins); return { t: t || { key: p.key, label: p.label, sub: b.sub, rev: 1 }, mins: p.mins }; }) }));
       days.push({ k, blocks, mins: blocks.reduce((a, b) => a + (b.e - b.s), 0), fixed: 1 }); continue;
     }
     // 고르게 나누기: 마감마다 (그때까지 할 양 ÷ 그때까지 쓸 수 있는 시간) 중 가장 큰 비율만큼만 오늘 한다
@@ -266,7 +266,7 @@ function simulate(nDays, capMode) {
       if (!p.what) for (const t of el2) { if (left < 10) break; const use = Math.min(t.rem, left); t.rem -= use; left -= use; parts.push({ t, mins: use, late: t.due && k > t.due }); }
       if (left >= 5) parts.push({ t: { key: 'pin_' + p.id, label: p.what || `${p.sub || ''} 공부`.trim(), sub: p.sub || '공부', rev: 1, pin: 1 }, mins: left });
       blocks.push({ s: p.s, e: p.e, sub: p.sub || (parts[0] && parts[0].t.sub) || '공부', parts, pin: 1 }); cap = Math.max(0, cap - (p.e - p.s)); daySubs.add(p.sub); }); /* v105: 레나가 대화로 박아 둔 공부 칸 */
-    for (const [a, b] of freeIv(d, di === 0)) {
+    for (const [a, b, tag] of freeIv(d, di === 0)) {
       let cur = a;
       while (cap >= Math.min(20, b - a) && b - cur >= Math.min(25, b - a)) {
         const len = Math.min(P.block, b - cur, cap); if (len < Math.min(20, b - a)) break;
@@ -287,7 +287,7 @@ function simulate(nDays, capMode) {
         }
         if (!parts.length) break;
         const used = len - left, end = cur + used;
-        blocks.push({ s: cur, e: end, sub: bsub, parts }); cap -= used; last = bsub; cur = end + 10;
+        blocks.push({ s: cur, e: end, sub: bsub, parts, school: tag === 'school' ? 1 : undefined }); cap -= used; last = bsub; cur = end + 10;
       }
     }
     blocks.sort((x, y) => x.s - y.s);
@@ -325,7 +325,7 @@ window.studyBusy = () => { try { return (splan().days[0] || { blocks: [] }).bloc
 // ---------- 오늘 블록 고치기: 처음 고칠 때 오늘 계획을 그대로 굳히고(S.study.fix), 그 위에서 바꾼다 ----------
 function freeze() {
   const st = ST(), k = todayK(); Object.keys(st.fix).forEach(x => { if (x !== k) delete st.fix[x]; });
-  if (!st.fix[k]) st.fix[k] = (splan().days[0] || { blocks: [] }).blocks.map(b => ({ s: b.s, e: b.e, sub: b.sub, parts: b.parts.map(p => ({ key: p.t.key, label: p.t.label, mins: p.mins })) }));
+  if (!st.fix[k]) st.fix[k] = (splan().days[0] || { blocks: [] }).blocks.map(b => ({ s: b.s, e: b.e, sub: b.sub, school: b.school, parts: b.parts.map(p => ({ key: p.t.key, label: p.t.label, mins: p.mins })) }));
   return st.fix[k];
 }
 const commit = () => { const F = ST().fix[todayK()]; if (F) { F.sort((a, b) => a.s - b.s); for (let i = 1; i < F.length; i++) if (F[i].s < F[i - 1].e + 10) { const len = F[i].e - F[i].s; F[i].s = F[i - 1].e + 10; F[i].e = F[i].s + len; } } save(); dirty(); pushSync(true); refreshSheet(); };
@@ -406,7 +406,7 @@ function dayPaper(B, k, D) {
   (S.reps || []).filter(r => (!r.days.length || r.days.includes(d.getDay())) && !(S.repSkip || {})[r.id + '_' + k]).forEach(r => add(toM(r.time), { kind: 'fix', txt: `${r.text} ~${r.end || ''}` }));
   S.items.filter(t => !t.rid && t.due && t.due.slice(0, 10) === k).forEach(t => add(toM(t.due.slice(11, 16)), { kind: t.kind === 'event' ? 'ev' : 'todo', txt: t.kind === 'event' ? t.text : `${t.text} (마감)`, done: t.done }));
   lg.forEach(l => add(l.s, { kind: 'log', sub: l.sub, txt: l.label, mins: l.mins }));
-  grp(D ? D.blocks : []).forEach(g => add(g.s, { kind: 'st', sub: g.b.sub, txt: g.b.parts.map(p => p.t.label).join(' + ') + (g.bs.length > 1 ? ` (~${toT(g.e)})` : ''), mins: g.mins, b: g.b, bs: g.bs }));
+  grp(D ? D.blocks : []).forEach(g => add(g.s, { kind: 'st', sub: g.b.sub, txt: (g.b.school ? '🏫 학교에서 · ' : '') + g.b.parts.map(p => p.t.label).join(' + ') + (g.bs.length > 1 ? ` (~${toT(g.e)})` : ''), mins: g.mins, b: g.b, bs: g.bs }));
   if (D && D.play) add(D.play.s, { kind: 'play', txt: `휴식 시간 ${D.play.e - D.play.s}분`, mins: D.play.e - D.play.s });
   const tot = (D ? D.mins : 0) + lg.reduce((a, x) => a + x.mins, 0);
   const sp = el('div', 'sheetp'); sp.style.marginTop = '12px'; sp.append(el('i', 'tape'), el('i', 'tape r'));
@@ -486,7 +486,7 @@ function stToday(B) {
     if (x.fx) { const r = el('div', 'pr pfx'); r.append(el('span', 't', toT(x.fx[0])), el('span', 'w', `${x.fx[2] || '일정'} ~${toT(x.fx[1])}`)); sp.appendChild(r); return; }
     if (x.lg) { const r = el('div', 'pr done'), t = el('span', 't'); t.append(document.createTextNode(toT(x.lg.s)), el('small', null, `${x.lg.mins}분`)); const w = el('span', 'w'); w.appendChild(subWord(x.lg.sub, x.lg.label)); const st2 = el('span', 'st', '✓'); st2.setAttribute('aria-label', '끝냄'); r.append(t, w, st2); sp.appendChild(r); return; }
     const b = x.b, i = x.i, g = x.g, r = el('div', 'pr' + (ed === i ? ' ed' : '')), t = el('span', 't'); t.append(document.createTextNode(toT(g.s)), el('small', null, g.bs.length > 1 ? `~${toT(g.e)} · ${g.mins}분` : `${g.mins}분`));
-    const w = el('button', 'w'); w.appendChild(subWord(b.sub, b.parts.map(p => p.t.label).join(' + '))); w.onclick = () => { ed = ed === i ? -1 : i; edMode = ''; addOpen = false; refreshSheet(); };
+    const w = el('button', 'w'); w.appendChild(subWord(b.sub, (b.school ? '🏫 학교에서 · ' : '') + b.parts.map(p => p.t.label).join(' + '))); w.onclick = () => { ed = ed === i ? -1 : i; edMode = ''; addOpen = false; refreshSheet(); };
     const ok = el('button', 'st'); ok.setAttribute('aria-label', '끝냄'); ok.onclick = () => { g.bs.forEach(x2 => finishBlock(x2)); ed = -1; refreshSheet(); toast(g.bs.length > 1 ? '통째로 끝! 수고했어.' : '한 블록 끝! 수고했어.'); };
     r.append(t, w, ok); sp.appendChild(r);
     if (ed === i) sp.appendChild(editRow(i));
@@ -642,14 +642,18 @@ const _sys = sysPrompt; sysPrompt = function (sp) {
   return s.replace('JSON만 출력:', `- 공부: 교재·문제집(몇 단원/몇 쪽), 학원 숙제, 시험 날짜·과목·범위를 말하면 study에 넣는다. study={"mats":[{"sub":"과목","title":"교재 이름","kind":"perf|hw|book"(perf=학교 수행평가 준비, hw=학원 숙제, book=문제집·교재 개인 공부),"from":1,"to":12,"unit":"단원|쪽","chunk":쪽일 때 덩어리 쪽수,"outline":"단원·소단원을 말하면 줄마다(소단원은 앞에 - , 끝에 걸리는 분 숫자)","mins":단원 하나(숙제·수행평가면 전체) 걸리는 분(모르면 40),"days":[학원 숙제면 학원 가는 요일 번호들, 일0 월1 … 토6 — 매주 반복],"due":"YYYY-MM-DD 수행평가면 그 날"}],"exams":[{"name":"시험 이름","date":"YYYY-MM-DD","subs":["과목"],"ranges":[{"sub":"과목","title":"교재 이름","from":시작 번호,"to":끝 번호}]}]}. 교재·시험이 이미 아래 목록에 있으면 mats/exams에 다시 넣지 않는다(날짜·범위가 바뀌었을 때만 같은 이름으로 다시 보낸다 — 이미 있는 시험에 범위만 더할 때도 exams에 그 시험 이름·날짜와 ranges를 꼭 넣는다). 시험 범위표·프린트 사진이 오면 과목·교재·단원 번호를 읽어 exams[].ranges로 넣는다(교재 이름을 모르면 title 없이 sub만). **말로만 '넣었어·바꿨어'라고 하지 말고 반드시 study(또는 add·repeat 등) 칸에 실제로 넣는다 — 칸이 비어 있으면 앱에 아무것도 안 바뀐다.** 계획은 앱이 오늘부터 시험까지 빈 시간에 짠다(4번 공부). 기본 = 문제집 풀기 + 오답, 학원 다니는 과목은 학원 숙제만. 회독·백지 복습·필승노트·기출은 넣지 않는다.
 - 이미 있는 교재 고치기: 같은 sub·title로 mats에 다시 보내면 그 교재를 고친다 — "due"(마감, ""면 없앰), "mins", "from"/"to"(단원 더함), "days"(숙제 요일), "newTitle"(이름 바꾸기), "del":true(지우기). **주차별·날짜별 목표**(예: 12/3까지 3단원씩 나눠서)는 "goals":[{"upto":그 날까지 끝낼 마지막 단원 번호,"by":"YYYY-MM-DD"}] — 앱이 그 날짜에 맞춰 매일 시간표를 짠다. 끝낸 단원은 study.done=[{"sub","title","from","to"}], 시험 지우기는 study.delExams=["시험 이름"].
 - 공부 계획 고치기: 송휘이 공부 시간·양·순서를 바꿔 달라고 하면 study.set에 바꿀 것만 넣는다. set={"acadGap":학원 끝나고 쉬는 분,"schoolMin":학교에서 공부할 분,"wdPlay":평일 휴식 분,"wePlay":주말 휴식 분,"wdS":"HH:MM 평일 시작","weS":"HH:MM 주말 시작","end":"HH:MM 끝","wdMax":평일 하루 최대 분(0=자동),"weMax":주말 하루 최대 분(0=자동),"wdSubs":평일 과목 수,"weSubs":주말 과목 수,"block":한 블록 분(30~90),"focus":"먼저 할 과목"(없애려면 ""),"focusDays":며칠 동안,"today":"less|off|more|normal"(오늘만 조금/쉬기/더/원래대로)}. 피곤하다·아프다면 today:"less"나 "off"를 권하고, 바꾼 뒤엔 reply에서 짧게 무엇을 바꿨는지 말한다.
-지금 공부 설정: ${JSON.stringify({ wdS: st.pref.wdS, weS: st.pref.weS, end: st.pref.end, wdMax: st.pref.wdMax || '자동', weMax: st.pref.weMax || '자동', wdSubs: st.pref.wdSubs, weSubs: st.pref.weSubs, block: st.pref.block, focus: st.pref.focus && st.pref.focus.sub || '' })} 공부 시간표(7일): ${(() => { try { return splan().days.slice(0, 7).map(D => `${D.k.slice(5)}: ${D.blocks.map(b => `${toT(b.s)}~${toT(b.e)} ${b.sub} ${b.parts.map(p => p.t.label).join('+')}${b.pin ? '(고정)' : ''}`).join(', ') || '없음'}${D.play ? ` / 휴식 ${toT(D.play.s)}~${toT(D.play.e)}` : ''}`).join(' | '); } catch (e) { return '?'; } })()} 막아 둔 시간: ${JSON.stringify((st.blk || []).map(b => `${b.d || '매주' + (b.days || []).join('')} ${toT(b.s)}~${toT(b.e)}`))}
+지금 공부 설정: ${JSON.stringify({ wdS: st.pref.wdS, weS: st.pref.weS, end: st.pref.end, wdMax: st.pref.wdMax || '자동', weMax: st.pref.weMax || '자동', wdSubs: st.pref.wdSubs, weSubs: st.pref.weSubs, block: st.pref.block, focus: st.pref.focus && st.pref.focus.sub || '' })} 공부 시간표(7일): ${(() => { try { return splan().days.slice(0, 7).map(D => `${D.k.slice(5)}: ${D.blocks.map(b => `${toT(b.s)}~${toT(b.e)} ${b.sub} ${b.parts.map(p => p.t.label).join('+')}${b.pin ? '(고정)' : ''}${b.school ? '(학교에서)' : ''}`).join(', ') || '없음'}${D.play ? ` / 휴식 ${toT(D.play.s)}~${toT(D.play.e)}` : ''}`).join(' | '); } catch (e) { return '?'; } })()} 막아 둔 시간: ${JSON.stringify((st.blk || []).map(b => `${b.d || '매주' + (b.days || []).join('')} ${toT(b.s)}~${toT(b.e)}`))}
 지금 공부 목록: ${JSON.stringify(st.mats.map(m => `${m.sub}/${m.title}(${m.kind === 'hw' ? '숙제' : m.kind === 'perf' ? '수행평가' : m.units.length + '개'}, 남은 ${m.units.filter(u => !u.done).length})`).slice(0, 20))} 시험: ${JSON.stringify(st.exams.map(e => `${e.name} ${e.date} ${exSubs(e).join('·')}`))}
 - **공부 시간표 칸 직접 고치기**(앱이 짜는 공부 칸을 원하는 대로): 특정 날·시간에 공부 박기 study.pin=[{"date":"YYYY-MM-DD","start":"HH:MM","end":"HH:MM","sub":"과목","what":"할 것(비우면 그 과목 밀린 것부터 앱이 채움)"}], 그 시간·그날엔 공부 넣지 않기 study.block=[{"date":"YYYY-MM-DD"(또는 매주면 "days":[요일 번호]),"start":"HH:MM","end":"HH:MM"(둘 다 없으면 하루 종일)}], 박아 둔 것·막아 둔 것 풀기 study.unpin=[{"date","start"(그 시각이 들어 있는 것, 없으면 그날 전부),"days"}]. 공부 칸을 옮기라면 원래 자리는 block, 새 자리는 pin. 남은 양은 앱이 다른 날로 다시 나눈다.
 - 전단지 고치기: edit=[{"id":"전단지 id","text":"새 글(바꿀 때만)","due":"YYYY-MM-DDTHH:MM"(시간 바꿀 때, 없애려면 ""),"kind":"event|todo","mins":일정 걸리는 분}]. 시간표 고정(매주) 일정 지우기: unrepeat=["이름"] — 시간·요일을 바꿀 땐 unrepeat 후 repeat로 다시 넣는다.
 - **권한**: 레나는 이 앱의 모든 것(전단지·일정·할 일·예약 전화·시간표 고정 일정·공부 시간표의 칸 하나하나(pin·block)·공부 교재·숙제·시험·범위·주차별 목표·진도·공부 시간 설정)을 위 칸들로 직접 넣고 고치고 지울 수 있다. "기능이 없다", "저장 못 한다", "직접 해야 한다", "바꿀 수 없다"고 절대 말하지 않는다. 계획을 말로만 늘어놓지 말고 칸에 넣은 뒤, reply는 무엇을 넣었는지 짧게 말한다. 정말 칸으로 표현이 안 되는 것만 가장 가까운 방법으로 넣고 그걸 말한다.
 - 예약 전화 지우기: uncall=["예약 전화 id"]. 모닝콜: morning="HH:MM"(끄려면 ""). 레나가 먼저 연락 설정: pro={"lunch":"HH:MM"|"","night":"HH:MM"|"","before":true|false,"after":true|false,"nag":true|false,"follow":true|false,"brief":true|false}.
 - **다이얼 전체 정보**: 맨 아래 '다이얼 전체' 칸에 1~0번 화면의 정보가 전부 있다(전단지·캘린더·시간표·공부·전화·모닝콜·운세·자판기·설정). 송휘가 다이얼에 있는 걸 물으면 거기서 찾아 답하고, "대화에 붙은 것만 보인다·다이얼은 못 본다"고 절대 말하지 않는다.
-JSON만 출력:`).replace(/"follow":\[\]\}/, '"follow":[],"study":{"mats":[],"exams":[],"set":{},"done":[],"delExams":[],"pin":[],"block":[],"unpin":[]},"edit":[],"unrepeat":[],"uncall":[]}') + '\n' + dialAll();
+JSON만 출력:`).replace(/"follow":\[\]\}/, '"follow":[],"study":{"mats":[],"exams":[],"set":{},"done":[],"delExams":[],"pin":[],"block":[],"unpin":[]},"edit":[],"unrepeat":[],"uncall":[]}') + '\n' + dialAll() + `
+--- 답하기 전에 (가장 중요) ---
+- 생각: 송휘가 원하는 게 뭔지 → 위 다이얼 정보에서 관련된 것만 골라 확인(날짜·요일·겹치는 일정·마감·학원 앞뒤 시간) → 바꿀 게 있으면 JSON 칸에 실제로 넣기 → 그 결과가 시간표·캘린더에 어떻게 보일지 한 번 더 확인.
+- 겹치거나 무리한 계획이면 그대로 넣지 말고 더 나은 안을 넣고 왜 그런지 한마디. 송휘가 놓친 것(곧 마감·시험 D-day·밀린 공부)이 보이면 한 줄로 챙겨 준다.
+- reply는 레나다: 능글맞은 누나 반말, 2~4문장, 나른하고 장난스럽게 한 끗 플러팅. 목록·표·'~했습니다'·안내문 말투 금지. 정보는 필요한 것만 말로 자연스럽게(시간표를 줄줄이 읽지 않는다).`;
 };
 const _ap = apply; apply = function (r) {
   const res = _ap(r), x = r && r.study, got = [];
