@@ -190,25 +190,3 @@ Branch: `fix/lena-employee-voicemail-visibility`, created from `main`; check the
 - Cache version: v115.
 
 Manual iPhone checks: dial 7 and quick-access button open memo-only voice mailbox; memo CRUD works; Settings memory CRUD works and is still used by conversation prompt; Lena hiring unlocks at cumulative profit 50,000 KRW and deducts 15,000 + 6,000/day; automatic restock and +12% customer traffic apply; feed chips do not overlap; study cards are legible; voice-call chat and Lena avatars are visible above the input area. If the layout is still cramped on a short viewport, adjust `.app.outside .log` and `.app.outside .agrid` together.
-
-
----
-
-## Handoff — restore call UI, organized voicemail, permanent Lena manager, study readability (v116)
-
-Branch: `fix/restore-voice-memo-manager-study-ui` (based on current `main`).
-
-- Reverted the v115 outside-mode voice-call chat CSS overrides in `index.html`. Keep the original voice-call layout; do not re-add the custom opaque chat panel, forced avatar sizing, or z-index/flex overrides without a fresh visual review.
-- Dial 7 remains titled `음성사서함`, but it is now an AI-organized memo archive rather than a plain text dump. In `memo.js`, the user can type or revise source text and ask Lena to organize it. The archive renders study-note-like sections, key points, and review prompts on the existing paper-note visual style. Legacy `S.memo[].text` entries remain readable and editable.
-- `notes.js` exports `lenaNotes.summarizeMemo(text)`, reusing the existing Gemini note pipeline and its JSON structure. `memo.js` exposes `lenaMemo.saveFromText(text)`. In the phone chat, a request matching a natural phrase such as “정리해서 저장해줘” summarizes the recent conversation (or text following the command's colon) and stores it in `S.memo`; confirmation points the user to dial 7. The original `S.memory` remains a separate Settings feature.
-- Lena is the permanent store manager from the start. `B()` ensures `S.biz.staff.lena = true` for existing and new saves. Removed the hire/contract/15,000 KRW onboarding UI and Lena's 6,000 KRW daily wage. Her existing manager behavior (automatic restocking and +12% foot traffic) remains active. The other skeleton employees retain their original paid hiring controls.
-- Vending UI: restored the original KPI paper-card sizing and LED ticker styling; ticker now scrolls horizontally without the overlapping marquee animation. Preserve the app's dark neon + taped paper + pixel-art mix.
-- Study > Today/Calendar day-paper rows now use a responsive grid, darker high-contrast text, larger type, and wrapping. Study > Subject/Books cards use a two-column title/meta layout, visible progress bar, and larger unit buttons, including narrow iPhone widths.
-- Service worker cache bumped to `lena-v116`.
-
-Manual device checks still required:
-1. Start a voice call and compare the conversation panel with the pre-v115 appearance.
-2. In a conversation, discuss a topic, then say “정리해서 저장해줘”; verify that the previous conversation is summarized and appears in dial 7. Also test a command followed by a colon and pasted text.
-3. Verify Gemini-key error handling and edit/delete of new and legacy voicemail entries.
-4. Open a new and existing vending save: Lena should be manager immediately, with no hire fee or daily salary; verify restock and customer traffic behavior.
-5. Check study day-paper and subject/book list at 375px and 390px widths, especially long Korean titles, progress text, and expanded unit buttons.
