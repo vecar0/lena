@@ -98,14 +98,14 @@ const css = `
 .step b{min-width:84px;text-align:center;font-family:'Space Mono',monospace;font-size:13px}
 .pedit input.in{max-width:130px}
 .warn{padding:9px 12px;border-radius:12px;background:rgba(255,46,110,.13);border:1px solid rgba(255,46,110,.5);font-size:13px;line-height:1.5;margin-bottom:10px;word-break:keep-all}
-.mat{padding:10px 12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);margin-bottom:8px}
-.mat .h{display:flex;gap:8px;align-items:center}.mat .h b{flex:1;min-width:0;font-size:14.5px}.mat .h em{font-style:normal;font-family:'Space Mono',monospace;font-size:12px;color:var(--mute)}
-.mat .pg{height:5px;border-radius:3px;background:#0b0d10;margin-top:8px;overflow:hidden}.mat .pg i{display:block;height:100%;background:var(--teal)}
+.mat{padding:12px 13px;border-radius:12px;background:#f3efe6;color:#171717;border:2px solid #171717;margin-bottom:10px;box-shadow:3px 3px 0 #000;}
+.mat .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.mat .h b{flex:1 1 48%;min-width:0;font-size:16px;line-height:1.35;color:#111;font-weight:900}.mat .h em{font-style:normal;font-family:'Space Mono',monospace;font-size:12px;color:#444;font-weight:800;white-space:nowrap}
+.mat .pg{height:9px;border-radius:5px;background:#c9c5bc;border:1px solid #777;margin-top:10px;overflow:hidden}.mat .pg i{display:block;height:100%;background:#00a994}
 .mat .us{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
-.mat .us2{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:4px;margin:-1px 0 5px 14px;padding-left:8px;border-left:2px solid rgba(0,0,0,.18)}.mat .us2 button{min-height:30px;font-size:12px;padding:0 8px}
+.mat .us2{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 7px 8px;padding:7px 0 2px 10px;border-left:3px solid #159b8c}.mat .us2 button{min-height:34px;font-size:12.5px;padding:0 9px;background:#fff;color:#111;border:1.5px solid #444}
 .pr.pplay{min-height:40px;background:repeating-linear-gradient(-45deg,rgba(47,224,200,.16) 0 8px,transparent 8px 16px);border-radius:6px}.pr.pplay .w{font-size:13.5px;font-weight:700;color:#0b6e61}
-.mat .us button{height:32px;padding:0 10px;border-radius:16px;border:1px solid var(--line);font-size:12.5px;color:#cdd6da}
-.mat .us button.d{background:var(--teal);color:#000;border-color:var(--teal)}
+.mat .us button{height:36px;padding:0 11px;border-radius:9px;border:1.5px solid #171717;background:#fff;color:#171717;font-size:13px;font-weight:800}
+.mat .us button.d{background:#a8f0e4;color:#003c34;border-color:#007c70}
 .frm{display:flex;flex-direction:column;gap:8px}
 .wkl{display:flex;flex-direction:column;gap:10px;margin:14px 0 2px}
 .wkl div{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5;color:#d7dee1;word-break:keep-all}
@@ -712,3 +712,5 @@ const _ap = apply; apply = function (r) {
 try { dedupExams(); if (window.dedupItems && dedupItems()) save(); } catch (e) {}
 window.lenaStudy = { dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, colOf, plan: () => splan(), splan: () => { dirty(); return splan(); }, tasks, parseOutline, simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
 })();
+
+// v115: 교재 목록 대비 강화 — 종이 카드 위에 어두운 글자, 진한 진도 막대와 단원 버튼.
