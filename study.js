@@ -264,10 +264,7 @@ function simulate(nDays, capMode) {
     // 블로그: 평일 2과목, 주말 3~4과목
     const lim = capMode === 'max' ? 99 : (we ? P.weSubs : P.wdSubs), daySubs = new Set((di === 0 ? st.log[k] || [] : []).map(l => l.sub));
     const blocks = []; let last = '';
-    (st.pins || []).filter(p => p.d === k).forEach(p => { const parts = []; let left = p.e - p.s; const el2 = T.filter(t => t.rem > 0 && (!t.from || t.from <= k) && (!p.sub || t.sub === p.sub)).sort((x, y) => ((x.due || '9999') < (y.due || '9999') ? -1 : (x.due || '9999') > (y.due || '9999') ? 1 : ((x.tier || 0) - (y.tier || 0)) || (x.i || 0) - (y.i || 0)));
-      if (!p.what) for (const t of el2) { if (left < 10) break; const use = Math.min(t.rem, left); t.rem -= use; left -= use; parts.push({ t, mins: use, late: t.due && k > t.due }); }
-      if (left >= 5) parts.push({ t: { key: 'pin_' + p.id, label: p.what || `${p.sub || ''} 공부`.trim(), sub: p.sub || '공부', rev: 1, pin: 1 }, mins: left });
-      blocks.push({ s: p.s, e: p.e, sub: p.sub || (parts[0] && parts[0].t.sub) || '공부', parts, pin: 1 }); cap = Math.max(0, cap - (p.e - p.s)); daySubs.add(p.sub); }); /* v105: 레나가 대화로 박아 둔 공부 칸 */
+    // '공부 고정' 블록을 만들지 않고, 빈 시간은 자동 배치한다.
     for (const [a, b, tag] of freeIv(d, di === 0)) {
       let cur = a;
       while (cap >= Math.min(20, b - a) && b - cur >= Math.min(25, b - a)) {
@@ -510,8 +507,7 @@ function timeEditor(B) {
   const sch = () => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P.schoolMin = Math.max(0, (+P.schoolMin || 0) - 10); up(); }), el('b', null, P.schoolMin ? P.schoolMin + '분' : '안 함'), btn('+', 'ghost', () => { P.schoolMin = Math.min(120, (+P.schoolMin || 0) + 10); up(); })); r.append(el('span', null, '학교에서 공부'), S3); return r; };
   const cnt = (lab, key) => { const r = el('div', 'r'), S3 = el('div', 'step'); S3.append(btn('−', 'ghost', () => { P[key] = Math.max(1, P[key] - 1); up(); }), el('b', null, `${P[key]}과목`), btn('+', 'ghost', () => { P[key] = Math.min(6, P[key] + 1); up(); })); r.append(el('span', null, lab), S3); return r; };
   c.append(time('평일 시작', 'wdS'), time('주말 시작', 'weS'), time('끝 (잘 준비)', 'end'), cap('평일 하루 최대', 'wdMax', 0), cap('주말 하루 최대', 'weMax', 1), cnt('평일 과목 수', 'wdSubs'), cnt('주말 과목 수', 'weSubs'), play('학원 끝나고 휴식', 'acadGap'), play('평일 휴식 시간', 'wdPlay'), play('주말 휴식 시간', 'wePlay'), sch());
-  { const L2 = [...(st.pins || []).map(p => ({ o: p, a: 'pins', t: `📌 ${p.d.slice(5)} ${toT(p.s)}~${toT(p.e)} ${p.sub || ''} ${p.what || '공부'}` })), ...(st.blk || []).map(b => ({ o: b, a: 'blk', t: `⛔ ${b.d ? b.d.slice(5) : '매주 ' + (b.days || []).map(w => '일월화수목금토'[w]).join('')} ${b.e - b.s >= 1440 ? '하루 종일' : toT(b.s) + '~' + toT(b.e)} 공부 안 함` }))];
-    if (L2.length) { c.appendChild(el('div', 'hint', '레나랑 정한 공부 칸 (✕로 풀기)')); L2.forEach(x => { const r = el('div', 'r'); r.append(el('span', null, x.t), btn('✕', 'ghost', () => { st[x.a] = st[x.a].filter(y => y !== x.o); st.fix = {}; up(); })); c.appendChild(r); }); } }
+  // '공부 고정'과 '공부 안 함' 편집 항목을 제거했습니다.
   c.prepend(el('div', 'hint', `지금: 평일 ${P.wdS}~ · 주말 ${P.weS}~ · ${P.end}까지`));
   c.appendChild(el('div', 'hint', '하루 최대를 0까지 내리면 "자동"이에요. 자동은 그날 빈 시간과 마감까지 남은 양으로 레나가 정해요. 통화로 "주말엔 9시부터" "수학 먼저 해 줘"처럼 말해도 바꿔요.'));
   B.appendChild(c);
