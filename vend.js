@@ -49,12 +49,12 @@ const IMG = n => n.startsWith('assets') ? n : `assets/lena/s/${n}.webp`;
 const P = {
   coffee: { n: '아이스 아메리카노', w: 900, b: 1500, d: 1, exp: 2, i: 'g_coffee', rk: 0, wx: { rain: 1.3, hot: 1.4 } },
   milk: { n: '딸기 우유', w: 750, b: 1300, d: 1, exp: 2, i: 'g_milk', rk: 0, wx: { hot: 1.3 } },
-  gum: { n: '껌', w: 400, b: 700, d: 0.8, exp: 0, t: '껌', rk: 0 },
-  kimbap: { n: '삼각김밥', w: 1000, b: 1600, d: 0.9, exp: 1, t: '밥', rk: 0 },
-  ramen: { n: '컵라면', w: 1100, b: 1800, d: 0.8, exp: 0, t: '면', rk: 0, wx: { cold: 1.6, rain: 1.3 } },
+  gum: { n: '체리 캔디', w: 400, b: 700, d: 0.8, exp: 0, i: 'd_cherry', rk: 0 },
+  kimbap: { n: '덕키 도시락', w: 1000, b: 1600, d: 0.9, exp: 1, i: 'd_duck', rk: 0 },
+  ramen: { n: '디스코 컵라면', w: 1100, b: 1800, d: 0.8, exp: 0, i: 'd_disco', rk: 0, wx: { cold: 1.6, rain: 1.3 } },
   umb: { n: '우산', w: 5000, b: 8000, d: 0.3, exp: 0, i: 'assets/lena/g/c_umb.webp', rk: 0, wx: { rain: 6, dry: .08 } },
   energy: { n: '에너지 드링크', w: 1400, b: 2200, d: 0.8, exp: 0, i: 'assets/lena/cur/energy.webp', rk: 1, wx: { hot: 1.3 } },
-  hotpack: { n: '핫팩', w: 700, b: 1200, d: 0.5, exp: 0, t: '핫', rk: 1, wx: { cold: 4, hot: .05, mild: .3 } },
+  hotpack: { n: '북극곰 핫팩', w: 700, b: 1200, d: 0.5, exp: 0, i: 'd_polar', rk: 1, wx: { cold: 4, hot: .05, mild: .3 } },
   cake: { n: '딸기 케이크', w: 2900, b: 4500, d: 0.35, exp: 1, i: 'g_cake', rk: 2 },
   rose: { n: '검은 장미', w: 3800, b: 6000, d: 0.25, exp: 2, i: 'g_rose', rk: 2 },
   lip: { n: '핑크 립스틱', w: 5600, b: 9000, d: 0.2, exp: 0, i: 'g_lip', rk: 3 },
@@ -183,7 +183,7 @@ function tick(opened) {
 const won = n => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString() + '원';
 const LS = window.lenaShop;
 let tab = 'street', cur = null, sel = null;
-function pimg(p, cls) { const x = P[p]; const objects = { gum: '🍬', kimbap: '🍙', ramen: '🍜', hotpack: '🧤' }; if (objects[p]) return el('span', 'bz-object', objects[p]); if (!x.i || x.t === 'L') return el('span', 'bz-object', '★'); const i = el('img', cls); i.src = IMG(x.i); i.alt = ''; return i; }
+function pimg(p, cls) { const x = P[p]; if (!x.i || x.t === 'L') return el('span', 'bz-object', '★'); const i = el('img', cls); i.src = IMG(x.i); i.alt = ''; return i; }
 const unlocked = b => Object.keys(P).filter(k => P[k].rk <= b.rank);
 function top(Bx, b) {
   const t = el('div', 'bz-top'), today = b.today.rev - b.today.cogs;
