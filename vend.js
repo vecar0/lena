@@ -268,7 +268,7 @@ function boothDecor(Bx,b) {
 }
 function wantP(s) { const k = Object.keys(P), r = rnd(dk(new Date()) + 'w'); const u = unlocked(B()); return u[Math.floor(r() * u.length)] || k[0]; }
 function book(Bx, b) {
-  const D = b.log.slice(-14); if (!D.length) { Bx.appendChild(empty('아직 결산한 날이 없어요.\n자정이 지나면 하루 장부가 생겨요.', 'st_coin')); return; }
+  const D = b.log.slice(-14); if (!D.length) Bx.appendChild(empty('아직 결산한 날이 없어요.\n자정이 지나면 하루 장부가 생겨요.', 'st_coin'));
   const mx = Math.max(1, ...D.map(l => Math.abs(l.profit))), C = el('div', 'bz-chart'); D.forEach(l => { const i = el('i', l.profit < 0 ? 'neg' : ''); i.style.height = Math.max(2, Math.abs(l.profit) / mx * 100) + '%'; i.title = l.d; C.appendChild(i); }); Bx.append(lbl('최근 14일 이익'), C);
   const lg = el('div', 'bz-log'); D.slice().reverse().forEach(l => { const r = el('div'); r.innerHTML = `<b>${l.d.slice(5).replace('-', '/')}</b> 이익 <b style="color:${l.profit < 0 ? '#d0124f' : '#0b7d6e'}">${won(l.profit)}</b> · 매출 ${won(l.rev)} (${l.sold}개) · 도매 ${won(l.cogs)}${l.waste ? ` · 버림 ${won(l.waste)}` : ''} · 자릿세 ${won(l.rent)}${l.wage ? ` · 일당 ${won(l.wage)}` : ''}${l.int ? ` · 이자 ${won(l.int)}` : ''}${l.gc ? ` · 게임 동전 +${l.gc}` : ''}${l.ev.length ? '<br>' + l.ev.join('<br>') : ''}`; lg.appendChild(r); }); Bx.append(lbl('장부'), lg); Bx.appendChild(lbl('부스 꾸미기')); boothDecor(Bx,b);
 }
