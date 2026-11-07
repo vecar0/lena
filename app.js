@@ -43,6 +43,7 @@ function load() {
     S.firstAt = Date.now(); S.ack = Date.now();
   }
   for (const k in DEF) if (S[k] == null) S[k] = Array.isArray(DEF[k]) ? [] : (typeof DEF[k] === 'object' && DEF[k]) ? {} : DEF[k];
+  if (!S.fired || typeof S.fired !== 'object' || Array.isArray(S.fired)) S.fired = {}; if (!Array.isArray(S.calls)) S.calls = [];
   // v64: 할 일 동전은 없앰 → 남아 있던 건 게임 동전으로 옮김(한 번만)
   if (S.coins > 0) { S.gc = Math.min(999, (S.gc || 0) + S.coins); S.coins = 0; }
 }
@@ -381,8 +382,7 @@ function kissFromMouth() {
 }
 $('toAudio').onclick = $('toAudio2').onclick = () => { dtmf(1); toAudio(); };
 $('aVid').onclick = toVideo;
-$('logTog').textContent = '다이얼'; $('logTog').onclick = () => { dtmf(0); openPad(); };
-$('aPad').onclick = () => { dtmf(0); openPad(); };
+// 음성통화 중에는 다이얼을 노출하지 않는다.
 $('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
 $('aCall').onclick = () => { dtmf(4); openSheet(6); };
 $('aMiss').onclick = () => { dtmf(5); openSheet('call'); };
@@ -734,11 +734,11 @@ $('incNo').onclick = () => {
 function check() {
   tick(); const now = Date.now();
   if ($('inc').classList.contains('on')) return;
-  for (const c of S.calls) { if (c.done || S.fired[c.id] || c.at > now) continue; if (now - c.at < 15 * 60e3) { S.fired[c.id] = 1; save(); if (c.text === '모닝콜 다시') { c.done = true; incoming('morning'); } else incoming('callback', false, c); return; } }
+  for (const c of S.calls) { if (c.done || S.fired[c.id] || !Number.isFinite(+c.at) || c.at > now) continue; if (now - c.at < 24 * 3600e3) { S.fired[c.id] = 1; save(); if (c.text === '모닝콜 다시') { c.done = true; incoming('morning'); } else incoming('callback', false, c); return; } }
   for (const t of S.items) { if (t.done || !t.due) continue; const d = new Date(t.due).getTime() - now, k = t.id + '_10';
     if (!S.fired[k] && d <= 10 * 60e3 && d > 60e3) { S.fired[k] = 1; save(); say(`${nmc()}'${t.text}' ${Math.round(d / 60e3)}분 남았어요. 준비해요.`, 'worry'); return; }
     if (!S.fired[t.id] && d <= 0 && d > -10 * 60e3) { S.fired[t.id] = 1; save(); say(`'${t.text}' 시간이에요. …제가 말했죠?`, 'surprise'); renderHome(); knockAt = 0; knockNow(); return; } }
-  const m = mcAt(new Date()); if (m && now >= m.getTime() && now - m.getTime() < 2 * 3600e3 && S.mcDone !== dk(new Date())) { incoming('morning'); return; }
+  const today = new Date(), m = mcAt(today); if (m && now >= m.getTime() && now - m.getTime() < 24 * 3600e3 && S.mcDone !== dk(today)) { incoming('morning'); return; }
   renderHome();
 }
 
