@@ -154,7 +154,7 @@ const _br = boardRender; boardRender = function (B) {
       c.append(row(btn('취소','ghost',()=>{ttOneAdd=false;refreshSheet();}),btn('시간표에 넣기','teal wide',()=>{
         if(!nm.value.trim()||!date.value||!tm.value){toast('이름·날짜·시작 시간을 적어 줘.');return;}
         const duration=Math.max(10,Math.min(720,Math.round((+mins.value||60)/5)*5));
-        const item=addItem(nm.value.trim(),date.value+'T'+tm.value,'event'); item.mins=duration; save(); pushSync(true); ttOneAdd=false; dirty && dirty(); refreshSheet(); renderHome(); toast('활동을 시간표에 넣었어.');
+        const item=addItem(nm.value.trim(),date.value+'T'+tm.value,'event'); item.mins=duration; save(); pushSync(true); ttOneAdd=false; if (window.lenaStudy && window.lenaStudy.dirty) window.lenaStudy.dirty(); refreshSheet(); renderHome(); toast('활동을 시간표에 넣었어.');
       })));
       c.appendChild(el('div','hint','공부가 아닌 게임·취미·운동·약속도 일정으로 등록돼. 공부 시간과 겹치지 않게 계산해.'));
       B.appendChild(c);
