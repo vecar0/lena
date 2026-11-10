@@ -6,6 +6,7 @@ const css = `
 .bz-led{margin:0 0 12px;padding:10px 10px 8px;background:#0d1f17;border:2px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;font-family:'Space Mono',monospace;color:#7dffb5}
 .bz-led .g{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.bz-led .g div{text-align:center;padding:2px 0;border-right:1px dashed rgba(125,255,181,.25)}.bz-led .g div:last-child{border:0}
 .bz-led small{display:block;font-size:10px;opacity:.7;font-family:Pretendard,sans-serif;font-weight:700}.bz-led b{font-size:14px;text-shadow:0 0 6px rgba(125,255,181,.6)}
+.bz-mgr{display:flex;gap:12px;align-items:flex-start;padding:12px;margin-bottom:12px;border:2px solid #000;border-radius:8px;background:linear-gradient(rgba(243,239,230,.6),rgba(243,239,230,.6)),#f3efe6 url(assets/lena/paper_white.webp) center/cover;color:#17181a;box-shadow:3px 3px 0 #000}.bz-mgr .f{flex:none;width:52px;height:52px;border-radius:50%;background:#111 url(assets/lena/face.jpg) center 22%/cover;border:2.5px solid #ff3d9a}.bz-mgr .w{flex:1;min-width:0}.bz-mgr b{font:16px 'Black Han Sans',sans-serif}.bz-mgr small{display:block;font:700 11.5px 'Space Mono',monospace;color:#0b7d6e;margin:2px 0 4px}.bz-mgr p{margin:3px 0;font-size:14px;font-weight:600;line-height:1.45}.bz-mgr button{margin-top:6px;min-height:40px;color:#17181a!important;background:#fff!important;border:1.5px solid #000!important;font-weight:800}
 .bz-led .tk{display:flex;gap:14px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(125,255,181,.2);overflow:hidden;white-space:nowrap;font-size:11px;-webkit-mask:linear-gradient(90deg,#000 85%,transparent);mask:linear-gradient(90deg,#000 85%,transparent)}
 .bz-led .tk .rw{flex:1;min-width:0;overflow:hidden}.bz-led .tk .rl{display:flex;gap:14px;width:max-content;animation:bzTk 18s linear infinite}.bz-led .tk span{flex:none}.bz-led .tk .on{color:#ff6fb0;animation:bzBl 1.2s steps(2) infinite}
 @keyframes bzTk{from{transform:translateX(0)}to{transform:translateX(-50%)}}@keyframes bzBl{50%{opacity:.3}}
@@ -249,6 +250,24 @@ function staffView(Bx, b) {
   const u = el('div', 'card pedit'); for (const k in UP) { const x = UP[k], r = el('div', 'r'), t = el('span'); t.append(el('b', null, x.n), el('br'), el('small', null, x.d)); t.lastChild.style.cssText = 'font-size:12px;color:var(--mute)';
     r.append(t, b.up[k] ? el('b', null, '설치됨') : btn(won(x.c), 'ghost', () => { if (b.cash < x.c) { toast('자금이 모자라요(설비는 사채로 못 사요).'); return; } b.cash -= x.c; b.up[k] = 1; save(); refreshSheet(); })); u.appendChild(r); } Bx.appendChild(u);
 }
+// v114: 점장 레나 — 장사 숫자를 보고 할 말을 고름(반말)
+function advice(b) { const L2 = [], all = []; Object.entries(b.locs).forEach(([id, st]) => st.machines.forEach(m => m.slots.forEach(sl => all.push({ id, m, sl }))));
+  const empty = all.filter(x => !x.sl.p || !x.sl.n).length, brk = Object.values(b.locs).reduce((a, st) => a + st.machines.filter(m => m.broken).length, 0);
+  const low = Object.entries(b.locs).map(([id, st]) => { let c = 0, h = 0; st.machines.forEach(m => m.slots.forEach(sl => { if (sl.p) { c += capOf(b, m); h += sl.n; } })); return [id, c ? h / c : 1]; }).sort((x, y) => x[1] - y[1])[0];
+  const cnt = {}; (b.feed || []).forEach(f => { cnt[f[2]] = (cnt[f[2]] || 0) + 1; }); const best = Object.entries(cnt).sort((x, y) => y[1] - x[1])[0];
+  if (b.cash < 0) L2.push(`사채 ${won(-b.cash)} 붙었어. 자정마다 이자 5%야… 값 좀 내리고 잘 나가는 것부터 채우자.`);
+  if (brk) L2.push(`고장 난 기계 ${brk}대. 고치기 전엔 한 푼도 안 들어와.`);
+  if (empty) L2.push(`빈 칸 ${empty}개. 거기 온 손님은 그냥 돌아가는 거 알지?`);
+  if (low && low[1] < .3) { const lo = L.find(x => x.id === low[0]); L2.push(`${lo ? lo.n : '한 자리'} 재고 ${Math.round(low[1] * 100)}%… 곧 텅 비어.`); }
+  if (best && P[best[0]]) L2.push(`요즘 ${P[best[0]].n}이(가) 제일 잘 나가. 한 칸 더 넣어 볼래?`);
+  const wx = (S.wx && S.wx.data && S.wx.data.now) || {}; if (/비|rain/.test(JSON.stringify(wx))) L2.push('비 온다. 우산 칸 비어 있으면 아까운 날이야.');
+  L2.push(['오늘도 내가 가게 봐 줄게. 송휘는 사장 노릇만 해~', '손님은 송휘만큼 너그럽지 않아. 값 너무 올리지 마.', '장사 잘되면… 나한테도 뭐 하나 납품해 줄 거지?'][new Date().getHours() % 3]); /* 10초마다 새로 그려도 말이 안 바뀌게 */
+  return L2.slice(0, 2); }
+function mgr(Bx, b) { const a = LS.A(), n = LS.lv(a.pt), c = el('div', 'bz-mgr'), f = el('i', 'f'), w = el('div', 'w'), h = el('b', null, `점장 레나 · ${LS.tierOf(n).name}`);
+  const l = lastSettles[0], said = l && !b.seen[l.d]; if (said) b.seen = { [l.d]: 1 };
+  w.append(h, el('small', null, `회선 보너스 매출 +${Math.round((affMul() - 1) * 100)}%`)); (said ? [`어제(${l.d.slice(5).replace('-', '/')}) 결산 — 이익 ${won(l.profit)}${l.gc ? `, 게임 동전 +${l.gc}` : ''}${l.ev.length ? ' · ' + l.ev[0] : ''}. ${l.profit < 0 ? '…이러다 해골 사채 써.' : '잘했어, 사장님.'}`] : advice(b)).forEach(t => w.appendChild(el('p', null, t)));
+  if (tab !== 'lena') { const g = btn('선물·부스 꾸미기 ›', 'ghost', () => { tab = 'lena'; sel = null; refreshSheet(); }); w.appendChild(g); }
+  c.append(f, w); Bx.appendChild(c); }
 function lenaView(Bx, b) {
   LS.decay(); const a = LS.A(), n = LS.lv(a.pt), [, mt] = LS.mood(), s = LS.today();
   const c = el('div', 'card'); c.append(el('b', null, LS.tierOf(n).name), el('div', 'hint', mt));
@@ -274,11 +293,10 @@ function book(Bx, b) {
 }
 SH.shop = { t: '자판기', s: () => { const b = B(); return `${RANK[b.rank][0]} · 자리 ${Object.keys(b.locs).length}곳`; }, open: () => {}, r: Bx => {
   const b = B(); tick(true);
-  if (lastSettles.length && !b.seen[lastSettles[0].d]) { const l = lastSettles[0]; b.seen = { [l.d]: 1 }; const c = el('div', 'ask lena'); c.append(el('span', 'who', '레나'), document.createTextNode(`어제(${l.d.slice(5).replace('-', '/')}) 장사 — 이익 ${won(l.profit)}${l.gc ? `, 게임 동전 +${l.gc}` : ''}${l.ev.length ? ' · ' + l.ev[0] : ''}. ${l.profit < 0 ? '…이러다 해골 사채 써요.' : '잘했어요, 사장님.'}`)); Bx.appendChild(c); }
-  else if (tab === 'street') { const c = el('div', 'ask lena'), say = b.cash < 0 ? '사채 이자가 붙고 있어요. 값 내리고 잘 팔리는 것부터 채워요.' : pick(['비 오면 우산, 시험 기간엔 학원 앞. 장사는 눈치예요.', '빈 칸은 돈이 새는 구멍이에요. 채워 둬요.', '비싸게 걸면 안 팔려요. 손님은 송휘만큼 너그럽지 않거든요.']); c.append(el('span', 'who', '레나'), document.createTextNode(say)); Bx.appendChild(c); }
+  mgr(Bx, b); /* v114: 레나 = 점장. 어느 탭에서든 맨 위에서 진짜 장사 상황을 보고 말함 */
   top(Bx, b);
-  const T = el('div', 'tabs'); [['street', '거리'], ['staff', '알바·설비'], ['lena', '레나'], ['book', '장부']].forEach(([v, l]) => { const x = el('button', (tab === v || (v === 'street' && tab === 'loc')) ? 'on' : '', l); x.onclick = () => { tab = v; sel = null; refreshSheet(); }; T.appendChild(x); }); Bx.appendChild(T);
-  ({ street, loc: locView, staff: staffView, lena: lenaView, book })[tab](Bx, b);
+  const T = el('div', 'tabs'); [['street', '거리'], ['lena', '레나 점장'], ['book', '장부']].forEach(([v, l]) => { const x = el('button', (tab === v || (v === 'street' && tab === 'loc')) ? 'on' : '', l); x.onclick = () => { tab = v; sel = null; refreshSheet(); }; T.appendChild(x); }); Bx.appendChild(T);
+  ({ street, loc: locView, staff: (X, y) => { lenaView(X, y); staffView(X, y); }, lena: (X, y) => { lenaView(X, y); staffView(X, y); }, book })[tab](Bx, b);
 } };
 SH[3] = SH.shop;
 // 화면이 열려 있으면 10초마다 장사 진행·숫자 갱신
