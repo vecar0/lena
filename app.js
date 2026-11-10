@@ -194,11 +194,11 @@ $('lenaHit').onclick = () => { tapN++; clearTimeout(tapT); tapT = setTimeout(() 
 // ---------------- sheets ----------------
 let curSheet = 0, callTab = 'res';
 // 화면에 보이는 다이얼 번호(시트 id → 번호). 순서는 중요도: 1 전단지 2 캘린더 3 시간표 4 공부 5 전화 6 모닝콜 7 음성사서함 8 운세 9 자판기 * 오락실 0 설정
-const NUMOF = { 1: '1', cal: '2', tt: '3', 6: '4', call: '5', 7: '6', 5: '7', 2: '8', fort: '8', 3: '9', shop: '9', 8: '*', 0: '0', cl: '#', box: '⚡' };
+const NUMOF = { 1: '1', cal: '2', tt: '3', 6: '4', call: '5', 7: '6', memo: '7', 2: '8', fort: '8', 3: '9', shop: '9', 8: '*', 0: '0', cl: '#', box: '⚡' };
 const SH = {};
 function openSheet(n) {
   // 예전 번호(4 예약·9 부재중·* 기록)는 5번 '전화' 시트의 탭으로
-  if (n === 4 || n === 9 || n === '*' || n === 'call') { callTab = n === 9 ? 'miss' : n === '*' ? 'log' : n === 4 ? 'res' : (missed().length ? 'miss' : 'res'); n = 'call'; }
+  if (n === 4 || n === 9 || n === '*' || n === 5 || n === 'call') { callTab = n === 9 ? 'miss' : n === '*' ? 'log' : n === 4 ? 'res' : n === 5 ? 'vm' : (missed().length ? 'miss' : 'res'); n = 'call'; }
   closePad(); const s = SH[n]; if (!s) return; if (s.direct) { s.direct(); return; } curSheet = n;
   $('shNum').textContent = NUMOF[n] != null ? NUMOF[n] : '•'; $('shT').textContent = s.t; $('shS').textContent = typeof s.s === 'function' ? s.s() : (s.s || '');
   const B = $('shB'); B.innerHTML = ''; s.r(B); B.scrollTop = 0;
@@ -297,6 +297,13 @@ SH[4] = { t: '예약 전화', s: '정한 시간에 레나가 전화해요', r: B
 } };
 
 // 5 음성사서함 (기억)
+// v111: 메모(다이얼 7) — 손으로 적거나 레나가 대화·검색 결과를 적어 둠
+SH.memo = { t: '메모', s: () => `메모 ${(S.memos || []).length}개 · 레나한테 "메모해 둬"라고 해도 돼`, r: B => {
+  S.memos = S.memos || []; const c = el('div', 'card paperc yel'), t = el('textarea'); t.placeholder = '메모 적기…'; t.rows = 3; t.style.cssText = 'width:100%;font-size:16px;padding:10px;border-radius:8px;border:1.5px solid #000;background:#fffbe0;color:#111;box-sizing:border-box';
+  c.append(t, row(btn('붙이기', 'wide', () => { const v = t.value.trim(); if (!v) return; S.memos.unshift({ id: uid('n'), text: v.slice(0, 2000), at: Date.now() }); save(); refreshSheet(); }))); B.appendChild(c);
+  S.memos.forEach(m => { const k = el('div', 'card paperc'); k.style.position = 'relative'; const tx = el('div', null, m.text); tx.style.cssText = 'white-space:pre-wrap;font-size:15px;line-height:1.5;padding-right:30px;color:#111'; const meta = el('div', 'hint', new Date(m.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + (m.by ? ' · 레나가 적음' : '')); const x = btn('✕', 'ghost', () => { S.memos = S.memos.filter(y => y !== m); save(); refreshSheet(); }); x.style.cssText = 'position:absolute;top:6px;right:6px;min-height:36px;color:#111;border-color:#0003'; k.append(tx, meta, x); B.appendChild(k); });
+  if (!S.memos.length) B.appendChild(el('div', 'hint', '아직 메모가 없어요.'));
+} };
 SH[5] = { t: '음성사서함', s: () => `레나가 기억하는 것 ${S.memory.length}개`, r: B => {
   const c = el('div', 'card'), t = inp('text', '예: 나 오이 싫어해');
   const go = () => { const v = t.value.trim(); if (!v) return; if (!S.memory.includes(v)) S.memory.push(v.slice(0, 120)); save(); t.value = ''; refreshSheet(); say(pick(['메시지 잘 받았어요. 안 까먹어요.', '…녹음해 뒀어요. 몇 번 더 들어 볼게요.']), 'happy', false); };
@@ -354,8 +361,8 @@ SH['*'] = { t: '통화 기록', s: () => `최근 ${Math.min(S.history.length, 60
 } };
 // 5 전화 = 예약 전화 + 부재중 + 통화 기록 (탭)
 SH.call = { t: '전화', s: () => { const n = missed().length, c = S.calls.filter(x => !x.done && x.at > Date.now()).length; return `${n ? `부재중 ${n}통 · ` : ''}예약 ${c}개`; }, r: B => {
-  const T = el('div', 'tabs'), n = missed().length; [['res', '예약 전화'], ['miss', n ? `부재중 ${n}` : '부재중'], ['log', '통화 기록']].forEach(([v, l]) => { const b = el('button', callTab === v ? 'on' : '', l); b.onclick = () => { callTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
-  SH[{ res: 4, miss: 9, log: '*' }[callTab]].r(B);
+  const T = el('div', 'tabs'), n = missed().length; [['res', '예약'], ['miss', n ? `부재중 ${n}` : '부재중'], ['log', '기록'], ['vm', '음성사서함']].forEach(([v, l]) => { const b = el('button', callTab === v ? 'on' : '', l); b.onclick = () => { callTab = v; refreshSheet(); }; T.appendChild(b); }); B.appendChild(T);
+  SH[{ res: 4, miss: 9, log: '*', vm: 5 }[callTab]].r(B);
 } };
 
 // 0 설정
@@ -407,7 +414,7 @@ function kissFromMouth() {
 }
 $('toAudio').onclick = $('toAudio2').onclick = () => { dtmf(1); toAudio(); };
 $('aVid').onclick = toVideo;
-$('logTog').onclick = () => { const m = app.classList.toggle('lmin'); $('logTog').textContent = m ? '대화 펼치기' : '대화 접기'; const L = $('log'); setTimeout(() => L.scrollTop = L.scrollHeight, 300); };
+$('logTog').onclick = () => { dtmf(0); openPad(); }; /* v111: 대화 접기 → 다이얼 바로 열기 */
 $('aPad').onclick = () => { dtmf(0); openPad(); };
 $('aBoard').onclick = () => { dtmf(1); openBoard('today'); };
 $('aCall').onclick = () => { dtmf(4); openSheet(6); };
@@ -415,7 +422,7 @@ $('aMiss').onclick = () => { dtmf(5); openSheet('call'); };
 $('aSet').onclick = () => { dtmf(0); openSheet(0); };
 
 // ---------------- dial pad ----------------
-const KEYS = [[1, '전단지', 1], [2, '캘린더', 'cal'], [3, '시간표', 'tt'], [4, '공부', 6], [5, '전화', 'call'], [6, '모닝콜', 7], [7, '음성사서함', 5], [8, '오늘의 운세', 'fort'], [9, '자판기', 'shop'], ['*', '오락실', 8], [0, '설정', 0], ['#', '닫기']];
+const KEYS = [[1, '전단지', 1], [2, '캘린더', 'cal'], [3, '시간표', 'tt'], [4, '공부', 6], [5, '전화', 'call'], [6, '모닝콜', 7], [7, '메모', 'memo'], [8, '오늘의 운세', 'fort'], [9, '자판기', 'shop'], ['*', '오락실', 8], [0, '설정', 0], ['#', '닫기']];
 (function buildPad() {
   const K = $('keys');
   KEYS.forEach(([k, l, id]) => { const b = el('button', 'k' + (k === 6 ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 5) { const e = el('em'); e.hidden = true; b.appendChild(e); }
@@ -559,6 +566,11 @@ async function claudeCall(m, sys, contents, onPart, ac, t1, kick) {
 // 모델마다 첫 글자가 오기까지 걸린 시간(ms)을 기억(S.mlat, 평균). '자동'이면 후보 셋 중 가장 빠른 것부터.
 const TH = {};
 function lat(m, ms) { if (!S.mlat) S.mlat = {}; const o = S.mlat[m]; S.mlat[m] = o ? Math.round(o * .7 + ms * .3) : ms; }
+// v111: 레나가 인터넷 검색(Gemini google_search) — 검색이 필요한 말이면 먼저 찾아서 대화에 붙임
+const NEEDWEB = /(검색|찾아\s?(봐|줘)|알아\s?(봐|줘)|최신|요즘|뉴스|가격|얼마야|리뷰|추천해|맛집|영업\s?시간|언제\s?(나와|출시|개봉|해)|누구야|뭐야\?|날짜가|일정\s?알려|결과\s?알려)/;
+async function webSearch(q) { if (!S.key) return ''; const ms = mChain().filter(m => !/claude/.test(m)).slice(0, 2);
+  for (const m of ms) { try { const ac = new AbortController(), t = setTimeout(() => ac.abort(), 15000); const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(S.key)}`, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: `한국어로, 인터넷에서 찾아서 사실만 6줄 안으로 정리해 줘(날짜·숫자 정확히, 끝에 '출처: 사이트 이름'): ${q}` }] }], tools: [{ google_search: {} }], generationConfig: { maxOutputTokens: 900 } }) }); clearTimeout(t); if (!r.ok) continue; const j = await r.json(); const tx = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('').trim(); if (tx) return tx.slice(0, 2500); } catch (e) {} }
+  return ''; }
 function mChain() {
   const G = S.key ? [mAuto(), 'gemini-flash-latest', 'gemini-2.5-flash'] : [], C = S.ckey ? [CLM] : [];
   const brain = S.brain && ((isCl(S.brain) && S.ckey) || (!isCl(S.brain) && S.key)) ? S.brain : '';
@@ -656,6 +668,7 @@ async function sendText(raw, special) {
   if (special) contents[contents.length - 1].parts[0].text = text;
   if (img) contents[contents.length - 1].parts.unshift({ inline_data: { mime_type: img.mime, data: img.data } });
   const extra = window.pendFiles || []; window.pendFiles = null; extra.forEach(f => contents[contents.length - 1].parts.unshift({ inline_data: { mime_type: f.mime, data: f.data } }));
+  if (!special && !img && NEEDWEB.test(text) && S.key) { try { const w = await webSearch(text); if (w) contents[contents.length - 1].parts.push({ text: `\n\n(앱이 방금 인터넷에서 찾은 것 — 이걸 바탕으로 레나 말투로 알려 주고, 남겨 달라면 memo에 넣기:\n${w})` }); } catch (e) {} }
   window.lenaDeep = !special && (/(넣어|짜\s?줘|짜\s?봐|바꿔|옮겨|빼\s?줘|비워|미뤄|당겨|계획|일정|시간표|캘린더|공부|시험|범위|정리|어떻게|왜|추천|몇\s?시|언제)/.test(text) || text.length > 60); /* v108: 일·계획 얘기는 조금 더 생각하고 답함 */
   try {
     const r = await gemini(sysPrompt(special), contents, onPart);

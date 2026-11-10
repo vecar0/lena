@@ -163,7 +163,12 @@ img{object-fit:contain} /* 그림이 찌그러지지 않게: 따로 cover를 준
 .me.img::before{content:"사진 · ";color:var(--hot);font-weight:800}
 .her{font-size:17px;font-weight:700;line-height:1.55;word-break:keep-all;white-space:pre-wrap;max-width:94%;
   text-shadow:0 0 1px #000,1.5px 1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px -1.5px 0 #000,0 2px 10px rgba(0,0,0,.8)}
-.her .who{margin:0 7px 0 0;font-size:11px;vertical-align:2px;text-shadow:none}
+.her .who{display:none}
+/* v111: 레나 말 = 통화 기록처럼 얼굴 + 종이 말풍선 */
+.her{align-self:flex-start;position:relative;margin-left:46px;max-width:calc(94% - 46px);color:#17181a!important;text-shadow:none!important;font-size:15.5px!important;font-weight:600!important;line-height:1.5!important;padding:9px 13px;background:linear-gradient(rgba(243,239,230,.55),rgba(243,239,230,.55)),#f3efe6 url(assets/lena/paper_white.webp) center/cover;border-radius:4px 14px 14px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.55)}
+.her::before{content:'';position:absolute;left:-46px;top:0;width:38px;height:38px;border-radius:50%;background:#111 url(assets/lena/face.jpg) center 22%/cover;border:2px solid var(--pink);box-shadow:2px 2px 0 #000}
+.app.outside .her::before{background-image:url(assets/lena/cat.jpg);background-position:center}
+.me{transform:none;border-radius:14px 4px 14px 14px;background:var(--teal)!important}
 .note{align-self:center;background:var(--teal);color:#000;font-size:13px;font-weight:800;padding:7px 12px;box-shadow:3px 3px 0 #000;transform:rotate(-1.2deg);display:flex;gap:10px;align-items:center;max-width:92%}
 .note button{text-decoration:underline;font-weight:800;white-space:nowrap;flex:none}
 .dots{display:inline-flex;gap:5px;vertical-align:middle}.dots i{width:7px;height:7px;border-radius:50%;background:#fff;animation:d 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
@@ -352,10 +357,10 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
 /* 영상통화 중: 레나가 보이게 대화는 아래쪽 반투명 판에 */
 .app.calling:not(.outside) .log{flex:none;height:min(28vh,236px);transition:height .25s;margin-top:auto;margin:auto 10px 6px;padding:12px 12px 8px;border-radius:18px;background:rgba(8,10,13,.62);-webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2);border:1px solid rgba(255,255,255,.1);-webkit-mask:linear-gradient(transparent,#000 14%);mask:linear-gradient(transparent,#000 14%);gap:9px}
 .app.calling:not(.outside) .log::before{display:none}
-.app.calling.lmin:not(.outside) .log{height:86px}
 .app.calling:not(.outside) .log>:first-child{margin-top:auto} /* 메시지가 적으면 아래부터 쌓임 */
 .ltog{height:36px;padding:0 12px;border-radius:18px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.5);color:#fff;font-size:13px;font-weight:700;margin-left:auto;margin-right:6px}
 .app.outside .ltog{display:none}
+.ltog.dial{font-size:15px;padding:0 14px;letter-spacing:1px}
 .app.calling:not(.outside) .her{font-size:15px;line-height:1.5;text-shadow:none}
 .app.calling:not(.outside) .me{font-size:14px;padding:7px 11px}
 .app.calling:not(.outside) .ask{font-size:13.5px}
@@ -481,7 +486,7 @@ select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradie
   <section class="callv" id="callv">
     <div class="arain" aria-hidden="true"><i></i><i></i></div>
     <div class="ahead"><div class="aring"><i></i><i></i><div class="aava"></div></div><div class="hd"><h1>레나</h1><p><span class="aeq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span id="aT">통화 중 00:00</span></p><div class="ainfo" id="aInfo"></div></div></div>
-    <div class="ctop"><div class="chip"><i></i><span id="callT">통화 중 00:00</span></div><button class="ltog" id="logTog">대화 접기</button><button class="vtog" id="toAudio2"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z" fill="#21c55d" stroke="none"/></svg>음성통화로</button></div>
+    <div class="ctop"><div class="chip"><i></i><span id="callT">통화 중 00:00</span></div><button class="ltog dial" id="logTog">⌗ 다이얼</button><button class="vtog" id="toAudio2"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z" fill="#21c55d" stroke="none"/></svg>음성통화로</button></div>
     <div class="log" id="log"></div>
     <div class="attp" id="attp"><img id="attImg" alt=""><span>사진을 같이 보낼게요</span><button id="attX" aria-label="사진 빼기">×</button></div>
     <div class="agrid" id="agrid">
