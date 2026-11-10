@@ -669,7 +669,7 @@ async function sendText(raw, special) {
   if (img) contents[contents.length - 1].parts.unshift({ inline_data: { mime_type: img.mime, data: img.data } });
   const extra = window.pendFiles || []; window.pendFiles = null; extra.forEach(f => contents[contents.length - 1].parts.unshift({ inline_data: { mime_type: f.mime, data: f.data } }));
   if (!special && !img && NEEDWEB.test(text) && S.key) { try { const w = await webSearch(text); if (w) contents[contents.length - 1].parts.push({ text: `\n\n(앱이 방금 인터넷에서 찾은 것 — 이걸 바탕으로 레나 말투로 알려 주고, 남겨 달라면 memo에 넣기:\n${w})` }); } catch (e) {} }
-  window.lenaDeep = !special && (/(넣어|짜\s?줘|짜\s?봐|바꿔|옮겨|빼\s?줘|비워|미뤄|당겨|계획|일정|시간표|캘린더|공부|시험|범위|정리|어떻게|왜|추천|몇\s?시|언제)/.test(text) || text.length > 60); /* v108: 일·계획 얘기는 조금 더 생각하고 답함 */
+  window.lenaDeep = !special && (!!img || (window.pendFiles || extra).length > 0 || /(넣어|짜\s?줘|짜\s?봐|바꿔|옮겨|빼\s?줘|비워|미뤄|당겨|계획|일정|시간표|캘린더|공부|시험|범위|정리|어떻게|왜|추천|몇\s?시|언제)/.test(text) || text.length > 60); /* v108: 일·계획 얘기는 조금 더 생각하고 답함 */
   try {
     const r = await gemini(sysPrompt(special), contents, onPart);
     const reply = String(r.reply || '…').trim(); onPart(reply);
