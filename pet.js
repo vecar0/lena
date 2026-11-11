@@ -241,12 +241,12 @@
   }
   function ideas() {
     var a = [], now = Date.now(), h = new Date().getHours();
-    try { var ms = missed().length; if (ms) a.push({ k: 'miss', b: 'aMiss', t: '부재중 ' + ms + '개 왔어. 안 볼 거야?', p: 1 }); } catch (e) {}
-    try { var late = S.items.filter(isLate).length; if (late) a.push({ k: 'late', b: 'aBoard', t: '밀린 거 ' + late + '개 있는데… 모른 척할 거야?', p: 1 }); } catch (e) {}
-    try { var ev = S.items.filter(function (t) { return !t.done && isEv(t) && t.due && new Date(t.due) > now && new Date(t.due) - now < 2 * 3600e3; }).sort(function (x, y) { return new Date(x.due) - new Date(y.due); })[0]; if (ev) a.push({ k: 'ev' + ev.id, b: 'aBoard', t: '곧 ' + String(ev.text).slice(0, 14) + ' 있어. 준비됐어?', p: 1 }); } catch (e) {}
-    try { var td = S.items.filter(function (t) { return !t.done && !isEv(t) && !t.rid; }).length; if (td) a.push({ k: 'todo', b: 'aBoard', t: '할 일 ' + td + '개 남았어. 같이 볼까?' }); } catch (e) {}
-    try { if (S.study && (S.study.mats || []).length && h >= 15) a.push({ k: 'study', b: 'aCall', t: '오늘 공부 짜 놨는데, 볼래?' }); } catch (e) {}
-    a.push({ k: 'vid', b: 'aVid', t: '얼굴 보고 얘기할래?' }, { k: 'pad', b: 'aPad', t: '다이얼 눌러 봐. 운세도 있어.' });
+    try { var ms = missed().length; if (ms) a.push({ k: 'miss', b: 'aCall', t: '부재중 ' + ms + '개 왔어. 안 볼 거야?', p: 1 }); } catch (e) {}
+    try { var late = S.items.filter(isLate).length; if (late) a.push({ k: 'late', b: 'aPad', t: '밀린 거 ' + late + '개 있는데… 모른 척할 거야?', p: 1 }); } catch (e) {}
+    try { var ev = S.items.filter(function (t) { return !t.done && isEv(t) && t.due && new Date(t.due) > now && new Date(t.due) - now < 2 * 3600e3; }).sort(function (x, y) { return new Date(x.due) - new Date(y.due); })[0]; if (ev) a.push({ k: 'ev' + ev.id, b: 'aPad', t: '곧 ' + String(ev.text).slice(0, 14) + ' 있어. 준비됐어?', p: 1 }); } catch (e) {}
+    try { var td = S.items.filter(function (t) { return !t.done && !isEv(t) && !t.rid; }).length; if (td) a.push({ k: 'todo', b: 'aPad', t: '할 일 ' + td + '개 남았어. 같이 볼까?' }); } catch (e) {}
+    try { if (S.study && (S.study.mats || []).length && h >= 15) a.push({ k: 'study', b: 'aBoard', t: '오늘 공부 짜 놨는데, 볼래?' }); } catch (e) {}
+    a.push({ k: 'vid', b: 'aVid', t: '얼굴 보고 얘기할래?' }, { k: 'play', b: 'aMiss', t: '4번 창구 열었어. 한 판 할래?' });
     return a.filter(function (x) { return !seen[x.k] || now - seen[x.k] > (x.p ? 10 : 30) * 60000; });
   }
   function clear() { clearTimeout(curT); if (cur) cur.btn.classList.remove('lp-hl'); pet.wave(0); pet.say(''); }
