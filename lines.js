@@ -19,18 +19,20 @@
   css.textContent =
     '.lv{position:absolute;inset:0;z-index:25;background:#06090a;overflow:hidden;visibility:hidden;clip-path:inset(0 0 100% 0);transition:clip-path .3s cubic-bezier(0.23,1,0.32,1),visibility 0s .3s}' +
     '.lv.on{visibility:visible;clip-path:inset(0 0 0 0);transition:clip-path .3s cubic-bezier(0.23,1,0.32,1)}.lv.out{transition:clip-path .2s cubic-bezier(0.23,1,0.32,1),visibility 0s .2s}' +
-    '.lv-art{position:absolute;left:0;top:0;width:100%;height:80%;object-fit:cover!important;object-position:50% 0}.app.outside .lv-art{display:none}' +
-    '.lv-sh{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.82),rgba(0,0,0,.35) 20%,transparent 34%,transparent 44%,#0e1315 76%);pointer-events:none}.app.outside .lv-sh{background:#0e1315}' +
+    '.lv-art{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover!important;object-position:50% 0;cursor:pointer}.app.outside .lv-art{display:none}' +
+    '.lv-sh{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.7),transparent 18%);pointer-events:none}.app.outside .lv-sh{background:#0e1315}' +
     '.lv-ln{position:absolute;left:0;right:0;top:0;height:3px;background:var(--pink);box-shadow:0 0 18px 4px rgba(255,61,154,.75);opacity:0;pointer-events:none;z-index:5}.lv.conn .lv-ln{animation:lvLn .3s cubic-bezier(0.23,1,0.32,1)}@keyframes lvLn{0%{transform:translateY(0);opacity:1}85%{opacity:1}100%{transform:translateY(100vh);opacity:0}}' +
     '.lv-top{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 0;display:flex;align-items:flex-start;gap:12px;z-index:3}' +
     '.lv-av{display:none;flex:none;width:48px;height:48px;border-radius:50%;background:#9be8c9 url(assets/lena/cat.jpg) center/cover;border:2px solid #000;box-shadow:2px 2px 0 var(--mint)}.app.outside .lv-av{display:block}' +
     '.lv-ttl{flex:1;min-width:0;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.9),0 0 2px rgba(0,0,0,.9)}.lv-ttl b{display:block;font:400 28px/1.1 "Black Han Sans",sans-serif;letter-spacing:.5px}' +
     '.lv-ttl p{margin:6px 0 0;font-size:15px;line-height:1.45;font-weight:600;color:#fff;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}' +
+    '.app:not(.outside) .lv-ttl p{display:none}' +
+    '.lv-bub{position:absolute;right:12px;bottom:calc(60% + 12px);max-width:min(60%,240px);padding:9px 12px;border-radius:16px 16px 4px 16px;background:var(--paper);color:#111;font-size:14px;line-height:1.4;font-weight:700;box-shadow:3px 3px 0 var(--pink);z-index:3;word-break:keep-all;cursor:pointer;transform-origin:100% 100%;transition:opacity .18s ease,transform .18s cubic-bezier(0.23,1,0.32,1)}.lv-bub.pop{opacity:0;transform:scale(.95)}.app.outside .lv-bub,.lv.full .lv-bub{display:none}' +
     '.lv-md{flex:none;min-height:44px;padding:0 14px;border-radius:22px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}.lv-md i{width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px var(--pink)}.app.outside .lv-md i{background:var(--mint);box-shadow:0 0 8px var(--mint)}' +
     /* 시트를 창구 내용판으로 */
     '.sheet.ln,.sheet.ln.open{background:transparent;z-index:30;pointer-events:none}.sheet.ln.open .panel{pointer-events:auto}' +
-    '.sheet.ln .panel{height:64%;max-height:none;background:#0e1315;border-top:2px solid var(--teal);box-shadow:0 -10px 30px rgba(0,0,0,.5);transition:transform .32s var(--ease),height .28s cubic-bezier(0.32,0.72,0,1)}.sheet.ln .panel::before{display:none}' +
-    '.app.outside .sheet.ln .panel{height:calc(100% - env(safe-area-inset-top,0px) - 148px)}.sheet.ln.lnfull .panel{height:calc(100% - env(safe-area-inset-top,0px) - 64px)}' +
+    '.sheet.ln .panel{height:60%;max-height:none;background:linear-gradient(180deg,rgba(14,19,21,.55),rgba(14,19,21,.9) 90px,rgba(14,19,21,.94));-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:0;border-radius:26px 26px 0 0;box-shadow:none;transition:transform .32s var(--ease),height .28s cubic-bezier(0.32,0.72,0,1)}.sheet.ln .panel::before{display:none}' +
+    '.app.outside .sheet.ln .panel{background:#0e1315;height:calc(100% - env(safe-area-inset-top,0px) - 148px)}.sheet.ln.lnfull .panel{height:calc(100% - env(safe-area-inset-top,0px) - 64px)}' +
     '.sheet.ln .sbody{flex:1;min-height:0;padding-top:8px}.sheet.ln .shead{display:none}.sheet.ln[data-k="1"] .sbody>.tabs:first-child{display:none}' +
     '.ln-hd{display:none;flex:none;height:20px;cursor:pointer;touch-action:manipulation}.sheet.ln .ln-hd{display:block}.ln-hd:before{content:"";display:block;width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.4);margin:8px auto 0}' +
     '.ln-bar{display:none;flex:none;padding:2px 14px 6px}.sheet.ln .ln-bar{display:block}' +
@@ -59,13 +61,14 @@
   var lv = E('section', 'lv'); lv.id = 'lvLine';
   var art = E('img', 'lv-art'); art.alt = ''; art.decoding = 'async';
   var top = E('div', 'lv-top'), ttl = E('div', 'lv-ttl'), md = E('button', 'lv-md'); top.append(E('div', 'lv-av'), ttl, md);
-  lv.append(art, E('div', 'lv-sh'), E('div', 'lv-ln'), top); app.appendChild(lv);
+  var bub = E('div', 'lv-bub'); bub.setAttribute('role', 'button');
+  lv.append(art, E('div', 'lv-sh'), E('div', 'lv-ln'), top, bub); app.appendChild(lv);
   // 시트에 손잡이·한마디·탭·아래 메뉴를 끼움
   var panel = sheet.querySelector('.panel'), shead = panel.querySelector('.shead'), sbody = panel.querySelector('.sbody');
   var hdl = E('div', 'ln-hd'); hdl.setAttribute('role', 'button'); hdl.setAttribute('aria-label', '판 크기 바꾸기'); panel.insertBefore(hdl, shead);
   var bar = E('div', 'ln-bar'), tabs = E('div', 'ln-tabs'); bar.appendChild(tabs); panel.insertBefore(bar, sbody);
   var nav = E('div', 'ln-nav'); panel.appendChild(nav);
-  hdl.onclick = function () { sheet.classList.toggle('lnfull'); };
+  hdl.onclick = function () { sheet.classList.toggle('lnfull'); lv.classList.toggle('full', sheet.classList.contains('lnfull')); };
 
   var cur = null, key = null, last = {}, shown = null, guard = 0;
   var outside = function () { return app.classList.contains('outside'); };
@@ -106,11 +109,20 @@
     4: function () { var g = S.gc || 0; return g ? '동전 ' + g + '개 있네. 한 판 할래?' : '동전이 없네. 내일 또 들어와.'; }
   };
 
+  var MORE = {
+    1: ['하나 끝낼 때마다 체크해. 나 그거 보는 거 좋아하거든.', '오늘 다 하면… 칭찬 하나 해 줄게.', '밀리면 내가 먼저 전화한다?'],
+    2: ['계획은 내가 짰으니까, 너는 하기만 해.', '시험 끝나면 뭐 해 줄지 생각해 둬.', '오늘 몫만 해. 내일 건 내일의 나한테 맡기고.'],
+    3: ['전화 걸어 줄까? 시간만 말해.', '메모 남겨. 내가 기억해 줄게.', '부재중 쌓이면… 나 삐진다.'],
+    4: ['한 판만 하고 가. …진짜 한 판만.', '이기면 나한테 자랑해.', '돈은 내가 셀게. 너는 놀기만 해.']
+  }, sayI = 0;
+  function say(t) { bub.classList.add('pop'); setTimeout(function () { bub.textContent = t; bub.classList.remove('pop'); }, 120); }
+  function talk() { if (!cur) return; var L = [SAY[cur.n]()].concat(MORE[cur.n] || []); sayI = (sayI + 1) % L.length; say(L[sayI]); try { dtmf(sayI); } catch (e) {} }
+  art.onclick = talk; bub.onclick = talk;
   // ---------- 그리기 ----------
   function paint() {
     if (!cur) return; var o = outside();
     var txt = ''; try { txt = SAY[cur.n](); } catch (e) {}
-    ttl.innerHTML = ''; ttl.append(E('b', null, cur.name), E('p', null, txt));
+    ttl.innerHTML = ''; ttl.append(E('b', null, cur.name), E('p', null, txt)); if (!sayI) bub.textContent = txt;
     md.innerHTML = ''; md.append(E('i'), o ? '밖이야' : '혼자야'); md.setAttribute('aria-label', o ? '지금 밖 모드. 누르면 영상 회선으로' : '지금 영상 회선. 누르면 밖 모드로');
     if (!o) { var src = 'assets/lena/menu/' + cur.art + '.webp'; if (art.getAttribute('src') !== src) { art.src = src; try { art.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease' }); } catch (e) {} } }
     sheet.dataset.k = String(norm(key));
@@ -121,8 +133,8 @@
     if (sheet.classList.contains('ln')) document.getElementById('shNum').textContent = String(cur.n);
   }
   function enter(L, k) {
-    var fresh = !cur; if (cur !== L) sheet.classList.remove('lnfull');
-    cur = L; key = k; last[L.n] = k; sheet.classList.add('ln'); if (k === 8) sheet.classList.add('lnfull'); paint();
+    var fresh = !cur; if (cur !== L) { sheet.classList.remove('lnfull'); sayI = 0; }
+    cur = L; key = k; last[L.n] = k; sheet.classList.add('ln'); if (k === 8) sheet.classList.add('lnfull'); lv.classList.toggle('full', sheet.classList.contains('lnfull')); paint();
     if (fresh) { lv.classList.remove('out'); void lv.offsetWidth; lv.classList.add('on', 'conn'); setTimeout(function () { lv.classList.remove('conn'); }, 400); }
   }
   function leave() { if (!cur) return; cur = null; key = null; sheet.classList.remove('ln', 'lnfull'); lv.classList.add('out'); lv.classList.remove('on'); }
@@ -167,7 +179,7 @@
     kd.append(bT, bE); var r2 = E('div', 'r2'); r2.append(kd, dt); w.append(r1, r2);
     var setK = function (k) { addKind = k; bT.classList.toggle('on', k === 'todo'); bE.classList.toggle('on', k === 'event'); };
     bT.onclick = function () { setK('todo'); }; bE.onclick = function () { setK('event'); if (!dt.value) { var d = new Date(Date.now() + 3600e3); dt.value = tk() + 'T' + String(d.getHours()).padStart(2, '0') + ':00'; } };
-    tx.addEventListener('focus', function () { addOpen = true; w.classList.add('open'); sheet.classList.add('lnfull'); });
+    tx.addEventListener('focus', function () { addOpen = true; w.classList.add('open'); sheet.classList.add('lnfull'); lv.classList.add('full'); });
     var submit = function () {
       var v = tx.value.trim(); if (!v) { tx.focus(); return; }
       if (addKind === 'event' && !dt.value) { toast('일정은 시간을 넣어 줘.'); dt.focus(); return; }
