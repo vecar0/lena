@@ -414,15 +414,20 @@ function renderCal(B) {
   dayPaper(B, calSel, pm[calSel]);
 }
 // v79: 하루 종이 시간표(공부 오늘 화면과 같은 모양) — 시험·고정·일정·할 일·공부·휴식 시간, 같은 시각·같은 글은 한 번만
-function dayPaper(B, k, D) {
-  const d = pDate(k), isT = k === todayK(), lg = ST().log[k] || [], rows = [], seen = new Set();
+// v120: 하루 줄 목록(캘린더 종이 시간표·'오늘' 화면이 같이 씀)
+function dayRows(k, D) {
+  const d = pDate(k), lg = ST().log[k] || [], rows = [], seen = new Set();
   const add = (s, o) => { const key = s + '|' + (o.txt || '') + '|' + (o.sub || ''); if (seen.has(key)) return; seen.add(key); rows.push({ s, ...o }); };
   ST().exams.filter(e => e.date === k).forEach(e => add(-1, { kind: 'ex', txt: `${e.name} 시험 · ${exSubs(e).join('·')}` }));
   (S.reps || []).filter(r => (!r.days.length || r.days.includes(d.getDay())) && !(S.repSkip || {})[r.id + '_' + k]).forEach(r => add(toM(r.time), { kind: 'fix', txt: `${r.text} ~${r.end || ''}` }));
-  S.items.filter(t => !t.rid && t.due && t.due.slice(0, 10) === k).forEach(t => add(toM(t.due.slice(11, 16)), { kind: t.kind === 'event' ? 'ev' : 'todo', txt: t.kind === 'event' ? t.text : `${t.text} (마감)`, done: t.done }));
+  S.items.filter(t => !t.rid && t.due && t.due.slice(0, 10) === k).forEach(t => add(toM(t.due.slice(11, 16)), { kind: t.kind === 'event' ? 'ev' : 'todo', txt: t.kind === 'event' ? t.text : `${t.text} (마감)`, done: t.done, it: t }));
   lg.forEach(l => add(l.s, { kind: 'log', sub: l.sub, txt: l.label, mins: l.mins }));
   grp(D ? D.blocks : []).forEach(g => add(g.s, { kind: 'st', sub: g.b.sub, txt: (g.b.school ? '🏫 학교에서 · ' : '') + g.b.parts.map(p => p.t.label).join(' + ') + (g.bs.length > 1 ? ` (~${toT(g.e)})` : ''), mins: g.mins, b: g.b, bs: g.bs }));
   if (D && D.play) add(D.play.s, { kind: 'play', txt: `휴식 시간 ${D.play.e - D.play.s}분`, mins: D.play.e - D.play.s });
+  return rows.sort((x, y) => x.s - y.s);
+}
+function dayPaper(B, k, D) {
+  const d = pDate(k), isT = k === todayK(), lg = ST().log[k] || [], rows = dayRows(k, D);
   const tot = (D ? D.mins : 0) + lg.reduce((a, x) => a + x.mins, 0);
   const sp = el('div', 'sheetp'); sp.style.marginTop = '12px'; sp.append(el('i', 'tape'), el('i', 'tape r'));
   const hd = el('div', 'hd'); hd.append(el('b', null, `${d.getMonth() + 1}월 ${d.getDate()}일 ${WD[d.getDay()]}요일`), el('span', null, tot ? hm(tot) : '공부 없음')); sp.appendChild(hd);
@@ -745,5 +750,5 @@ const _ap = apply; apply = function (r) {
   if (res) { res.querySelector('span').textContent += ' · ' + txt; return res; } return noteEl(txt);
 };
 try { dedupExams(); if (window.dedupItems && dedupItems()) save(); } catch (e) {}
-window.lenaStudy = { dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, colOf, plan: () => splan(), splan: () => { dirty(); return splan(); }, tasks, parseOutline, simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
+window.lenaStudy = { dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, colOf, plan: () => splan(), dayRows, todayK, toT, splan: () => { dirty(); return splan(); }, tasks, parseOutline, simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
 })();
