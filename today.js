@@ -155,5 +155,7 @@
   // 들어오는 길: 음성통화 화면 '전단지' 버튼 → '오늘'
   var ab = document.getElementById('aBoard');
   if (ab) { ab.onclick = function () { try { dtmf(1); } catch (e) {} open(); }; for (var i = 0; i < ab.childNodes.length; i++) if (ab.childNodes[i].nodeType === 3 && ab.childNodes[i].textContent.trim()) ab.childNodes[i].textContent = '오늘'; }
+  // 0번 설정 맨 아래에 앱 버전 표시(배포가 됐는지 바로 확인)
+  try { var _r0 = SH[0].r; SH[0].r = function (B) { _r0(B); var h = el('div', 'hint', '앱 버전 확인 중…'); h.style.textAlign = 'center'; h.style.marginTop = '14px'; B.appendChild(h); lenaVer().then(function (v) { h.textContent = v ? '앱 버전 ' + v : '앱 버전을 알 수 없어요'; }); }; } catch (e) {}
   window.lenaToday = { open: open, close: close, render: render, get on() { return opened; } };
 })();
