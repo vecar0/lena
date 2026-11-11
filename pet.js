@@ -27,7 +27,7 @@
     im(I.legl, lL); im(I.legr, lR); im(I.body, torso); torso.appendChild(arm); if (I.arm) im(I.arm, arm); torso.appendChild(head); im(I.head, head, 'lp-ho'); im(I.headc, head, 'lp-hc');
     var og = function (e, p) { e.style.transformOrigin = p[0] + '% ' + p[1] + '%'; };
     root.style.transformOrigin = '50% 55%'; og(rig, M.feet); og(lL, M.hipL); og(lR, M.hipR); og(torso, [50, M.hipL[1]]); og(head, M.neck); og(arm, M.sh || [16, 45]);
-    root.setAttribute('role', 'img'); root.setAttribute('aria-label', '꼬마 레나');
+    root.setAttribute('role', 'img'); root.setAttribute('aria-label', '고양이');
     root.addEventListener('click', function (e) { e.stopPropagation(); });
 
     var st = { x: 0, y: 0, vx: 0, vy: 0, mode: 'air', on: false, gel: null, t: 0, next: R(1, 2.5), ph: 0, quiet: 0, tx: 0, hop: 0, blink: R(2, 5), shut: 0, eyes: 0, pt: 0, wave: 0, busy: 0, cb: null, land: null, jv: null, look: 0, lookEnd: 0, spin: 0, rot: 0, peak: 0, dizzy: 0, shake: 0, held: 0, gx: null, gy: null, petT: 0 };
@@ -165,8 +165,10 @@
         if (st.shut > 0) { st.shut -= dt; if (st.shut <= 0) eyes(0); }
         else if ((st.blink -= dt) <= 0) { eyes(1); st.shut = .12; st.blink = Math.random() < .2 ? .28 : R(2.2, 5.5); }
       }
-      if (st.wave) arT = 118 + Math.sin(now / 95) * 16; else if (st.mode === 'happy') arT = 120;
-      sq.t = sT; tilt.t = tT; hr.t = hT; hy.t = hyT; la.t = aT; lb.t = bT; ya.t = yA; yb.t = yB; ty.t = tyT; ar.t = arT;
+      if (M.ak != null) arT *= M.ak;
+      if (M.wag && st.on && (m === 'idle' || m === 'sleep')) arT += Math.sin(now / (m === 'sleep' ? 1400 : 520)) * M.wag * (m === 'sleep' ? .4 : 1);   // 꼬리 살랑
+      if (st.wave) arT = M.wave ? M.wave[0] + Math.sin(now / 95) * M.wave[1] : 118 + Math.sin(now / 95) * 16; else if (st.mode === 'happy') arT = M.wave ? M.wave[0] + Math.sin(now / 70) * M.wave[1] : 120;
+      sq.t = sT; tilt.t = tT; hr.t = hT * (M.hk == null ? 1 : M.hk); hy.t = hyT; la.t = aT; lb.t = bT; ya.t = yA; yb.t = yB; ty.t = tyT; ar.t = arT;
       var S = CL(sq.step(dt), .7, 1.3);
       var rot = st.spin ? (rs.x = st.rot, rs.v = 0, st.rot) : rs.step(dt);
       root.style.transform = 'translate3d(' + (st.x - W * fxp).toFixed(2) + 'px,' + (st.y - H).toFixed(2) + 'px,0) rotate(' + rot.toFixed(1) + 'deg)';
@@ -201,17 +203,17 @@
   'use strict';
   var cv = document.getElementById('callv'), grid = document.getElementById('agrid'), app = document.querySelector('.app'), sPad = document.getElementById('sPad');
   if (!cv || !grid || !app || typeof S === 'undefined') return;
-  var META = { w: 356, h: 575, neck: [46.99, 34.06], hipL: [38.49, 63.6], hipR: [64.7, 63.6], feet: [60.92, 99.12], sh: [16.29, 45.03], top: [50.3, 17.11] }, A = 'assets/lena/pet/';
+  var META = {w:356,h:370,neck:[43.95,42.29],hipL:[34.38,92.58],hipR:[58.4,92.58],feet:[46.48,98.12],sh:[75.39,79.51],top:[43.95,11.28],ak:-0.18,wave:[-16,9],wag:5,hk:0.5}, A = 'assets/lena/pet/';
   var IMG = { head: A + 'head.webp', headc: A + 'headc.webp', body: A + 'body.webp', arm: A + 'arm.webp', legl: A + 'legl.webp', legr: A + 'legr.webp' };
   var css = document.createElement('style');
   css.textContent = '#lpStage,#lpPad{position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden}#lpStage{display:none}.app.outside #lpStage.on{display:block}#lpStage .lp,#lpPad .lp{pointer-events:auto}#lpPad{display:none}#sPad.open #lpPad.on{display:block}' +
-    '.app.outside .callv.haspet .log{margin-bottom:64px}' +
+    '.app.outside .callv.haspet .log{margin-bottom:56px}' +
     '.ab{transition:transform .14s cubic-bezier(0.23,1,0.32,1)}.ab.lp-press{transform:scale(.88)}.ab.lp-hl i{outline:2px solid #ff3d9a;outline-offset:3px;box-shadow:0 0 16px rgba(255,61,154,.6)}';
   document.head.appendChild(css);
   var LINES = {
     throw: ['야—!', '꺄, 잠깐만!', '어디까지 던질 건데!'],
     sky: [function (m) { return m + 'm 날았어. 재밌어?'; }, function (m) { return '방금 ' + m + 'm… 다음엔 받아 줘.'; }, function (m) { return m + 'm. 신기록 노려?'; }],
-    ouch: ['아야… 살살 좀 해.', '누나 다치면 어쩔 건데.'],
+    ouch: ['아야… 살살 좀 해.', '냐… 아프거든?'],
     shake: ['흔들지 마… 어지러워.', '멀미 나거든?'],
     held: ['언제까지 들고 있을 거야?', '내려 줘. …아니면 계속 들고 있든가.'],
     pet: ['…더 해도 돼.', '손버릇이 좋네.', '거기, 좋아.'],
@@ -229,7 +231,7 @@
     var on = !S.petOff && !typing && app.classList.contains('outside') && grid.getBoundingClientRect().height > 0;
     stage.classList.toggle('on', on); cv.classList.toggle('haspet', on); if (!on) { if (cur) cancel(); return; }
     if (!pet) {
-      pet = LenaPet(stage, { img: IMG, meta: META, size: 72, lines: LINES,
+      pet = LenaPet(stage, { img: IMG, meta: META, size: 62, lines: LINES,
         active: function () { return stage.classList.contains('on'); },
         platforms: function (r) { return rects(grid.querySelectorAll('.ab i'), r, 9, 5); },
         floor: function (r) { var e = quick && quick.offsetHeight ? quick : inrow, q = e ? e.getBoundingClientRect() : null; return q && q.top ? q.top - r.top + 2 : r.height; },
@@ -289,7 +291,7 @@
     if (!pst) { pst = document.createElement('div'); pst.id = 'lpPad'; sPad.appendChild(pst); }
     pst.classList.toggle('on', open); if (!open) return;
     var body = sPad.querySelector('.pad'), keys = document.getElementById('keys'), lcd = sPad.querySelector('.lcd');
-    if (!pad) pad = LenaPet(pst, { img: IMG, meta: META, size: 58, lines: LINES,
+    if (!pad) pad = LenaPet(pst, { img: IMG, meta: META, size: 50, lines: LINES,
       active: function () { return pst.classList.contains('on'); },
       platforms: function (r) { var L = rects(keys.children, r, 8, 3); if (body) L = L.concat(rects([body], r, 16, 3)); return L; } });
     setTimeout(function () { if (!pst.classList.contains('on')) return; var b = body.getBoundingClientRect(), s = pst.getBoundingClientRect(); pad.scan(); pad.drop(b.left - s.left + b.width * (.25 + Math.random() * .5), Math.max(40, b.top - s.top - 150)); }, 340);
@@ -299,11 +301,11 @@
   // 0번 설정: 켜기/끄기
   try {
     var _r = SH[0].r; SH[0].r = function (B) {
-      _r(B); var sec = el('div', 'card'), r1 = el('div', 'row'); r1.appendChild(el('div', 't', '꼬마 레나')).style.flex = '1';
+      _r(B); var sec = el('div', 'card'), r1 = el('div', 'row'); r1.appendChild(el('div', 't', '고양이')).style.flex = '1';
       r1.appendChild(pills([[true, '켜기'], [false, '끄기']], !S.petOff, function (v) { S.petOff = !v; save(); place(); refreshSheet(); })); sec.appendChild(r1);
       sec.appendChild(el('div', 'hint', '음성통화 화면과 다이얼 화면에서 버튼 위를 뛰어다녀요. 볼 게 있으면 그 버튼으로 가서 손을 흔들고, 누르면 대신 눌러 줘요. 끌어서 떨어뜨리거나 던지고, 길게 눌러 쓰다듬을 수도 있어요.'));
       var bk = [].slice.call(B.querySelectorAll('.lbl')).find(function (x) { return x.textContent === '백업'; }) || null;
-      B.insertBefore(lbl('꼬마 레나'), bk); B.insertBefore(sec, bk);
+      B.insertBefore(lbl('고양이'), bk); B.insertBefore(sec, bk);
     };
   } catch (e) {}
   window.lenaPet = { get pet() { return pet; }, get pad() { return pad; }, suggest: function () { nextAt = 0; }, place: place, get cur() { return cur; } };
