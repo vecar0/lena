@@ -301,17 +301,17 @@
   // ---------- 창구 화면(v123): 내용판 윗선과 탭 위를 돌아다님 ----------
   var sheetEl = document.getElementById('sheet'), lnPet = null, lst = null, lnWas = false;
   function lineOn() {
-    if (!sheetEl) return; var on = sheetEl.classList.contains('ln') && sheetEl.classList.contains('open') && !S.petOff;
+    if (!sheetEl) return; var on = sheetEl.classList.contains('ln') && sheetEl.classList.contains('open') && !S.petOff && app.classList.contains('outside');   // 영상 회선에선 레나 그림을 가려서 안 나옴
     if (!lst) { lst = document.createElement('div'); lst.id = 'lpLine'; sheetEl.appendChild(lst); }
     lst.classList.toggle('on', on); if (!on) { lnWas = false; return; }
     var panel = sheetEl.querySelector('.panel');
     if (!lnPet) lnPet = LenaPet(lst, { img: IMG, meta: META, size: 48, lines: LINES,
       active: function () { return lst.classList.contains('on'); },
-      platforms: function (r) { var q = panel.getBoundingClientRect(), L = [{ l: q.left - r.left + 22, r: q.right - r.left - 22, y: q.top - r.top + 3, el: panel }]; rects(sheetEl.querySelectorAll('.ln-tabs button'), r, 10, 3).forEach(function (t, i) { t.el = 'tab' + i; L.push(t); }); return L; }, reachX: 400, reachUp: 760,
+      platforms: function (r) { var q = panel.getBoundingClientRect(), L = [{ l: q.left - r.left + 22, r: q.right - r.left - 22, y: q.top - r.top + 3, el: panel }]; return L; }, reachX: 400, reachUp: 760,
       floor: function (r) { var n = sheetEl.querySelector('.ln-nav'), q = n ? n.getBoundingClientRect() : null; return q && q.height ? q.top - r.top + 2 : r.height; } });
     if (!lnWas) { lnWas = true; setTimeout(function () { if (!lst.classList.contains('on')) return; var q = panel.getBoundingClientRect(), s = lst.getBoundingClientRect(); lnPet.scan(); lnPet.drop(q.left - s.left + q.width * (.25 + Math.random() * .5), Math.max(30, q.top - s.top - 140)); }, 380); }
   }
-  if (sheetEl) { new MutationObserver(lineOn).observe(sheetEl, { attributes: true, attributeFilter: ['class'] }); bumpOn(sheetEl, '.ln-tabs button', function () { return lnPet; }, function (b) { return 'tab' + [].indexOf.call(b.parentNode.children, b); }); }
+  if (sheetEl) { new MutationObserver(lineOn).observe(sheetEl, { attributes: true, attributeFilter: ['class'] }); new MutationObserver(lineOn).observe(app, { attributes: true, attributeFilter: ['class'] }); bumpOn(sheetEl, '.ln-tabs button', function () { return lnPet; }, function (b) { return 'tab' + [].indexOf.call(b.parentNode.children, b); }); }
 
   // 0번 설정: 켜기/끄기
   try {
