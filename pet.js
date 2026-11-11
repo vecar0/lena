@@ -153,7 +153,7 @@
           if (st.quiet > 40) { go('sleep'); eyes(1); st.pt = 0; }
           else if (r < .3 && cur && cur.r - cur.l > 30) { var nx = st.x < (cur.l + cur.r) / 2 ? R((cur.l + cur.r) / 2, cur.r) : R(cur.l, (cur.l + cur.r) / 2); if (Math.abs(nx - st.x) > 8) walkTo(nx); }
           else if (r < .84) {
-            var onFloor = st.gel === 'floor', C = plats.filter(function (p) { return p !== cur && Math.abs((p.l + p.r) / 2 - st.x) < 230 && p.y - st.y > -200 && (p.el !== 'floor' || Math.random() < .12); });
+            var onFloor = st.gel === 'floor', C = plats.filter(function (p) { return p !== cur && Math.abs((p.l + p.r) / 2 - st.x) < (o.reachX || 230) && p.y - st.y > -(o.reachUp || 200) && (p.el !== 'floor' || Math.random() < .12); });
             if (C.length) hopTo(C[Math.floor(Math.random() * C.length)]); else if (onFloor && cur) walkTo(R(cur.l, cur.r));
           }
           else if (r < .92) { st.look = R(4, 8) * (Math.random() < .5 ? -1 : 1); st.lookEnd = R(.8, 1.6); st.next = st.lookEnd + R(1, 3); }
@@ -206,7 +206,7 @@
   var META = {w:356,h:370,neck:[43.95,42.29],hipL:[34.38,92.58],hipR:[58.4,92.58],feet:[46.48,98.12],sh:[75.39,79.51],top:[43.95,11.28],ak:-0.18,wave:[-16,9],wag:5,hk:0.5}, A = 'assets/lena/pet/';
   var IMG = { head: A + 'head.webp', headc: A + 'headc.webp', body: A + 'body.webp', arm: A + 'arm.webp', legl: A + 'legl.webp', legr: A + 'legr.webp' };
   var css = document.createElement('style');
-  css.textContent = '#lpStage,#lpPad{position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden}#lpStage{display:none}.app.outside #lpStage.on{display:block}#lpStage .lp,#lpPad .lp{pointer-events:auto}#lpPad{display:none}#sPad.open #lpPad.on{display:block}' +
+  css.textContent = '#lpStage,#lpPad,#lpLine{position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden}#lpLine{display:none;z-index:6!important}#sheet.ln.open #lpLine.on{display:block}#lpLine .lp{pointer-events:auto}#lpStage{display:none}.app.outside #lpStage.on{display:block}#lpStage .lp,#lpPad .lp{pointer-events:auto}#lpPad{display:none}#sPad.open #lpPad.on{display:block}' +
     '.app.outside .callv.haspet .log{margin-bottom:56px}' +
     '.ab{transition:transform .14s cubic-bezier(0.23,1,0.32,1)}.ab.lp-press{transform:scale(.88)}.ab.lp-hl i{outline:2px solid #ff3d9a;outline-offset:3px;box-shadow:0 0 16px rgba(255,61,154,.6)}';
   document.head.appendChild(css);
@@ -298,15 +298,30 @@
   }
   if (sPad) new MutationObserver(padOn).observe(sPad, { attributes: true, attributeFilter: ['class'] });
 
+  // ---------- 창구 화면(v123): 내용판 윗선과 탭 위를 돌아다님 ----------
+  var sheetEl = document.getElementById('sheet'), lnPet = null, lst = null, lnWas = false;
+  function lineOn() {
+    if (!sheetEl) return; var on = sheetEl.classList.contains('ln') && sheetEl.classList.contains('open') && !S.petOff;
+    if (!lst) { lst = document.createElement('div'); lst.id = 'lpLine'; sheetEl.appendChild(lst); }
+    lst.classList.toggle('on', on); if (!on) { lnWas = false; return; }
+    var panel = sheetEl.querySelector('.panel');
+    if (!lnPet) lnPet = LenaPet(lst, { img: IMG, meta: META, size: 48, lines: LINES,
+      active: function () { return lst.classList.contains('on'); },
+      platforms: function (r) { var q = panel.getBoundingClientRect(), L = [{ l: q.left - r.left + 22, r: q.right - r.left - 22, y: q.top - r.top + 3, el: panel }]; rects(sheetEl.querySelectorAll('.ln-tabs button'), r, 10, 3).forEach(function (t, i) { t.el = 'tab' + i; L.push(t); }); return L; }, reachX: 400, reachUp: 760,
+      floor: function (r) { var n = sheetEl.querySelector('.ln-nav'), q = n ? n.getBoundingClientRect() : null; return q && q.height ? q.top - r.top + 2 : r.height; } });
+    if (!lnWas) { lnWas = true; setTimeout(function () { if (!lst.classList.contains('on')) return; var q = panel.getBoundingClientRect(), s = lst.getBoundingClientRect(); lnPet.scan(); lnPet.drop(q.left - s.left + q.width * (.25 + Math.random() * .5), Math.max(30, q.top - s.top - 140)); }, 380); }
+  }
+  if (sheetEl) { new MutationObserver(lineOn).observe(sheetEl, { attributes: true, attributeFilter: ['class'] }); bumpOn(sheetEl, '.ln-tabs button', function () { return lnPet; }, function (b) { return 'tab' + [].indexOf.call(b.parentNode.children, b); }); }
+
   // 0번 설정: 켜기/끄기
   try {
     var _r = SH[0].r; SH[0].r = function (B) {
       _r(B); var sec = el('div', 'card'), r1 = el('div', 'row'); r1.appendChild(el('div', 't', '고양이')).style.flex = '1';
-      r1.appendChild(pills([[true, '켜기'], [false, '끄기']], !S.petOff, function (v) { S.petOff = !v; save(); place(); refreshSheet(); })); sec.appendChild(r1);
-      sec.appendChild(el('div', 'hint', '음성통화 화면과 다이얼 화면에서 버튼 위를 뛰어다녀요. 볼 게 있으면 그 버튼으로 가서 손을 흔들고, 누르면 대신 눌러 줘요. 끌어서 떨어뜨리거나 던지고, 길게 눌러 쓰다듬을 수도 있어요.'));
+      r1.appendChild(pills([[true, '켜기'], [false, '끄기']], !S.petOff, function (v) { S.petOff = !v; save(); place(); lineOn(); refreshSheet(); })); sec.appendChild(r1);
+      sec.appendChild(el('div', 'hint', '음성통화 화면·다이얼·창구 화면에서 버튼 위를 뛰어다녀요. 볼 게 있으면 그 버튼으로 가서 손을 흔들고, 누르면 대신 눌러 줘요. 끌어서 떨어뜨리거나 던지고, 길게 눌러 쓰다듬을 수도 있어요.'));
       var bk = [].slice.call(B.querySelectorAll('.lbl')).find(function (x) { return x.textContent === '백업'; }) || null;
       B.insertBefore(lbl('고양이'), bk); B.insertBefore(sec, bk);
     };
   } catch (e) {}
-  window.lenaPet = { get pet() { return pet; }, get pad() { return pad; }, suggest: function () { nextAt = 0; }, place: place, get cur() { return cur; } };
+  window.lenaPet = { get pet() { return pet; }, get pad() { return pad; }, get line() { return lnPet; }, suggest: function () { nextAt = 0; }, place: place, get cur() { return cur; } };
 })();
