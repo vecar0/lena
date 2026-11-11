@@ -826,7 +826,14 @@ load();
 { const keep = {}, live = new Set(S.items.filter(t => !t.done).flatMap(t => [t.id, t.id + '_10']).concat(S.calls.filter(c => !c.done || Date.now() - c.at < 2 * DAY).map(c => c.id))); for (const k in S.fired) if (live.has(k)) keep[k] = 1; S.fired = keep;
   S.calls = S.calls.filter(c => !c.done || Date.now() - c.at < 2 * DAY); }
 syncSend(); tick(); renderHome();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+// v121: 새 버전이 오면 한 번에 반영 — 열 때마다 새 버전을 확인하고, 새 서비스 워커가 자리를 잡으면 저절로 새로 고침(글 쓰는 중이면 끝난 뒤)
+if ('serviceWorker' in navigator) {
+  const had = !!navigator.serviceWorker.controller; let rl = false;
+  const reload = () => { if (rl) return; const a = document.activeElement; if (a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && a.value) { a.addEventListener('blur', () => setTimeout(reload, 300), { once: true }); return; } rl = true; location.reload(); };
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) reload(); });
+  navigator.serviceWorker.register('sw.js').then(r => { const up = () => r.update().catch(() => {}); up(); document.addEventListener('visibilitychange', () => { if (!document.hidden) up(); }); }).catch(() => {});
+}
+window.lenaVer = () => (window.caches ? caches.keys().then(k => (k.filter(x => /^lena-v\d+$/.test(x)).sort((x, y) => +y.slice(6) - +x.slice(6))[0] || '').replace('lena-', '')) : Promise.resolve(''));
 setInterval(check, 15000); (function clk() { tick(); setTimeout(clk, 60000 - Date.now() % 60000 + 50); })();
 app.classList.add('outside');
 if (!S.name) { setTimeout(() => incoming('first'), 900); }
