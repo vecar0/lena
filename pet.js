@@ -206,7 +206,7 @@
   var META = {w:356,h:370,neck:[43.95,42.29],hipL:[34.38,92.58],hipR:[58.4,92.58],feet:[46.48,98.12],sh:[75.39,79.51],top:[43.95,11.28],ak:-0.18,wave:[-16,9],wag:5,hk:0.5}, A = 'assets/lena/pet/';
   var IMG = { head: A + 'head.webp', headc: A + 'headc.webp', body: A + 'body.webp', arm: A + 'arm.webp', legl: A + 'legl.webp', legr: A + 'legr.webp' };
   var css = document.createElement('style');
-  css.textContent = '#lpStage,#lpPad,#lpLine{position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden}#lpLine{display:none;z-index:6!important}#sheet.ln.open #lpLine.on{display:block}#lpLine .lp{pointer-events:auto}#lpStage{display:none}.app.outside #lpStage.on{display:block}#lpStage .lp,#lpPad .lp{pointer-events:auto}#lpPad{display:none}#sPad.open #lpPad.on{display:block}' +
+  css.textContent = '#lpStage,#lpPad,#lpLine{position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden}#lpLine{display:none;z-index:4!important}#lpLine.on{display:block}#lpLine .lp{pointer-events:auto}#lpStage{display:none}.app.outside #lpStage.on{display:block}#lpStage .lp,#lpPad .lp{pointer-events:auto}#lpPad{display:none}#sPad.open #lpPad.on{display:block}' +
     '.app.outside .callv.haspet .log{margin-bottom:56px}' +
     '.ab{transition:transform .14s cubic-bezier(0.23,1,0.32,1)}.ab.lp-press{transform:scale(.88)}.ab.lp-hl i{outline:2px solid #ff3d9a;outline-offset:3px;box-shadow:0 0 16px rgba(255,61,154,.6)}';
   document.head.appendChild(css);
@@ -298,20 +298,25 @@
   }
   if (sPad) new MutationObserver(padOn).observe(sPad, { attributes: true, attributeFilter: ['class'] });
 
-  // ---------- 창구 화면(v123): 내용판 윗선과 탭 위를 돌아다님 ----------
-  var sheetEl = document.getElementById('sheet'), lnPet = null, lst = null, lnWas = false;
+  // ---------- 창구의 방(v126): 그림 속 물건 꼬리표·말풍선 위를 뛰어다님 (밖·안 모드 둘 다) ----------
+  var sheetEl = document.getElementById('sheet'), lnPet = null, lst = null, lnWas = false, hubEl = null;
   function lineOn() {
-    if (!sheetEl) return; var on = sheetEl.classList.contains('ln') && sheetEl.classList.contains('open') && !S.petOff && app.classList.contains('outside');   // 영상 회선에선 레나 그림을 가려서 안 나옴
-    if (!lst) { lst = document.createElement('div'); lst.id = 'lpLine'; sheetEl.appendChild(lst); }
+    if (!hubEl) { hubEl = document.getElementById('lvLine'); if (!hubEl) return; lst = document.createElement('div'); lst.id = 'lpLine'; hubEl.insertBefore(lst, hubEl.querySelector('.lv-top'));
+      new MutationObserver(lineOn).observe(hubEl, { attributes: true, attributeFilter: ['class'] });
+      bumpOn(hubEl, '.lv-tag', function () { return lnPet; }, function (t) { return 'tag' + [].indexOf.call(t.parentNode.children, t); }); }
+    var on = hubEl.classList.contains('on') && !(sheetEl && sheetEl.classList.contains('open')) && !S.petOff;
     lst.classList.toggle('on', on); if (!on) { lnWas = false; return; }
-    var panel = sheetEl.querySelector('.panel');
-    if (!lnPet) lnPet = LenaPet(lst, { img: IMG, meta: META, size: 48, lines: LINES,
+    if (!lnPet) lnPet = LenaPet(lst, { img: IMG, meta: META, size: 46, lines: LINES,
       active: function () { return lst.classList.contains('on'); },
-      platforms: function (r) { var q = panel.getBoundingClientRect(), L = [{ l: q.left - r.left + 22, r: q.right - r.left - 22, y: q.top - r.top + 3, el: panel }]; return L; }, reachX: 400, reachUp: 760,
-      floor: function (r) { var n = sheetEl.querySelector('.ln-nav'), q = n ? n.getBoundingClientRect() : null; return q && q.height ? q.top - r.top + 2 : r.height; } });
-    if (!lnWas) { lnWas = true; setTimeout(function () { if (!lst.classList.contains('on')) return; var q = panel.getBoundingClientRect(), s = lst.getBoundingClientRect(); lnPet.scan(); lnPet.drop(q.left - s.left + q.width * (.25 + Math.random() * .5), Math.max(30, q.top - s.top - 140)); }, 380); }
+      platforms: function (r) { var L = [], T = hubEl.querySelectorAll('.lv-tag'), i, q;
+        for (i = 0; i < T.length; i++) { q = T[i].getBoundingClientRect(); if (q.width > 20) L.push({ l: q.left - r.left + 8, r: q.right - r.left - 8, y: q.top - r.top + 2, el: 'tag' + i }); }
+        var bb = hubEl.querySelector('.lv-bub'); if (bb) { q = bb.getBoundingClientRect(); if (q.width > 40) L.push({ l: q.left - r.left + 10, r: q.right - r.left - 10, y: q.top - r.top + 2, el: 'bub' }); }
+        return L; }, reachX: 400, reachUp: 760,
+      floor: function (r) { var n = hubEl.querySelector('.lv-nav'), q = n ? n.getBoundingClientRect() : null; return q && q.height ? q.top - r.top + 2 : r.height; } });
+    if (!lnWas) { lnWas = true; setTimeout(function () { if (!lst.classList.contains('on')) return; var s = lst.getBoundingClientRect(); lnPet.scan(); lnPet.drop(s.width * (.25 + Math.random() * .5), 150); }, 420); }
   }
-  if (sheetEl) { new MutationObserver(lineOn).observe(sheetEl, { attributes: true, attributeFilter: ['class'] }); new MutationObserver(lineOn).observe(app, { attributes: true, attributeFilter: ['class'] }); bumpOn(sheetEl, '.ln-tabs button', function () { return lnPet; }, function (b) { return 'tab' + [].indexOf.call(b.parentNode.children, b); }); }
+  if (sheetEl) { new MutationObserver(lineOn).observe(sheetEl, { attributes: true, attributeFilter: ['class'] }); new MutationObserver(lineOn).observe(app, { attributes: true, attributeFilter: ['class'] }); }
+  addEventListener('load', lineOn); setTimeout(lineOn, 0);
 
   // 0번 설정: 켜기/끄기
   try {
