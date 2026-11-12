@@ -34,6 +34,11 @@
     '#flyers,#flyers *,#aInfo,#aInfo *{pointer-events:none!important}#knock{pointer-events:none!important}' +
     '.dbad{position:absolute;top:-4px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--hot);color:#fff;font:700 11px/20px "Space Mono",monospace;font-style:normal;text-align:center;border:2px solid #000;pointer-events:none}.dbad[hidden]{display:none}' +
     '#dialBtn,#aPad i{position:relative}' +
+    /* 1 전단지·2 캘린더·3 시간표·4 공부: 바깥 틀 = 비 오는 부스 유리 */
+    '.sheet.boothgl .panel{background:#0a0e10;box-shadow:0 -1px 0 rgba(159,245,228,.55),0 -10px 28px rgba(47,224,200,.18);border-top:1px solid rgba(255,255,255,.22);overflow:hidden}.sheet.boothgl .panel::before{display:none}' +
+    '.glbg{position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;overflow:hidden}.glbg:before{content:"";position:absolute;inset:-40px;background:url(assets/lena/poster.jpg) center top/cover;filter:blur(24px) brightness(.36) saturate(1.35)}' +
+    '.glbg:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(103deg,transparent 0 26px,rgba(159,245,228,.05) 26px 27px,transparent 27px 70px),linear-gradient(180deg,rgba(255,255,255,.07),transparent 90px),rgba(6,9,11,.5)}' +
+    '.sheet.boothgl .shead,.sheet.boothgl .sbody{position:relative;z-index:1}' +
     '@media (prefers-reduced-motion:reduce){.scfx{display:none!important}}';
   document.head.appendChild(css);
 
@@ -87,6 +92,10 @@
     if (sheet.classList.contains('scn') && sheet.classList.contains('open')) { show(); return; }
     door('연결 중', outside() ? '고양이가 받았어 · 오늘 브리핑' : '1번 회선 · 오늘 브리핑', '#2fe0c8', show, 860);
   };
+  // 부스 유리 틀: 자주 쓰는 네 화면에만
+  var GL = { 1: 1, cal: 1, tt: 1, 6: 1 }, glbg = E('div', 'glbg');
+  var _os2 = openSheet;
+  openSheet = function (n) { _os2(n); var on = sheet.classList.contains('open') && GL[curSheet]; sheet.classList.toggle('boothgl', !!on); if (on && !glbg.isConnected) panel.insertBefore(glbg, panel.firstChild); else if (!on && glbg.isConnected) glbg.remove(); };
   var _rs = refreshSheet; refreshSheet = function () { _rs(); decorate(); };
   new MutationObserver(function () { if (!sheet.classList.contains('open') && sheet.classList.contains('scn')) off(); }).observe(sheet, { attributes: true, attributeFilter: ['class'] });
 
