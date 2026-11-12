@@ -293,7 +293,7 @@ function checkAch() { if (!R) return; const M = meta(); if (R.skSeen) ach('a_sku
 function enter() { delete S.slotRun; R = S.slot2 || null; tk0 = R ? R.cards : null; if (R) R.unl = meta().unl; R ? draw() : lobby(); }
 function lobby() {
   frame(NAME, B => {
-    const M = meta();
+    const M = meta(); if (ARC.band) { const sp = ARC.band(B, '빚 갚는 슬롯이야. 내가 옆에서 봐 줄게.'); if (sp) sp.closest('.tb-dl').classList.add('sl'); else if (window.lenaPet) lenaPet.arcSay('빚 갚는 슬롯이야. 옆에서 봐 줄게.'); }
     const nm = el('div', 'bp-name'); nm.style.setProperty('--pc', '#fff2a8'); nm.innerHTML = `${NAME}<small>빚 갚기 슬롯 — 마감 9번을 넘겨요</small>`; B.appendChild(nm);
     talk(B, 'sk', '(해골이 빚 장부를 펼친다) 마감 9번. 다 갚으면 놓아준대요. …못 갚으면? 몰라요, 저도.');
     const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, '빚 갚기 슬롯'));
@@ -331,6 +331,7 @@ function draw() {
   if (!R) return lobby();
   checkAch();
   frame(NAME, B => {
+    const ln = R.say || '한 번 당겨 봐. 7 셋이면 오늘 밤은 네 거야.'; if (ARC.band) { const sp = ARC.band(B, ln); if (sp) sp.closest('.tb-dl').classList.add('sl'); else if (window.lenaPet) lenaPet.arcSay(ln); }
     hdr(B); machine(B);
     if (R.ph === 'spin') {
       const pb = el('button', 'bp-go'); pb.id = 'bpgo'; pb.innerHTML = `레버 당기기<small>남은 ${R.spins}번 · 라운드 ${R.rd}/3</small>`; pb.onclick = () => pull(); B.appendChild(pb);

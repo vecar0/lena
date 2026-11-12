@@ -206,7 +206,7 @@
   var META = {w:356,h:370,neck:[43.95,42.29],hipL:[34.38,92.58],hipR:[58.4,92.58],feet:[46.48,98.12],sh:[75.39,79.51],top:[43.95,11.28],ak:-0.18,wave:[-16,9],wag:5,hk:0.5}, A = 'assets/lena/pet/';
   var IMG = { head: A + 'head.webp', headc: A + 'headc.webp', body: A + 'body.webp', arm: A + 'arm.webp', legl: A + 'legl.webp', legr: A + 'legr.webp' };
   var css = document.createElement('style');
-  css.textContent = '#lpStage,#lpPad,#lpSheet{position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden}#lpStage{display:none}.app.outside #lpStage.on{display:block}#lpStage .lp,#lpPad .lp{pointer-events:auto}#lpPad{display:none}#sPad.open #lpPad.on{display:block}#lpSheet{display:none;z-index:6!important}#lpSheet.on{display:block}#lpSheet .lp{pointer-events:auto}' +
+  css.textContent = '#lpStage,#lpPad,#lpSheet,#lpArc{position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden}#lpStage{display:none}.app.outside #lpStage.on{display:block}#lpStage .lp,#lpPad .lp{pointer-events:auto}#lpPad{display:none}#sPad.open #lpPad.on{display:block}#lpSheet{display:none;z-index:6!important}#lpSheet.on{display:block}#lpSheet .lp{pointer-events:auto}#lpArc{display:none;z-index:46!important}#lpArc.on{display:block}#lpArc .lp{pointer-events:auto}' +
     '.app.outside .callv.haspet .log{margin-bottom:56px}' +
     '.ab{transition:transform .14s cubic-bezier(0.23,1,0.32,1)}.ab.lp-press{transform:scale(.88)}.ab.lp-hl i{outline:2px solid #ff3d9a;outline-offset:3px;box-shadow:0 0 16px rgba(255,61,154,.6)}';
   document.head.appendChild(css);
@@ -324,7 +324,23 @@
   (window.requestIdleCallback || function (f) { setTimeout(f, 1500); })(function () { if (!S.petOff) { makePad(); makeSheet(); } }, { timeout: 4000 });
   if (sheetEl) new MutationObserver(function () { sheetOn(); padOn(); place(); }).observe(sheetEl, { attributes: true, attributeFilter: ['class'] });
   if (sPad) new MutationObserver(place).observe(sPad, { attributes: true, attributeFilter: ['class'] });
-  if (arcEl()) new MutationObserver(place).observe(arcEl(), { attributes: true, attributeFilter: ['class'] });
+  if (arcEl()) new MutationObserver(function () { place(); arcOn(); }).observe(arcEl(), { attributes: true, attributeFilter: ['class'] });
+
+  // ---------- 오락실(밖 모드): 크게(92) 테이블 가장자리·버튼 위를 돌아다니며 딜러 대사를 말풍선으로 ----------
+  // 오락실은 화면을 그릴 때마다 안을 비우므로(frame) 무대는 #arc 밖, 바로 위 층(z 46)에 둠
+  var arp = null, ars = null, arWas = false;
+  function arcOn() {
+    var a = arcEl(); if (!a) return;
+    var on = a.classList.contains('on') && !a.classList.contains('hubv') && app.classList.contains('outside') && !S.petOff;
+    if (!ars) { ars = document.createElement('div'); ars.id = 'lpArc'; app.appendChild(ars); }
+    ars.classList.toggle('on', on); if (!on) { arWas = false; return; }
+    if (!arp) arp = LenaPet(ars, { img: IMG, meta: META, size: 92, lines: LINES, reachX: 300, reachUp: 260,
+      active: function () { return ars.classList.contains('on'); },
+      platforms: function (r) { return rects(a.querySelectorAll('.tb-felt,.tb-act button,.tb-bet button,.bp-go'), r, 10, 4).filter(function (p) { return p.y > 60 && p.y < r.height; }); },
+      floor: function (r) { return r.height - 4; } });
+    if (!arWas) { arWas = true; setTimeout(function () { if (!ars.classList.contains('on')) return; var s = ars.getBoundingClientRect(); arp.scan(); arp.drop(s.width * (.3 + Math.random() * .4), 70); }, 300); }
+  }
+  window.lenaPetArcSay = function (t) { if (arp && ars && ars.classList.contains('on') && t) arp.say(t, 3800); };
 
   // 0번 설정: 켜기/끄기
   try {
@@ -336,5 +352,5 @@
       B.insertBefore(lbl('고양이'), bk); B.insertBefore(sec, bk);
     };
   } catch (e) {}
-  window.lenaPet = { get pet() { return pet; }, get pad() { return pad; }, suggest: function () { nextAt = 0; }, place: place, get cur() { return cur; } };
+  window.lenaPet = { get pet() { return pet; }, get pad() { return pad; }, get arc() { return arp; }, arcSay: function (t) { window.lenaPetArcSay(t); }, suggest: function () { nextAt = 0; }, place: place, get cur() { return cur; } };
 })();
