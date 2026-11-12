@@ -844,3 +844,6 @@ else {
   if (S.pushOn) setTimeout(() => pushSend(true), 2500);
 }
 
+
+// 0번 설정 맨 아래에 앱 버전
+try { const _r0 = SH[0].r; SH[0].r = function (B) { _r0(B); const h = el('div', 'hint', '앱 버전 확인 중…'); h.style.textAlign = 'center'; h.style.marginTop = '14px'; B.appendChild(h); lenaVer().then(v => { h.textContent = v ? '앱 버전 ' + v : '앱 버전을 알 수 없어요'; }); }; } catch (e) {}
