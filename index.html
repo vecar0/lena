@@ -11,8 +11,13 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preload" href="assets/fonts/bhs.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* v137 글꼴을 앱 안에 둠(구글 글꼴은 글자 묶음을 나눠 받아서, 폰에서 일부 글자만 다른 글꼴로 깨져 보였음) */
+@font-face{font-family:'Black Han Sans';src:url(assets/fonts/bhs.woff2) format('woff2');font-weight:400;font-display:block}
+@font-face{font-family:'Space Mono';src:url(assets/fonts/sm4.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Space Mono';src:url(assets/fonts/sm7.woff2) format('woff2');font-weight:700;font-display:swap}
+</style>
 <style>
 :root{
   --ink:#08090b;--panel:#101216;--panel2:#171a20;--line:rgba(255,255,255,.12);

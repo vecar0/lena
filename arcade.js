@@ -39,8 +39,9 @@ const css = `
 .ahero{position:absolute;left:0;right:0;top:0;height:74%;overflow:hidden;pointer-events:none}
 .ahero img{width:100%;height:100%;object-fit:cover!important;object-position:50% 6%}
 .ahero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,8,10,.6),transparent 16%,transparent 56%,#06080a 97%)}
-.app.outside .ahero img{display:none}
-.app.outside .ahero{background:radial-gradient(ellipse at 50% 70%,rgba(30,120,80,.35),transparent 65%)}
+.ahero.cat{background:radial-gradient(ellipse at 50% 45%,rgba(30,140,90,.45),transparent 62%),url(assets/lena/poster.jpg) center/cover;background-blend-mode:normal}
+.ahero.cat::before{content:"";position:absolute;inset:0;backdrop-filter:blur(18px) brightness(.4);-webkit-backdrop-filter:blur(18px) brightness(.4)}
+.ahero.cat img{position:absolute;left:50%;top:46%;width:min(58vw,250px);height:auto;aspect-ratio:1;object-fit:cover!important;border-radius:50%;transform:translate(-50%,-50%);border:3px solid #000;box-shadow:0 0 0 5px var(--teal),0 0 60px rgba(47,224,200,.5)}
 .arc.hubv .ahd{z-index:2}.arc.hubv .ahd h2{text-shadow:0 2px 10px #000,2px 2px 0 var(--pink)}
 .abody.hubb{justify-content:flex-end;gap:12px;padding:0 14px calc(var(--sb) + 18px);overflow:hidden}
 .abody.hubb .hsp{flex:1}
@@ -140,7 +141,7 @@ function hub(fresh) {
   cur = 'hub';
   const B = frame('오락실', B => {
     // 딜러 레나(영상 모드에서만) — 그림 위에는 아무것도 얹지 않고, 아래 테이블 자리에 대사와 카드
-    const hero = el('div', 'ahero'), im = el('img'); im.src = 'assets/lena/menu/play.webp'; im.alt = ''; im.decoding = 'async'; hero.appendChild(im); A.insertBefore(hero, A.firstChild);
+    const out = $('app').classList.contains('outside'), hero = el('div', 'ahero' + (out ? ' cat' : '')), im = el('img'); im.src = out ? 'assets/lena/cat.jpg' : 'assets/lena/menu/play.webp'; im.alt = ''; im.decoding = 'async'; hero.appendChild(im); A.insertBefore(hero, A.firstChild);   // 밖 모드 = 고양이 딜러
     const sp = el('div', 'hsp'); B.appendChild(sp);
     talk(B, 'l', fresh ? `${nmc()}오늘 게임 동전 10개 넣어 놨어. …다 잃어도 울지 마.` : pick(['한 판 할래? 내 앞에서 지면 더 재밌거든.', '카드는 내가 섞을게. 고르기만 해.', '오늘은 운 좋은 얼굴이네.']));
     const G = el('div', 'hcards');
