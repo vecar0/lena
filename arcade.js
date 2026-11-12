@@ -35,6 +35,23 @@ const css = `
 .gcard img{width:62px;height:62px;flex:none}
 .gcard b{display:block;font-family:'Black Han Sans';font-weight:400;font-size:20px}
 .gcard small{display:block;font-size:12.5px;color:var(--mute);margin-top:3px;line-height:1.45;word-break:keep-all}
+.arc.hubv{background:#06080a}.arc.hubv::before{display:none}
+.ahero{position:absolute;left:0;right:0;top:0;height:74%;overflow:hidden;pointer-events:none}
+.ahero img{width:100%;height:100%;object-fit:cover!important;object-position:50% 6%}
+.ahero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,8,10,.6),transparent 16%,transparent 56%,#06080a 97%)}
+.app.outside .ahero img{display:none}
+.app.outside .ahero{background:radial-gradient(ellipse at 50% 70%,rgba(30,120,80,.35),transparent 65%)}
+.arc.hubv .ahd{z-index:2}.arc.hubv .ahd h2{text-shadow:0 2px 10px #000,2px 2px 0 var(--pink)}
+.abody.hubb{justify-content:flex-end;gap:12px;padding:0 14px calc(var(--sb) + 18px);overflow:hidden}
+.abody.hubb .hsp{flex:1}
+.abody.hubb .talkr{background:rgba(6,8,10,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.hcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.hcard{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;aspect-ratio:5/7;padding:12px 6px 10px;border-radius:12px;background:var(--paper);color:#111;border:2px solid #000;box-shadow:0 0 0 2px var(--gc,var(--pink)) inset,3px 4px 0 #000;transition:transform .14s cubic-bezier(0.23,1,0.32,1)}
+.hcard:active{transform:translateY(2px) scale(.97)}
+.hcard img{flex:1;min-height:0;width:84%;object-fit:contain}
+.hcard b{font-family:'Black Han Sans';font-weight:400;font-size:15px;line-height:1.05;text-align:center;word-break:keep-all}
+.hcard em{position:absolute;top:6px;right:6px;display:flex;align-items:center;gap:1px;font-style:normal;font-family:'Space Mono',monospace;font-weight:700;font-size:11px;background:#111;color:var(--yel);padding:1px 6px 1px 2px;border-radius:9px}.hcard em .ci{width:14px;height:14px}
+@media (max-height:700px){.hcard{aspect-ratio:5/6}}
 /* common */
 .res{font-family:'Black Han Sans';font-size:28px;text-align:center;text-shadow:2px 2px 0 #000;min-height:32px}
 .res.w{color:var(--yel)}.res.l{color:var(--hot)}
@@ -102,7 +119,7 @@ function gcAdd(n) { S.gc = Math.max(0, Math.min(999, gc() + n)); save(); hdr(); 
 let cur = '', cleanup = null;
 function frame(title, body, back, flat) {
   if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; }
-  A.innerHTML = ''; A.scrollLeft = A.scrollTop = 0; $('app').scrollLeft = $('app').scrollTop = 0;
+  A.innerHTML = ''; A.classList.remove('hubv'); A.scrollLeft = A.scrollTop = 0; $('app').scrollLeft = $('app').scrollTop = 0;
   const h = el('div', 'ahd');
   if (back) { const b = el('button', 'sx'); b.innerHTML = '<svg viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/></svg>'; b.onclick = () => { dtmf('*'); hub(); }; h.appendChild(b); }
   h.appendChild(el('h2', null, title));
@@ -113,7 +130,7 @@ function frame(title, body, back, flat) {
 function hdr() { const g = $('gcb'); if (!g) return; g.innerHTML = ''; const i = el('img'); i.src = CUR('gc'); i.alt = ''; g.append(i, document.createTextNode(gc())); g.title = '게임 동전'; }
 function talk(B, who, t) { const r = el('div', 'talkr'), i = el('i', who === 'sk' ? 'sk' : $('app').classList.contains('outside') ? '' : 'face'); const s = el('span', null, t); r.append(i, s); B.appendChild(r); return s; }
 function openArc() { ['sv', 'svBest', 'svKill', 'rh', 'rhDif', 'cardAsc', 'cardAscMax', 'cardBest', 'cardRun', 'cardWin', 'idl', 'idr'].forEach(k => { delete S[k]; }); const fresh = gcInit(); A.classList.add('on'); hub(fresh); }
-function closeArc() { if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; } A.classList.remove('on'); cur = ''; if (typeof renderHome === 'function') renderHome(); }
+function closeArc() { if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; } const end = () => { A.classList.remove('on', 'hubv'); cur = ''; if (typeof renderHome === 'function') renderHome(); }; if (window.lenaScene && cur === 'hub') lenaScene.fadeOut(A, end); else end(); }
 window.openArc = openArc;
 window.ARC = { A, frame, talk, gc, gcAdd, hub, reg, img, gimg: n => `assets/lena/g/${n}.webp`, set cleanup(f) { cleanup = f; }, get cleanup() { return cleanup; }, closeArc };
 
@@ -121,20 +138,23 @@ const GAMES = [];
 function reg(g) { GAMES.push(g); GAMES.sort((x, y) => (x.order || 9) - (y.order || 9)); }
 function hub(fresh) {
   cur = 'hub';
-  frame('오락실', B => {
-    talk(B, 'l', fresh ? `${nmc()}오늘 게임 동전 10개 넣어 뒀어요. …다 잃어도 울지 마요.` : pick(['한 판 해요? 저 보는 앞에서 지면 더 재밌는데.', '해골들이 기다려요. 오늘은 뭐 할래요?', '오늘은 운 좋은 얼굴이네요.']));
-    const G = el('div', 'gcards');
+  const B = frame('오락실', B => {
+    // 딜러 레나(영상 모드에서만) — 그림 위에는 아무것도 얹지 않고, 아래 테이블 자리에 대사와 카드
+    const hero = el('div', 'ahero'), im = el('img'); im.src = 'assets/lena/menu/play.webp'; im.alt = ''; im.decoding = 'async'; hero.appendChild(im); A.insertBefore(hero, A.firstChild);
+    const sp = el('div', 'hsp'); B.appendChild(sp);
+    talk(B, 'l', fresh ? `${nmc()}오늘 게임 동전 10개 넣어 놨어. …다 잃어도 울지 마.` : pick(['한 판 할래? 내 앞에서 지면 더 재밌거든.', '카드는 내가 섞을게. 고르기만 해.', '오늘은 운 좋은 얼굴이네.']));
+    const G = el('div', 'hcards');
     GAMES.forEach((g, i) => {
-      const c = el('button', 'gban'); c.style.setProperty('--gc', g.color || 'var(--pink)'); const ic = el('img'); ic.src = g.icon; ic.alt = '';
-      const t = el('div', 'gbt'); t.append(el('b', null, g.name), el('small', null, g.sub()));
-      c.append(t, ic); if (g.cost) { const em = el('em'); em.innerHTML = `입장 ${ci('gc')}${g.cost}`; c.appendChild(em); } c.onclick = () => { dtmf((i % 9) + 1); g.start(); }; G.appendChild(c);
+      const c = el('button', 'hcard'); c.style.setProperty('--gc', g.color || 'var(--pink)'); const ic = el('img'); ic.src = g.icon; ic.alt = '';
+      c.append(ic, el('b', null, g.name)); if (g.cost) { const em = el('em'); em.innerHTML = `${ci('gc')}${g.cost}`; c.appendChild(em); }
+      c.setAttribute('aria-label', `${g.name} — ${g.sub()}`);
+      c.onclick = () => { dtmf((i % 9) + 1); g.start(); }; G.appendChild(c);
     });
     B.appendChild(G);
-    B.appendChild(el('div', 'rules', '게임 동전은 매일 10개씩 들어와요(최대 99). 게임을 잘하면 더 받아요. 다 잃으면 하루 한 번 레나가 3개 빌려줘요.'));
-    if (gc() < 1) B.appendChild(row(btn('레나에게 동전 빌리기', 'wide', () => { if (S.gcLoan === dk(new Date())) { toast('오늘은 이미 빌렸어요. 내일 또 와요.'); return; } S.gcLoan = dk(new Date()); gcAdd(3); coinSound(); hub(); })));
-    const vb = btn('', 'ghost wide', () => { closeArc(); openSheet('shop'); }); vb.innerHTML = `${ci('gc')}게임 동전으로 자판기 가기`; B.appendChild(row(vb));
-    const lg = el('div', 'hint'); lg.innerHTML = `${ci('gc')}<b>게임 동전</b>: 매일 +10(최대 99) · 오락실 입장·보상 · 레나 자판기(선물·부스 장식)`; B.appendChild(lg);
-  });
+    if (gc() < 1) B.appendChild(row(btn('레나에게 동전 빌리기', 'wide', () => { if (S.gcLoan === dk(new Date())) { toast('오늘은 이미 빌렸어. 내일 또 와.'); return; } S.gcLoan = dk(new Date()); gcAdd(3); coinSound(); hub(); })));
+  }, false, true);
+  A.classList.add('hubv'); B.classList.add('hubb');
+  if (window.lenaScene) lenaScene.settle(A.querySelector('.ahero'), [B.querySelector('.talkr')].concat([].slice.call(B.querySelectorAll('.hcard'))), 40);
 }
 
 // 슬롯(본핏)은 g_slot.js

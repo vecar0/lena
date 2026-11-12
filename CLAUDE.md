@@ -2,10 +2,11 @@
 
 송휘님(사용자)의 개인 비서 웹앱. 캐릭터 '레나'와 말 없는 해골 짝꿍이 나온다. (예전 '하루' 앱은 git 기록에 남아 있다. 새 앱은 하루 코드를 쓰지 않고 처음부터 만들었다.)
 사용자는 개발자가 아니다. **답은 한국어로, 쉽고 짧게, 오해 없게.** 무엇을 바꿨는지와 사용자가 할 일(확인 방법)만 알려준다.
+- **작업 규칙(사용자 요청)**: 코딩할 때와 제안·질문할 때 **쓸 수 있는 스킬을 최대한 먼저 불러서** 작업한다(화면 = frontend-design, 움직임 = animate, 검수 = 검수-스킬-self-check, 움직일 곳 찾기 = find-animation-opportunities 등).
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v129). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v130). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 속도(v60): 생각 최소 — 3.x는 thinkingLevel `minimal`, 2.5 Flash는 thinkingBudget 0, `-latest`는 thinkingBudget 0(모델이 400으로 거절하면 `TH[m]`에 기억하고 3.x→low, 2.5→512, latest→설정 빼고 같은 모델로 한 번 더). 모델 '자동'은 후보 셋(가장 새 Flash·flash-latest·2.5-flash) 중 첫 글자까지 걸린 시간 평균 `S.mlat`이 가장 짧은 것부터(처음엔 각각 한 번씩 재 봄), 직접 고르면 그 모델 먼저. 첫 글자 12초 안 오면 다음 모델. 통화를 열 때 Gemini 서버 연결을 미리 열어 둠(`warmAt`, index.html preconnect). 노트 정리(`notes.js`)는 품질 위해 생각 low/1024 그대로. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. **Claude Haiku 5.5 (v82, 선택)**: 0번 설정 'Claude 키'(`S.ckey`, sk-ant-, 폰에만, 백업 내보내기에서 뺌). `gemini()` 안에서 모델 이름이 `claude`면 `claudeCall`(api.anthropic.com/v1/messages, 브라우저 직접 헤더 `anthropic-dangerous-direct-browser-access`, stream, `thinking:{type:'disabled'}`, `output_config.effort:'low'`, 대화 형식은 `toClaude`로 바꿈 — 사진·PDF도). '자동'이면 Gemini 후보 + `claude-haiku-5-5`를 첫 글자 시간 `S.mlat`으로 비교(처음엔 하나씩 재 봄), 설정에 모델별 평균 시간 표시. Claude 401/403·크레딧 없음이면 10분 쉬고 `S.clErr` 경고 + Gemini로, Gemini 키 오류여도 Claude 키가 있으면 넘어감. 키 있는지 확인은 `aiOn()`. 노트 정리(notes.js)는 Gemini만. 점검 scratchpad `cl.js`(가짜 응답). 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -191,3 +192,11 @@
 - **v127 꼬리표 → 빛 점**: 종이 알약 꼬리표가 그림과 따로 놀고 난잡해서 없앰. `.lv-tag` = 바탕·테두리 없는 56px 누름 영역 + 흰 점 14px(창구 색 빛, 2.6초마다 은은한 고리) + 점 아래 흰 글자 13px(검은 그림자). 자리·동작·펫 발판은 v126 그대로.
 - **v128 꼬리표 = 아래 한 줄, 전환 효과 다시 (v126·v127의 그림 속 자리 방식은 없앰)**: `.lv-tags` = 아래 메뉴 바로 위 한 줄(창구의 화면 2~3개가 같은 너비 유리 버튼 `.lv-tag`, 창구 색 점 + 이름, 배지), `place()`는 빈 함수(LINES tabs의 좌표 값은 안 씀). **전환 `connect()`** 0.78초: 위·아래 어두운 문(`.lv-fx s.a/.b`, 주사선 무늬·가장자리 창구 색 네온)이 가운데로 닫힘 → 가운데 흰 네온 선이 좌우로 펴지고 '연결 중' + 'N번 회선 · 이름' 글자가 자간 좁혀지며 나타남 → 문이 열림. 닫힌 사이(34%)에 방을 바꿈. **방 들어오는 움직임 `roomIn()`**: 그림이 1.12배에서 자리 잡고(0.9초) 제목 → 말풍선 → 꼬리표가 차례로 올라옴. 화면을 닫고 방으로 돌아올 때도 그림 1.05배 → 1, 꼬리표 올라옴. 펫 발판은 그대로 꼬리표 윗면 + 말풍선.
 - **v129 창구 화면 되돌림 (v120~v128의 새 메뉴·창구 화면은 지금 앱에 없음)**: 화면이 난잡하다는 피드백으로 v119 모양으로 되돌림 — index.html에서 `lines.js`를 뺌(파일은 남겨 둠, 안 불러옴), pet.js는 v119 것(음성통화·다이얼에서만 고양이), sw 목록에서 lines.js·menu 그림 뺌. 음성통화 버튼 6개는 다시 키패드·전단지·영상통화·공부·전화·설정, 다이얼 12개 그대로. 남긴 것: v121 자동 업데이트·설정 맨 아래 '앱 버전'(app.js 맨 끝으로 옮김), study.js의 `dayRows` 내보내기, 교환국 설정 글(CONCEPT.md). 일러스트는 **오늘(today)·놀이(play) 두 장만** 쓰기로 함(계획·연락 그림은 안 어울려서 안 씀) — 넣는 방법은 사용자와 정하는 중.
+
+## 장면 화면·버튼 통일 (v130, `scenes.js` — pet.js 뒤에 불러옴)
+- **기능 버튼 = 다이얼 하나**: 남는 버튼은 다이얼(`#dialBtn`·`#aPad`) · 음성/영상 전환(`#toAudio`·`#aVid`) · 수화기 들기/끊기(`#pickBtn`·`#hangBtn`). `#missBtn #boardBtn #aBoard #aCall #aMiss #aSet #affB`는 CSS로 숨김(동작 코드는 그대로), 음성 화면 버튼 줄은 2칸. 유리 전단지·똑똑·요약 칩(`#aInfo`)은 보기만(누름 막음). 다이얼 버튼 배지 `.dbad` = 부재중 + 밀린 것(`renderHome` 감쌈, 30초마다). 대화 빠른 말·D2 물음 카드·사진·마이크는 대화용이라 그대로.
+- 고양이 펫 권하기(pet.js `ideas`): 모두 다이얼 버튼(`aPad`)으로 가서 '1번 눌러 봐'처럼 말하고, 누르면 `go()`로 그 화면을 바로 엶(`cur.go`).
+- **아침 브리핑 = 전용 화면**: `openSheet('brief')`를 감싸 `.sheet.scn`(화면 가득) — 뒤에 비서 옷 레나 `assets/lena/menu/today.webp`(`.scn-hero`, 높이 68%, 아래로 어두워짐), 내용은 52vh 아래에서 시작해 그림 위로 올라오며 스크롤, 맨 위 제목 `.scn-ttl`(날짜 + 아침/오후/저녁 브리핑, `refreshSheet` 때도 다시 붙임), 오른쪽 위 닫기 `.scn-x`(0.2초 사라짐). 밖 모드 = 그림 숨기고 고양이 프사 `.scn-cat`. 다른 시트는 평소 모양.
+- **오락실 허브**(arcade.js `hub`): 딜러 옷 레나 `assets/lena/menu/play.webp`(`.ahero`, 높이 74%) + 아래에 레나 한마디 + **카드 3장**(`.hcard`, 종이 카드 5:7, 게임 그림·이름·입장 동전), 동전 없을 때만 빌리기 버튼. 규칙 글·자판기 가기·안내는 뺌. 밖 모드 = 그림 숨김(초록 테이블 빛만). 허브에서 닫을 때 0.2초 사라짐.
+- **전환 `lenaScene.door(작은 글, 제목, 색, 바꾸기, 길이)`**: 전용 층 `.scfx`(z 80) — 위아래 어두운 문(주사선·창구 색 네온 가장자리)이 닫히고(30%) 가운데 흰 네온 선 + '연결 중' / '1번 회선 · 오늘 브리핑'(밖 모드 '고양이가 받았어 · …'), 34%에 화면을 바꾸고 문이 열림. 브리핑 0.86초(청록), 오락실 0.72초(분홍, `SH[8].direct` 감쌈). 이어서 `settle()`: 그림이 1.1배 → 1(0.9초), 제목·내용·카드가 60ms 간격으로 올라옴. 동작 줄이기면 연출 없이 바로. 주의: `SH`는 `const`라 `window.SH`로 못 읽음 → `typeof SH`.
+- 계획(plan)·연락(contact) 그림은 안 씀. 점검 scratchpad `t/v130.js`(23개 항목).

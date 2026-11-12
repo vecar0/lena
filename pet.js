@@ -241,11 +241,11 @@
   }
   function ideas() {
     var a = [], now = Date.now(), h = new Date().getHours();
-    try { var ms = missed().length; if (ms) a.push({ k: 'miss', b: 'aMiss', t: '부재중 ' + ms + '개 왔어. 안 볼 거야?', p: 1 }); } catch (e) {}
-    try { var late = S.items.filter(isLate).length; if (late) a.push({ k: 'late', b: 'aBoard', t: '밀린 거 ' + late + '개 있는데… 모른 척할 거야?', p: 1 }); } catch (e) {}
-    try { var ev = S.items.filter(function (t) { return !t.done && isEv(t) && t.due && new Date(t.due) > now && new Date(t.due) - now < 2 * 3600e3; }).sort(function (x, y) { return new Date(x.due) - new Date(y.due); })[0]; if (ev) a.push({ k: 'ev' + ev.id, b: 'aBoard', t: '곧 ' + String(ev.text).slice(0, 14) + ' 있어. 준비됐어?', p: 1 }); } catch (e) {}
-    try { var td = S.items.filter(function (t) { return !t.done && !isEv(t) && !t.rid; }).length; if (td) a.push({ k: 'todo', b: 'aBoard', t: '할 일 ' + td + '개 남았어. 같이 볼까?' }); } catch (e) {}
-    try { if (S.study && (S.study.mats || []).length && h >= 15) a.push({ k: 'study', b: 'aCall', t: '오늘 공부 짜 놨는데, 볼래?' }); } catch (e) {}
+    try { var ms = missed().length; if (ms) a.push({ k: 'miss', b: 'aPad', go: function () { openSheet('call'); }, t: '부재중 ' + ms + '개 왔어. 다이얼 5번이야.', p: 1 }); } catch (e) {}
+    try { var late = S.items.filter(isLate).length; if (late) a.push({ k: 'late', b: 'aPad', go: function () { openBoard('today'); }, t: '밀린 거 ' + late + '개 있는데… 1번 눌러 봐.', p: 1 }); } catch (e) {}
+    try { var ev = S.items.filter(function (t) { return !t.done && isEv(t) && t.due && new Date(t.due) > now && new Date(t.due) - now < 2 * 3600e3; }).sort(function (x, y) { return new Date(x.due) - new Date(y.due); })[0]; if (ev) a.push({ k: 'ev' + ev.id, b: 'aPad', go: function () { openBoard('today'); }, t: '곧 ' + String(ev.text).slice(0, 14) + ' 있어. 준비됐어?', p: 1 }); } catch (e) {}
+    try { var td = S.items.filter(function (t) { return !t.done && !isEv(t) && !t.rid; }).length; if (td) a.push({ k: 'todo', b: 'aPad', go: function () { openBoard('today'); }, t: '할 일 ' + td + '개 남았어. 1번에 있어.' }); } catch (e) {}
+    try { if (S.study && (S.study.mats || []).length && h >= 15) a.push({ k: 'study', b: 'aPad', go: function () { openSheet(6); }, t: '오늘 공부 짜 놨어. 4번이야.' }); } catch (e) {}
     a.push({ k: 'vid', b: 'aVid', t: '얼굴 보고 얘기할래?' }, { k: 'pad', b: 'aPad', t: '다이얼 눌러 봐. 운세도 있어.' });
     return a.filter(function (x) { return !seen[x.k] || now - seen[x.k] > (x.p ? 10 : 30) * 60000; });
   }
@@ -253,14 +253,14 @@
   function cancel() { if (!cur) return; clear(); cur = null; pet.busy(0); }
   function act() {
     if (!cur) return; var c = cur; clear(); cur = null;
-    var done = function () { c.btn.classList.add('lp-press'); setTimeout(function () { c.btn.classList.remove('lp-press'); }, 180); pet.busy(0); setTimeout(function () { c.btn.click(); }, 120); };
+    var done = function () { c.btn.classList.add('lp-press'); setTimeout(function () { c.btn.classList.remove('lp-press'); }, 180); pet.busy(0); setTimeout(function () { if (c.go) c.go(); else c.btn.click(); }, 120); };
     if (!pet.press(done)) done();
   }
   function suggest() {
     var L = ideas(); if (!L.length) return;
     var imp = L.filter(function (x) { return x.p; }), it = imp.length ? imp[0] : L[Math.floor(Math.random() * L.length)], btn = document.getElementById(it.b), ic = btn && btn.querySelector('i');
     if (!ic || !btn.offsetWidth) return;
-    seen[it.k] = Date.now(); pet.busy(1); cur = { btn: btn, walking: 1, n: 0 };
+    seen[it.k] = Date.now(); pet.busy(1); cur = { btn: btn, go: it.go, walking: 1, n: 0 };
     var me = cur, arrive = function () {
       if (cur !== me) return;
       if (pet.state.gel !== ic) { if (++me.n > 4 || !pet.goTo(ic, arrive)) setTimeout(function () { if (cur === me) { if (me.n > 4) cancel(); else arrive(); } }, 500); return; }   // 다른 버튼에 떨어졌으면 다시
