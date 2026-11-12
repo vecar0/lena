@@ -455,7 +455,7 @@ function openCall() {
   tone([350, 440], .25, .04);
 }
 function hangUp() { if (app.classList.contains('outside')) return; stopVoice(); recStop(); app.classList.remove('calling'); clearInterval(callTimer); tone([480, 620], .12, .05); tone([480, 620], .12, .05, 'sine', .2); renderHome(); const last = S.history.filter(h => h.role === 'assistant').slice(-1)[0]; if (last && Date.now() - (last.at || 0) < 5 * 60e3) say(pick(['끊는다고 끝난 거 아니야. …또 걸어.', '들어가. 나는 여기 있을게.', '…벌써? 아쉽다.']), 'tease', false); }
-$('pickBtn').onclick = () => { audio(); if (!S.name && !aiOn()) { incoming('first', true); return; } openCall(); if (!S.history.length || Date.now() - (S.history[S.history.length - 1].at || 0) > 30 * 60e3) addHer(pick([`${nmc()}여보세요? …목소리 듣고 싶었어요.`, `네, 레나예요. 무슨 일이에요?`, `${nmc()}이 시간에 웬일이에요? 좋아서 그래요.`]), true); };
+$('pickBtn').onclick = () => { audio(); if (!S.name && !aiOn()) { incoming('first', true); return; } openCall(); if (!S.history.length || Date.now() - (S.history[S.history.length - 1].at || 0) > 30 * 60e3) addHer(pick([`${nmc()}여보세요? …이 시간에 무슨 일이야?`, `응, 나야. 무슨 일인데?`, `${nmc()}이 시간에 웬일이야? 심심했구나.`]), true); };
 $('hangBtn').onclick = hangUp;
 function renderLog() {
   const L = $('log'); L.innerHTML = '';
@@ -773,7 +773,7 @@ function plan() {
     } else { // 할 일: 마감 3시간 전·마감
       if (at - 3 * 3600e3 > now) rem.push({ id: t.id + 'a', at: at - 3 * 3600e3, body: `${n}'${t.text}' 마감 3시간 전이에요. 했어요?` });
       if (at > now) rem.push({ id: t.id + 'b', at, body: `'${t.text}' 마감이에요. 끝냈으면 체크해 줘요.` }); } });
-  S.calls.forEach(c => { if (!c.done && c.at > now) rem.push({ id: c.id, at: c.at, body: c.text ? `📞 레나예요. 약속한 전화 — ${c.text}` : `📞 레나예요. …그냥 목소리 듣고 싶어서요.` }); });
+  S.calls.forEach(c => { if (!c.done && c.at > now) rem.push({ id: c.id, at: c.at, body: c.text ? `📞 나야. 약속한 전화 — ${c.text}` : `📞 나야. …그냥 걸어 봤어.` }); });
   if (S.morning) for (let i = 0; i < 8; i++) { const d = new Date(); d.setDate(d.getDate() + i); const m = mcAt(d); if (m.getTime() <= now) continue; const ev = S.items.filter(t => !t.done && onDate(t, d)).sort((a, b) => a.due.localeCompare(b.due));
     if (S.mcDone === dk(d)) continue;
     rem.push({ id: 'mc_' + dk(d), at: m.getTime(), body: `📞 모닝콜 — ${n}일어나요.` + (ev.length ? ` 오늘 ${ev[0].due.slice(11, 16)} '${ev[0].text}'${ev.length > 1 ? ` 외 ${ev.length - 1}개` : ''}.` : ' 오늘은 비어 있어요.') });
@@ -797,7 +797,7 @@ async function pushOn() {
 }
 async function pushTest() {
   if (!S.pushOn) { toast('먼저 폰 알림을 켜 주세요.'); return; }
-  try { const r = await fetch(srv() + '/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: S.uid, sec: S.sec, body: `📞 ${nmc()}레나예요. 테스트 전화, 잘 왔죠?` }) }); let j = {}; try { j = await r.json(); } catch (e) {}
+  try { const r = await fetch(srv() + '/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: S.uid, sec: S.sec, body: `📞 ${nmc()}나야. 테스트 전화, 잘 왔지?` }) }); let j = {}; try { j = await r.json(); } catch (e) {}
     if (r.ok && (!j.status || (j.status >= 200 && j.status < 300))) toast('테스트 알림 보냈어요. 앱을 나가서 확인해 보세요.');
     else { const reg = await navigator.serviceWorker.ready; let s = await reg.pushManager.getSubscription(); if (s) { try { await s.unsubscribe(); } catch (e) {} } S.pushOn = false; save(); toast('알림 연결이 끊겨 있었어요. "폰 알림 켜기"를 한 번 더 눌러 주세요.'); refreshSheet(); }
   } catch (e) { toast('알림 서버에 연결하지 못했어요.'); }
