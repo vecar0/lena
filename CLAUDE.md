@@ -3,10 +3,11 @@
 송휘님(사용자)의 개인 비서 웹앱. 캐릭터 '레나'와 말 없는 해골 짝꿍이 나온다. (예전 '하루' 앱은 git 기록에 남아 있다. 새 앱은 하루 코드를 쓰지 않고 처음부터 만들었다.)
 사용자는 개발자가 아니다. **답은 한국어로, 쉽고 짧게, 오해 없게.** 무엇을 바꿨는지와 사용자가 할 일(확인 방법)만 알려준다.
 - **작업 규칙(사용자 요청)**: 코딩할 때와 제안·질문할 때 **쓸 수 있는 스킬을 최대한 먼저 불러서** 작업한다(화면 = frontend-design, 움직임 = animate, 검수 = 검수-스킬-self-check, 움직일 곳 찾기 = find-animation-opportunities 등).
+- **코딩은 항상 카파시 스킬(`andrej-karpathy-skills`)을 먼저 불러서 따른다**(사용자 요청): ① 코딩 전 가정·해석이 여럿이면 말하고 애매하면 묻기 ② 요청한 것만, 가장 짧은 코드 ③ 필요한 곳만 고치기(옆 코드 손대지 않기, 내가 만든 찌꺼기만 정리) ④ 완료 기준을 먼저 정하고 검사로 확인될 때까지 반복.
 
 ## 배포
 - 앱: https://vecar0.github.io/lena/ — 이 저장소(vecar0/lena, 예전 이름 haru)(GitHub Pages, main). 파일: `index.html`(화면·CSS), `app.js`(전부의 동작), `sw.js`, `manifest.json`, `icon-180.png`, `icon-512.png`, `assets/lena/`(그림·영상)
-- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v130). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
+- **배포할 때마다 `sw.js`의 캐시 버전 `lena-vN`을 1 올린다** (현재 v131). 그림을 추가하면 `sw.js`의 목록 `F`에도 넣는다.
 - 아이폰 홈 화면에 설치해서 쓴다. 업데이트 확인은 "앱 완전 종료 후 다시 열기". 아이콘을 바꾸면 홈 화면에서 지우고 Safari에서 다시 "홈 화면에 추가".
 - 알림 서버: Cloudflare Worker `haru-push` (https://haru-push.vecar0473.workers.dev) 그대로 사용. 엔드포인트 `/vapid` `/sync` `/test` `/status`. `/sync`의 plan은 `{reminders:[{id,at,body}],routines:[],water:null,tz,brief:null}` 형식 — 레나 앱은 reminders만 쓴다(전단지 10분 전·정각, 예약 전화, 모닝콜 8일치). 알림 제목은 sw.js가 '레나'로 바꿔 보여 준다.
 - AI: Gemini (키는 앱 설정, 폰에만). 대화 속도(v60): 생각 최소 — 3.x는 thinkingLevel `minimal`, 2.5 Flash는 thinkingBudget 0, `-latest`는 thinkingBudget 0(모델이 400으로 거절하면 `TH[m]`에 기억하고 3.x→low, 2.5→512, latest→설정 빼고 같은 모델로 한 번 더). 모델 '자동'은 후보 셋(가장 새 Flash·flash-latest·2.5-flash) 중 첫 글자까지 걸린 시간 평균 `S.mlat`이 가장 짧은 것부터(처음엔 각각 한 번씩 재 봄), 직접 고르면 그 모델 먼저. 첫 글자 12초 안 오면 다음 모델. 통화를 열 때 Gemini 서버 연결을 미리 열어 둠(`warmAt`, index.html preconnect). 노트 정리(`notes.js`)는 품질 위해 생각 low/1024 그대로. 429·5xx·시간 초과면 그 모델을 잠깐 쉬게(`COOL`) 하고 `mChain` 다음 모델(flash-latest, 2.5-flash, 2.0-flash, lite)로. 5xx는 같은 모델 한 번 더. **Claude Haiku 5.5 (v82, 선택)**: 0번 설정 'Claude 키'(`S.ckey`, sk-ant-, 폰에만, 백업 내보내기에서 뺌). `gemini()` 안에서 모델 이름이 `claude`면 `claudeCall`(api.anthropic.com/v1/messages, 브라우저 직접 헤더 `anthropic-dangerous-direct-browser-access`, stream, `thinking:{type:'disabled'}`, `output_config.effort:'low'`, 대화 형식은 `toClaude`로 바꿈 — 사진·PDF도). '자동'이면 Gemini 후보 + `claude-haiku-5-5`를 첫 글자 시간 `S.mlat`으로 비교(처음엔 하나씩 재 봄), 설정에 모델별 평균 시간 표시. Claude 401/403·크레딧 없음이면 10분 쉬고 `S.clErr` 경고 + Gemini로, Gemini 키 오류여도 Claude 키가 있으면 넘어감. 키 있는지 확인은 `aiOn()`. 노트 정리(notes.js)는 Gemini만. 점검 scratchpad `cl.js`(가짜 응답). 레나 목소리(TTS)는 사용자가 빼서 쓰지 않는다(`speak()`는 빈 함수).
@@ -200,3 +201,4 @@
 - **오락실 허브**(arcade.js `hub`): 딜러 옷 레나 `assets/lena/menu/play.webp`(`.ahero`, 높이 74%) + 아래에 레나 한마디 + **카드 3장**(`.hcard`, 종이 카드 5:7, 게임 그림·이름·입장 동전), 동전 없을 때만 빌리기 버튼. 규칙 글·자판기 가기·안내는 뺌. 밖 모드 = 그림 숨김(초록 테이블 빛만). 허브에서 닫을 때 0.2초 사라짐.
 - **전환 `lenaScene.door(작은 글, 제목, 색, 바꾸기, 길이)`**: 전용 층 `.scfx`(z 80) — 위아래 어두운 문(주사선·창구 색 네온 가장자리)이 닫히고(30%) 가운데 흰 네온 선 + '연결 중' / '1번 회선 · 오늘 브리핑'(밖 모드 '고양이가 받았어 · …'), 34%에 화면을 바꾸고 문이 열림. 브리핑 0.86초(청록), 오락실 0.72초(분홍, `SH[8].direct` 감쌈). 이어서 `settle()`: 그림이 1.1배 → 1(0.9초), 제목·내용·카드가 60ms 간격으로 올라옴. 동작 줄이기면 연출 없이 바로. 주의: `SH`는 `const`라 `window.SH`로 못 읽음 → `typeof SH`.
 - 계획(plan)·연락(contact) 그림은 안 씀. 점검 scratchpad `t/v130.js`(23개 항목).
+- **v131**: 브리핑 글 반말(plan.js `SH.brief`). 음성 화면: 버튼 줄(`#agrid`: 다이얼·영상통화)을 대화창 위로(`.app.outside .ahead{order:-2}` `.agrid{order:-1}`), '키패드' 글자 → '다이얼'. 음성 화면 배경 = 고양이 그림 흐림(민트빛, 앱과 안 어울림) 대신 영상 화면 부스 그림 `poster.jpg`를 `blur(34px) brightness(.34)`로(레나는 알아볼 수 없고 부스 네온 색만 남음).

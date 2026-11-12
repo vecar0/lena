@@ -213,12 +213,12 @@ SH.brief = { t: '오늘 브리핑', s: () => { const d = new Date(); return `${d
   const n = new Date(), h = n.getHours(), wrap = el('div', 'brief');
   const ev = S.items.filter(t => !t.done && t.due && onDate(t, n)).sort((a, b) => a.due.localeCompare(b.due)), late = S.items.filter(t => isLate(t) && !onDate(t, n)), und = openItems().filter(t => !t.due);
   const w = S.wx && S.wx.on && S.wx.data && S.wx.data.days.find(x => x.d === today());
-  const greet = h < 11 ? `좋은 아침이에요, ${S.name || ''}.` : h < 17 ? `${S.name || ''}, 오늘 반 지났어요.` : `${S.name || ''}, 오늘 남은 거 볼까요?`;
-  const sum = ev.length ? `오늘 일정 ${ev.length}개${late.length ? `, 밀린 거 ${late.length}개` : ''}예요.` : late.length ? `오늘 일정은 없고 밀린 게 ${late.length}개 있어요.` : '오늘은 잡힌 일정이 없어요.';
+  const greet = h < 11 ? `좋은 아침, ${S.name || ''}.` : h < 17 ? `${S.name || ''}, 오늘 벌써 반 지났어.` : `${S.name || ''}, 오늘 남은 거 같이 볼까?`;
+  const sum = ev.length ? `오늘 일정 ${ev.length}개${late.length ? `, 밀린 거 ${late.length}개` : ''}야.` : late.length ? `오늘 일정은 없는데, 밀린 게 ${late.length}개 있어.` : '오늘은 잡힌 일정이 없어. 한가하네?';
   const hd = el('div', 'bhead'); hd.append(el('i', app.classList.contains('outside') ? 'cat' : ''), el('p', null, `${greet} ${sum}`)); wrap.appendChild(hd);
-  if (w) { const s = el('div', 'bsec'); s.append(el('h5', null, '날씨'), el('div', 'r', `${w.code === 0 ? '맑음' : w.pop >= 50 ? '비 소식' : '구름'} · ${w.min}~${w.max}° · 강수 ${w.pop}%${w.pop >= 50 ? ' — 우산 챙겨요' : ''}`)); wrap.appendChild(s); }
+  if (w) { const s = el('div', 'bsec'); s.append(el('h5', null, '날씨'), el('div', 'r', `${w.code === 0 ? '맑음' : w.pop >= 50 ? '비 소식' : '구름'} · ${w.min}~${w.max}° · 강수 ${w.pop}%${w.pop >= 50 ? ' — 우산 챙겨' : ''}`)); wrap.appendChild(s); }
   const s1 = el('div', 'bsec'); s1.appendChild(el('h5', null, '오늘 일정'));
-  if (ev.length) ev.forEach(t => { const r = el('div', 'r' + (isLate(t) ? ' late' : '')); r.append(el('b', null, t.due.slice(11, 16)), document.createTextNode(t.text)); s1.appendChild(r); }); else s1.appendChild(el('div', 'muted', '비어 있어요.'));
+  if (ev.length) ev.forEach(t => { const r = el('div', 'r' + (isLate(t) ? ' late' : '')); r.append(el('b', null, t.due.slice(11, 16)), document.createTextNode(t.text)); s1.appendChild(r); }); else s1.appendChild(el('div', 'muted', '비어 있어.'));
   wrap.appendChild(s1);
   const t3 = top3(); if (t3.length) { const s2 = el('div', 'bsec'), L = el('div', 'top3'); s2.appendChild(el('h5', null, '레나가 고른 오늘 꼭 할 3가지')); t3.forEach(t => { const r = el('div', 'r'); r.appendChild(document.createTextNode(t.text + (isLate(t) ? ' (밀림)' : t.due ? ` · ${t.due.slice(11, 16)}` : ''))); L.appendChild(r); }); s2.appendChild(L); wrap.appendChild(s2); }
   const f = S.fort && S.fort[today()]; const s3 = el('div', 'bsec'); s3.appendChild(el('h5', null, '운세 한 줄'));
@@ -226,7 +226,7 @@ SH.brief = { t: '오늘 브리핑', s: () => { const d = new Date(); return `${d
   wrap.appendChild(s3);
   B.appendChild(wrap);
   B.appendChild(row(btn(und.length ? `할 일 ${und.length}개 시간표 짜 주기` : '오늘 시간표 보기', 'teal wide', () => openSheet('plan')), btn('전단지', 'ghost', () => openBoard('today'))));
-  B.appendChild(el('div', 'hint', '하루에 한 번, 앱을 처음 열 때 레나가 먼저 보여 줘요. 0번 설정 > 레나가 챙길 것에서 끌 수 있어요.'));
+  B.appendChild(el('div', 'hint', '하루에 한 번, 앱을 처음 열 때 내가 먼저 보여 줄게. 0번 설정 > 레나가 챙길 것에서 끌 수 있어.'));
 } };
 const _on = openSheet; openSheet = function (n) { if (n === 'plan' && !drafting) draft = null; _on(n); if (n === 'plan' || n === 'brief') $('shNum').textContent = '☎'; };
 function autoBrief() {
