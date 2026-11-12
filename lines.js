@@ -29,15 +29,17 @@
     '.lv-say{position:absolute;left:14px;right:14px;top:calc(env(safe-area-inset-top,0px) + 76px);display:flex;gap:10px;align-items:flex-start;z-index:5;pointer-events:none}' +
     '.lv-say u{display:none;flex:none;width:44px;height:44px;border-radius:50%;background:#9be8c9 url(assets/lena/cat.jpg) center/cover;border:2px solid #000;box-shadow:2px 2px 0 var(--mint)}.app.outside .lv-say u{display:block}' +
     '.lv-bub{max-width:min(78%,290px);padding:10px 13px;border-radius:4px 16px 16px 16px;background:var(--paper);color:#111;font-size:15px;line-height:1.45;font-weight:700;box-shadow:3px 3px 0 var(--lc);word-break:keep-all;cursor:pointer;pointer-events:auto;transform-origin:0 0;transition:opacity .16s ease,transform .16s cubic-bezier(0.23,1,0.32,1)}.lv-bub.pop{opacity:0;transform:scale(.95)}' +
-    '.lv-tag{position:absolute;left:0;top:0;z-index:2;min-width:56px;min-height:56px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:none;border:0;color:#fff;font-size:13px;font-weight:800;letter-spacing:.2px;white-space:nowrap;text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.9),0 0 2px #000;transition:scale .14s cubic-bezier(0.23,1,0.32,1)}.lv-tag:active{scale:.92}' +
-    '.lv-tag i{position:relative;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,.35),0 0 14px 3px var(--lc);flex:none}.lv-tag i:after{content:"";position:absolute;inset:-9px;border-radius:50%;border:1.5px solid #fff;opacity:0;animation:lvPing 2.6s cubic-bezier(0.23,1,0.32,1) infinite}@keyframes lvPing{0%{transform:scale(.45);opacity:.85}70%,100%{transform:scale(1.25);opacity:0}}' +
-    '.lv-tag em{position:absolute;top:0;left:calc(50% + 8px);min-width:18px;height:18px;border-radius:9px;background:var(--hot);color:#fff;font:700 11px/18px "Space Mono",monospace;font-style:normal;text-align:center;padding:0 4px;text-shadow:none}' +
+    '.lv-tags{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);z-index:3;display:flex;gap:8px}' +
+    '.lv-tag{position:relative;flex:1;min-width:0;min-height:50px;padding:0 8px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;background:rgba(8,12,13,.66);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:15px;font-weight:800;white-space:nowrap;transition:scale .14s cubic-bezier(0.23,1,0.32,1),background-color .14s ease}.lv-tag:active{scale:.96;background:rgba(255,255,255,.16)}' +
+    '.lv-tag i{width:8px;height:8px;border-radius:50%;background:var(--lc);box-shadow:0 0 8px var(--lc);flex:none}' +
+    '.lv-tag em{position:absolute;top:-6px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:var(--hot);color:#fff;font:700 11px/20px "Space Mono",monospace;font-style:normal;text-align:center;padding:0 5px}' +
     '.lv-nav{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;padding:6px 8px calc(env(safe-area-inset-bottom,0px) + 6px);background:rgba(6,10,11,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.14)}' +
     '.lv-nav button{flex:1;min-height:52px;border-radius:12px;background:none;border:0;color:#b9c4c6;font-size:14px;font-weight:700;position:relative}.lv-nav button.on{background:rgba(255,255,255,.12);color:#fff;box-shadow:inset 0 -3px 0 var(--lc)}.lv-nav button.bk{flex:.8;color:#fff}' +
     '.lv-nav em{position:absolute;top:6px;right:14%;min-width:16px;height:16px;border-radius:8px;background:var(--hot);color:#fff;font:700 10px/16px "Space Mono",monospace;font-style:normal;padding:0 4px}' +
-    '.lv-fx{position:absolute;inset:0;z-index:60;background:#030506;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;pointer-events:none}.lv-fx.go{display:flex}' +
-    '.lv-fx b{font:400 26px "Black Han Sans",sans-serif;color:#fff;text-shadow:0 0 16px var(--lc);letter-spacing:1px}.lv-fx small{font:700 12px "Space Mono",monospace;color:var(--lc);letter-spacing:2px}' +
-    '.lv-fx i{position:absolute;left:0;right:0;top:0;height:3px;background:var(--lc);box-shadow:0 0 22px 6px var(--lc)}' +
+    '.lv-fx{position:absolute;inset:0;z-index:60;display:none;pointer-events:none;overflow:hidden;--lc:#2fe0c8}.lv-fx.go{display:block}' +
+    '.lv-fx s{position:absolute;left:0;right:0;height:50.5%;background:#04070a;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);will-change:transform}.lv-fx s.a{top:0;box-shadow:0 2px 0 var(--lc),0 0 34px 4px var(--lc)}.lv-fx s.b{bottom:0;box-shadow:0 -2px 0 var(--lc),0 0 34px 4px var(--lc)}' +
+    '.lv-fx i{position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:#fff;box-shadow:0 0 10px 2px #fff,0 0 40px 10px var(--lc);opacity:0}' +
+    '.lv-fx div{position:absolute;left:0;right:0;top:50%;text-align:center;opacity:0}.lv-fx div.t1{margin-top:-46px;font:700 12px "Space Mono",monospace;color:var(--lc);letter-spacing:3px}.lv-fx div.t2{margin-top:16px;font:400 30px/1 "Black Han Sans",sans-serif;color:#fff;text-shadow:0 0 18px var(--lc)}' +
     '.sheet.ln,.sheet.ln.open{background:#0e1315;z-index:30}.sheet.ln .panel{height:100%;max-height:none;background:#0e1315;border:0;border-radius:0;box-shadow:none;transform:none;transition:none;padding-top:env(safe-area-inset-top,0px)}.sheet.ln .panel::before{display:none}' +
     '.sheet.ln .sbody{flex:1;min-height:0;padding-top:8px}.sheet.ln .shead{display:none}.sheet.ln[data-k="1"] .sbody>.tabs:first-child{display:none}' +
     '.ln-bar{display:none;flex:none;align-items:center;gap:8px;padding:10px 12px 8px}.sheet.ln .ln-bar{display:flex}' +
@@ -66,7 +68,7 @@
   var sayW = E('div', 'lv-say'), bub = E('div', 'lv-bub'); bub.setAttribute('role', 'button'); sayW.append(E('u'), bub);
   var tagsW = E('div', 'lv-tags'), nav = E('div', 'lv-nav');
   lv.append(art, E('div', 'lv-sh'), tagsW, top, sayW, nav); app.appendChild(lv);
-  var fx = E('div', 'lv-fx'), fxS = E('small', null, '연결 중'), fxB = E('b'), fxL = E('i'); fx.append(fxL, fxS, fxB); app.appendChild(fx);
+  var fx = E('div', 'lv-fx'), fxA = E('s', 'a'), fxBt = E('s', 'b'), fxS = E('div', 't1', '연결 중'), fxB = E('div', 't2'), fxL = E('i'); fx.append(fxA, fxBt, fxL, fxS, fxB); app.appendChild(fx);
   var panel = sheet.querySelector('.panel'), sbody = panel.querySelector('.sbody');
   var bar = E('div', 'ln-bar'), bk = E('button', 'ln-bk'), tabs = E('div', 'ln-tabs'); bar.append(bk, tabs); panel.insertBefore(bar, sbody);
 
@@ -121,25 +123,30 @@
   art.onclick = talk; bub.onclick = talk;
 
   // ---------- 회선 연결 연출: 화면이 어두워지며 네온 선이 훑고, 그 사이에 방을 바꿈 ----------
+  // 위아래 문이 닫히며 가운데에서 만남(네온 선) → 회선 이름 → 문이 열리며 새 방이 다가옴. 닫힌 사이에 방을 바꿈.
+  var EIO = 'cubic-bezier(0.77, 0, 0.175, 1)', EO = 'cubic-bezier(0.23, 1, 0.32, 1)', fxT = 0;
   function connect(L, label, swap) {
     if (reduce || !fx.animate) { swap(); return; }
-    fx.style.setProperty('--lc', L ? L.c : '#ff3d9a'); fxS.textContent = label || '연결 중'; fxB.textContent = L ? L.n + '번 회선 · ' + L.name : '통화로';
-    fx.classList.add('go');
-    var a = fx.animate([{ opacity: 0 }, { opacity: 1, offset: .28 }, { opacity: 1, offset: .62 }, { opacity: 0 }], { duration: 560, easing: 'ease' });
-    fxL.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(' + app.offsetHeight + 'px)' }], { duration: 560, easing: 'cubic-bezier(0.77, 0, 0.175, 1)' });
-    setTimeout(swap, 170); a.onfinish = function () { fx.classList.remove('go'); };
+    var D = 780; fx.style.setProperty('--lc', L ? L.c : '#ff3d9a'); fxS.textContent = label || '연결 중'; fxB.textContent = L ? L.n + '번 회선 · ' + L.name : '통화로';
+    fx.classList.add('go'); fx.getAnimations({ subtree: true }).forEach(function (a) { a.cancel(); });
+    var door = function (el, from) { return el.animate([{ transform: 'translateY(' + from + ')', easing: EIO }, { transform: 'translateY(0)', offset: .3 }, { transform: 'translateY(0)', offset: .56, easing: EIO }, { transform: 'translateY(' + from + ')' }], { duration: D, fill: 'both' }); };
+    var a = door(fxA, '-104%'); door(fxBt, '104%');
+    fxL.animate([{ opacity: 0, transform: 'scaleX(0)' }, { opacity: 0, transform: 'scaleX(0)', offset: .24, easing: EO }, { opacity: 1, transform: 'scaleX(1)', offset: .38 }, { opacity: 1, transform: 'scaleX(1)', offset: .56 }, { opacity: 0, transform: 'scaleX(1)', offset: .7 }, { opacity: 0, transform: 'scaleX(1)' }], { duration: D, fill: 'both' });
+    var txt = function (el, y) { el.animate([{ opacity: 0, transform: 'translateY(' + y + 'px)', letterSpacing: '.5em' }, { opacity: 0, transform: 'translateY(' + y + 'px)', letterSpacing: '.5em', offset: .28, easing: EO }, { opacity: 1, transform: 'translateY(0)', letterSpacing: el === fxS ? '3px' : '1px', offset: .42 }, { opacity: 1, transform: 'translateY(0)', letterSpacing: el === fxS ? '3px' : '1px', offset: .56 }, { opacity: 0, transform: 'translateY(0)', offset: .64 }, { opacity: 0, transform: 'translateY(0)' }], { duration: D, fill: 'both' }); };
+    txt(fxS, 8); txt(fxB, -8);
+    clearTimeout(fxT); fxT = setTimeout(swap, D * .34); a.onfinish = function () { fx.classList.remove('go'); };
+  }
+  // 새 방이 들어오는 움직임: 그림이 살짝 당겨졌다 자리 잡고, 제목 → 말풍선 → 꼬리표가 차례로
+  function roomIn(wait) {
+    if (reduce || !art.animate) return; var w = wait || 0, an = function (el, kf, d, dl) { el.animate(kf, { duration: d, delay: w + dl, easing: EO, fill: 'backwards' }); };
+    an(art, [{ scale: '1.12' }, { scale: '1' }], 900, 0);
+    an(top, [{ opacity: 0, transform: 'translateY(-10px)' }, { opacity: 1, transform: 'none' }], 320, 120);
+    an(sayW, [{ opacity: 0, transform: 'translateY(8px) scale(.96)' }, { opacity: 1, transform: 'none' }], 320, 220);
+    [].forEach.call(tagsW.children, function (b, i) { an(b, [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], 300, 300 + i * 50); });
   }
   // ---------- 방 그리기 ----------
   function count(k) { try { if (k === 'call') return missed().length; if (k === 'today') return todayStat().late; } catch (e) {} return 0; }
-  function place() {                                  // 꼬리표를 그림 속 물건 자리에 (그림은 화면을 덮고 위쪽 기준)
-    if (!cur) return; var W = lv.clientWidth, H = lv.clientHeight; if (!W) return;
-    var sc = Math.max(W / 900, H / 1609), iw = 900 * sc, ih = 1609 * sc, ox = (W - iw) / 2, navH = nav.offsetHeight || 64;
-    [].forEach.call(tagsW.children, function (b, i) {
-      var t = cur.tabs[i], w = b.offsetWidth, h = b.offsetHeight, x = ox + t[2] * iw, y = t[3] * ih;
-      x = Math.max(w / 2 + 10, Math.min(W - w / 2 - 10, x)); y = Math.max(190, Math.min(H - navH - h / 2 - 14, y));
-      b.style.transform = 'translate(' + Math.round(x - w / 2) + 'px,' + Math.round(y - h / 2) + 'px)';
-    });
-  }
+  function place() {}
   function paint() {
     if (!cur) return; var o = outside();
     lv.style.setProperty('--lc', cur.c);
@@ -162,7 +169,7 @@
     sheet.dataset.k = String(norm(key)); sheet.style.setProperty('--lc', cur.c);
   }
   bk.onclick = function () { closeSheet(); };
-  function room(L) { cur = L; key = null; sayI = 0; lv.classList.add('on'); paint(); }
+  function room(L) { cur = L; key = null; sayI = 0; lv.classList.add('on'); paint(); roomIn(120); }
   function leave(fxOn) {
     if (!cur) return; var done = function () { cur = null; key = null; sheet.classList.remove('ln'); lv.classList.remove('on'); try { renderHome(); } catch (e) {} };
     if (fxOn) connect(null, '끊는 중', done); else done();
@@ -198,13 +205,14 @@
     if (was != null && !OF[was] && key != null) { var k = key; setTimeout(function () { if (cur && !sheet.classList.contains('open')) openSheet(k); }, 30); return; }
     if (key == null && !sheet.classList.contains('ln')) return;                // 이미 방으로 돌아온 상태
     key = null; sheet.classList.remove('ln'); paint();
+    if (!reduce && art.animate) { art.animate([{ scale: '1.05' }, { scale: '1' }], { duration: 420, easing: EO }); [].forEach.call(tagsW.children, function (b, i) { b.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 260, delay: 60 + i * 40, easing: EO, fill: 'backwards' }); }); }
   }).observe(sheet, { attributes: true, attributeFilter: ['class'] });
   // 밖 ↔ 영상 회선 (구조는 같고 그림만 흐려짐)
   var wasOut = outside();
   md.onclick = function () { try { if (outside()) toVideo(); else { dtmf(1); toAudio(); } } catch (e) {} };
   new MutationObserver(function () { var o = outside(); if (o === wasOut) return; wasOut = o; if (cur && !sheet.classList.contains('open')) paint(); }).observe(app, { attributes: true, attributeFilter: ['class'] });
   document.addEventListener('keydown', function (e) { if (e.key !== 'Escape' || !cur) return; if (sheet.classList.contains('open')) closeSheet(); else leave(true); });
-  addEventListener('resize', place); if (window.ResizeObserver) new ResizeObserver(place).observe(lv);
+  
 
   // ---------- 1번 창구 '오늘' 시트 ----------
   var COL = { ev: 'var(--pink)', todo: 'var(--yel)', fix: '#8a9aa0', play: '#6b7a80', ex: 'var(--hot)', log: 'var(--teal)' }, LB = { ev: '일정', todo: '할 일 마감', fix: '고정', play: '휴식', ex: '시험', log: '끝낸 공부' }, WDN = '일월화수목금토', addKind = 'todo', addOpen = false;
