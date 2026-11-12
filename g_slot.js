@@ -252,19 +252,29 @@ const css = `
 .bp-opt b{display:block;font-size:15px}.bp-opt small{font-size:12px;opacity:.75}.bp-opt.red{background:#ffd6e4;box-shadow:3px 3px 0 var(--hot)}
 .bp-ach{display:grid;gap:6px}.bp-ach div{display:flex;gap:8px;align-items:center;font-size:12.5px;line-height:1.35;word-break:keep-all}.bp-ach div b{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid #000;display:grid;place-items:center;font-size:12px;background:#ddd}.bp-ach div.ok b{background:var(--teal)}
 .bp-mini.cabw{max-width:170px;padding-right:0}
-.slg{--mh:clamp(196px,31vh,290px)}.slg.out{--mh:clamp(240px,44vh,400px)}
-.slg .cabw{height:var(--mh);width:calc(var(--mh) * 760 / 1144 + 30px);max-width:100%}.slg .cab{height:100%}
-.slg .bp-name{margin:8px 6px 0;padding:16px 12px 10px}.slg .bp-name small{margin-top:6px;font-size:12.5px}
-.slg .bp-dl{font-size:15px}.slg .bp-hd div{padding:4px 4px 3px;box-shadow:1px 1px 0 #000}.slg .bp-hd b{font-size:13px}
-.bp-quit{margin-left:4px;height:28px;padding:0 10px;border-radius:14px;border:1.5px solid rgba(255,255,255,.35);background:rgba(0,0,0,.35);color:#cfd6da;font:700 12px Pretendard;text-shadow:none}
-.slg .bp-panel{padding:9px 10px;box-shadow:3px 3px 0 var(--teal)}.slg .bp-panel h4{display:flex;align-items:center;gap:8px;font-size:15px;margin:0 0 6px}.slg .bp-panel h4 .btn{margin-left:auto;min-height:32px;height:32px;padding:0 10px;font-size:12px}
-.slg .bp-row{gap:6px}.slg .bp-row>button{min-height:44px}.slg .bp-row+.bp-row{margin-top:6px}.slg .bp-go{min-height:48px;font-size:16px}
-.slg .bp-pull{flex-wrap:nowrap}.slg .bp-pull>button:first-child{flex:2}.slg .bp-pull>button:last-child{flex:1;font-size:13px}
-.slg .bp-ch{display:flex;overflow-x:auto;gap:8px;padding:10px 2px 4px;scrollbar-width:none}.slg .bp-ch::-webkit-scrollbar{display:none}.slg .bp-ch .bp-c{flex:none;width:162px;min-height:58px}
-.slg .bp-mine{flex-wrap:nowrap;overflow-x:auto;align-items:center;scrollbar-width:none}.slg .bp-mine::-webkit-scrollbar{display:none}.slg .bp-mine>*{flex:none}.bp-mt{font:800 11.5px Pretendard;color:#9ff5e4;white-space:nowrap}
-.slg .bp-call{padding:8px 10px}.slg .bp-call .ring{margin-bottom:2px;font-size:16px}.slg .bp-call .ring i{width:36px;height:36px}.slg .bp-panel .btn.ghost{color:#111;border-color:#111;background:rgba(255,255,255,.55)}.slg .bp-opt{min-height:48px;margin-top:6px;padding:6px 10px}
-.bp-rh{display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;width:100%;min-height:44px;padding:0;border:0;background:none;color:#222;font:700 12.5px Pretendard;text-align:left}.bp-rh b{font-family:'Space Mono',monospace}.bp-rh i{margin-left:auto;font-style:normal;color:#d0124f}
-.slg.achon .tb-dl,.slg.achon .tb-room,.slg.achon .bp-name{display:none}.slg.achon .bp-rec{flex:1 1 0!important;min-height:0;overflow:auto}
+.abody.slg .sl-felt{gap:6px;padding:8px 10px;justify-content:flex-start;overflow:hidden}
+.slg .sl-felt .tb-lb{flex:none;gap:6px;min-height:22px}.sl-rd{display:flex;gap:4px;margin-left:2px}.sl-rd u{width:11px;height:11px;border-radius:50%;border:2px solid #000;background:#0d3324}.sl-rd u.on{background:var(--pink)}.sl-rd u.now{background:var(--yel)}
+.sl-sk{margin-left:auto;font-style:normal;font-family:'Space Mono',monospace;font-size:11.5px;color:#ffb3cf}
+.slg .sl-cabw{flex:1 1 0;min-height:0;width:100%;max-width:none;padding:0;margin:0;display:flex;justify-content:center}
+.slg .sl-cab{height:100%;max-width:100%;aspect-ratio:5/2.8;width:auto;background:none;filter:none}
+.slg .sl-cab .rwin{position:absolute;inset:0;width:auto;height:auto;gap:3px;padding:3px;border-radius:10px;background:#0a2018;border:2px solid #000;box-shadow:0 3px 0 rgba(0,0,0,.5)}
+.slg .sl-cab .reel{border-radius:6px;background:var(--paper)}.slg .sl-cab .rwin::after{border-radius:10px}
+.slg .bp-mine{flex:none;display:flex;flex-wrap:nowrap;align-items:center;gap:5px;overflow-x:auto;scrollbar-width:none;min-height:30px}.slg .bp-mine::-webkit-scrollbar{display:none}
+.slg .bp-mine>*{flex:none}.slg .bp-mine button{width:30px;height:30px;padding:0;border-radius:50%;justify-content:center;background:var(--paper)}.slg .bp-mine button img{width:22px;height:22px}
+.bp-mt{font:800 11.5px Pretendard;color:#d9f2e4;white-space:nowrap}.bp-mt.dim{opacity:.6}
+.sl-pills button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;padding:0 4px;border-radius:14px!important;line-height:1.1}
+.sl-pills button small{display:flex;align-items:center;gap:2px;font:800 10.5px Pretendard;opacity:.7;white-space:nowrap}.sl-pills button small .ci{width:12px;height:12px}
+.sl-pills button b{font-size:13.5px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}.sl-pills button:last-child{background:#fff6b8}
+.slg .tb-act button{line-height:1.15}.slg .tb-act .tb-mul{font-size:11px}
+.tb-act button.sl-q{flex:0 0 74px;font-size:13px;background:linear-gradient(#5a6068,#30353b);color:#e3e7ea}
+.tb-act button.sl-red{flex:.8;background:linear-gradient(#ff7a7a,#e0303f);color:#fff;font-size:14px}
+.sl-title{font-family:'Black Han Sans';font-size:clamp(30px,10vw,44px);text-align:center;color:var(--yel);text-shadow:3px 3px 0 #000;margin-top:auto}.sl-title+.tb-hint{margin-bottom:auto;color:#d9f2e4}
+.slg .sl-felt.slshop .bp-ch{flex:none;display:flex;overflow-x:auto;gap:8px;padding:9px 2px 2px;scrollbar-width:none}.slg .sl-felt.slshop .bp-ch::-webkit-scrollbar{display:none}
+.slg .sl-felt.slshop .bp-c{flex:none;width:150px;min-height:56px;padding:6px}.slg .sl-felt.slshop .bp-c img{width:28px;height:28px}
+.sl-mini{margin-left:auto;height:28px;padding:0 10px;border-radius:14px;border:2px solid #000;background:var(--paper);color:#111;font:800 11.5px Pretendard}
+.sl-atm{flex:none;display:flex;gap:5px;margin-top:auto}.sl-atm button{flex:1;min-height:40px;padding:0 4px;border-radius:10px;border:2px solid #000;background:var(--paper);color:#111;font:800 12.5px Pretendard;box-shadow:0 2px 0 #000;word-break:keep-all;line-height:1.15}.sl-atm button.pay{background:var(--yel)}
+.slg .sl-felt.slcall{justify-content:center}.slg .sl-felt.slcall .bp-opt{flex:1 1 0;min-height:0;max-height:62px;margin:0;padding:4px 10px;display:flex;flex-direction:column;justify-content:center}.slg .sl-felt.slcall .bp-opt b{font-size:14px}.slg .sl-felt.slcall .bp-opt small{font-size:11.5px}
+.slg .sl-felt.slach .bp-ach{flex:1 1 0;min-height:0;overflow:auto;gap:4px;color:#e9f5ef}.slg .sl-felt.slach .bp-ach div{font-size:12px}
 .bp-tk{display:inline-block;width:18px;height:12px;margin-right:2px;vertical-align:-1px;background:linear-gradient(90deg,#ff3d9a 0 70%,#ffd6e4 70% 72%,#ff3d9a 72%);border:1.5px solid #000;border-radius:2px;-webkit-mask:radial-gradient(circle at 0 50%,#0000 3px,#000 3.5px) left/51% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/51% 100% no-repeat;mask:radial-gradient(circle at 0 50%,#0000 3px,#000 3.5px) left/51% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/51% 100% no-repeat}
 .bp-tkout{position:absolute;left:50%;bottom:9%;z-index:6;display:flex;align-items:center;justify-content:center;gap:6px;width:46%;height:30px;margin-left:-23%;background:repeating-linear-gradient(90deg,#ff3d9a 0 22%,#ffd6e4 22% 23%);border:2px solid #000;border-radius:3px;color:#fff;font-family:'Black Han Sans';font-size:15px;text-shadow:1px 1px 0 #000;transform-origin:top;animation:bptk 1.6s forwards;pointer-events:none}
 @keyframes bptk{0%{transform:translateY(-10px) scaleY(.1);opacity:0}25%{transform:translateY(0) scaleY(1);opacity:1}70%{transform:translateY(14px)}100%{transform:translateY(40px) rotate(-8deg);opacity:0}}
@@ -304,44 +314,49 @@ let R = null, busy = false, last = null;
 function persist() { S.slot2 = R; save(); }
 function checkAch() { if (!R) return; const M = meta(); if (R.skSeen) ach('a_skull'); if (R.dl > 3) ach('a_dl3'); if (R.dl > 6) ach('a_rich'); if (R.atm >= 1000) ach('a_atm'); if (R.log.bestWin >= 500) ach('a_cherry'); if (R.log.jack) ach('a_jack'); if (M.calls >= 5) ach('a_call5'); if (R.endless && R.dl > 10) ach('a_end'); if (R.endless && R.dl > 12) ach('a_end12'); R.ch.forEach(id => { M.seen[id] = 1; }); }
 function enter() { delete S.slotRun; R = S.slot2 || null; tk0 = R ? R.cards : null; if (R) R.unl = meta().unl; R ? draw() : lobby(); }
-// v139 한 화면: 위 딜러 띠(밖 모드는 고양이) → 기계 → 버튼, 스크롤 없음
+// v140 다른 테이블 게임과 같은 틀: 딜러 띠(밖 모드는 고양이) → 초록 테이블(.tb-felt) → 결과 줄(.tb-res) → 숫자 알약 줄 → 버튼 줄(.tb-act). 기계 그림 없음
 function top(B, t) { if (ARC.dealer) { ARC.dealer(B, t); B.classList.add('slg'); } else talk(B, 'l', t); }
+function felt(B, cls) { const F = el('div', 'tb-felt sl-felt' + (cls ? ' ' + cls : '')); B.appendChild(F); return F; }
+function lb(F, a, b) { const d = el('div', 'tb-lb'); d.append(el('span', null, a)); if (b != null) { const x = el('b'); x.innerHTML = b; d.appendChild(x); } F.appendChild(d); return d; }
+function resLine(B, t, k) { const d = el('div', 'tb-res ' + (k || ''), t || ''); d.id = 'tray'; B.appendChild(d); return d; }
+function pills(B, list) { const r = el('div', 'tb-bet sl-pills'); list.forEach(([k, a, v, f]) => { const x = el('button'); x.innerHTML = `<small>${k === 'tk' ? TK : k ? ci(k) : ''}${a}</small><b>${v}</b>`; if (f) x.onclick = f; else x.tabIndex = -1; r.appendChild(x); }); B.appendChild(r); }
+function acts(B, list) { const r = el('div', 'tb-act'); list.forEach(([t, c, f, dis, id]) => { const b = el('button', c || ''); b.innerHTML = t; if (dis) b.disabled = true; if (id) b.id = id; b.onclick = f; r.appendChild(b); }); B.appendChild(r); return r; }
+function stats(B) { const m = mods(R), intr = Math.floor(R.atm * (.07 + m.int)); pills(B, [['debt', '빚', nf(debtOf(R))], ['chip', '칩', nf(R.chips)], ['debt', 'ATM' + (intr ? ` +${nf(intr)}` : ''), nf(R.atm)], ['tk', '티켓', R.cards]]); }
+const quit = () => { if (!confirm('이번 판 그만둘래? 넘긴 마감만큼 동전은 줄게.')) return; R.ph = 'over'; R.quit = 1; finish(); };
 let achOn = false;
 function lobby() {
   frame(NAME, B => {
-    const M = meta(); top(B, '빚 갚는 슬롯이야. 마감 9번 넘기면 다 갚는 거고, 내가 옆에서 봐 줄게.'); if (achOn) B.classList.add('achon');
-    const nm = el('div', 'bp-name'); nm.style.setProperty('--pc', '#fff2a8'); nm.innerHTML = `${NAME}<small>라운드 3번 = 마감 하나 · 해골 셋이면 손에 든 칩이 날아가</small>`; B.appendChild(nm);
+    const M = meta(), n = ACH.filter(x => M.ach[x[0]]).length; top(B, '빚 갚는 슬롯이야. 마감 9번 넘기면 다 갚는 거고, 내가 옆에서 봐 줄게.');
+    const F = felt(B, achOn ? 'slach' : '');
+    if (achOn) { lb(F, `도전 과제 ${n}/${ACH.length}`); const L = el('div', 'bp-ach'); ACH.forEach(([id, t, u]) => { const d = el('div', M.ach[id] ? 'ok' : ''); d.append(el('b', null, M.ach[id] ? '✓' : ''), el('span', null, t + (u ? ` → 부적 '${CHM[u].n}'` : ''))); L.appendChild(d); }); F.appendChild(L); }
+    else { F.appendChild(el('div', 'sl-title', NAME)); F.appendChild(el('div', 'tb-hint', '레버를 당겨 칩을 벌고, 라운드 3번마다 빚(마감)을 갚아. 가운데 해골 셋이면 통화가 끊겨서 손에 든 칩이 날아가. ATM에 넣어 두면 안전하고 이자도 붙어.')); }
+    resLine(B, '');
+    pills(B, [['', '최고 마감', M.best], ['', '클리어', M.wins], ['', '도감', `${Object.keys(M.seen).length}/${CH.filter(c => !c.hide).length}`], ['', achOn ? '닫기' : '도전 과제', `${n}/${ACH.length}`, () => { achOn = !achOn; lobby(); }]]);
     const today = dk(new Date()), dd = M.daily[today];
-    const r = el('div', 'bp-row');
     const go = (seed, daily) => { if (gc() < 3) { toast('게임 동전이 모자라. (3개 필요)'); return; } gcAdd(-3); coinSound(); achOn = false; R = newRun(seed, { unl: M.unl }); tk0 = R.cards; R.daily = daily ? today : ''; ach('a_first'); if (daily) { M.daily = { [today]: { best: dd ? dd.best : 0 } }; ach('a_daily'); } persist(); draw(); };
-    const a = el('button', 'bp-go'); a.innerHTML = `새 판 시작<small>게임 동전 3개</small>`; a.onclick = () => go((Date.now() * 9301) ^ (Math.random() * 1e9), 0);
-    const b = el('button', 'bp-go t'); b.innerHTML = `오늘의 판<small>${dd ? `오늘 최고 마감 ${dd.best}` : '오늘 모두 같은 판'}</small>`; b.onclick = () => go([...today].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619), 2166136261), 1);
-    r.append(a, b); B.appendChild(r);
-    const st = el('div', 'bp-panel bp-rec'), n = ACH.filter(x => M.ach[x[0]]).length;
-    const h = el('button', 'bp-rh'); h.innerHTML = `최고 마감 <b>${M.best}</b> · 클리어 <b>${M.wins}</b> · 도감 <b>${Object.keys(M.seen).length}/${CH.filter(c => !c.hide).length}</b> · 도전 <b>${n}/${ACH.length}</b> <i>${achOn ? '접기' : '보기'}</i>`; h.onclick = () => { achOn = !achOn; lobby(); }; st.appendChild(h);
-    if (achOn) { const L = el('div', 'bp-ach'); ACH.forEach(([id, t, u]) => { const d = el('div', M.ach[id] ? 'ok' : ''); d.append(el('b', null, M.ach[id] ? '✓' : ''), el('span', null, t + (u ? ` → 부적 '${CHM[u].n}'` : ''))); L.appendChild(d); }); st.appendChild(L); }
-    B.appendChild(st);
+    acts(B, [[`새 판 시작<small class="tb-mul">동전 ${ci('gc')}3</small>`, 'go', () => go((Date.now() * 9301) ^ (Math.random() * 1e9), 0)], [`오늘의 판<small class="tb-mul">${dd ? `오늘 최고 마감 ${dd.best}` : '오늘 모두 같은 판'}</small>`, 'tl', () => go([...today].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619), 2166136261), 1)]]);
   }, true);
 }
-function hdr(B) {
-  const d = el('div', 'bp-dl'); d.append(document.createTextNode(`${R.endless ? '끝없는 밤 · ' : ''}마감 ${R.dl}${R.endless ? '' : '/' + FINAL}`), el('em', null, `끊김 ${(skullP(R) * 100).toFixed(1)}%`));
-  const i = el('i'); for (let k = 1; k <= 3; k++) i.appendChild(el('u', k < R.rd ? 'on' : k === R.rd ? 'now' : '')); d.appendChild(i);
-  if (R.ph !== 'over') { const q = el('button', 'bp-quit', '그만두기'); q.onclick = () => { if (!confirm('이번 판 그만둘래? 넘긴 마감만큼 동전은 줄게.')) return; R.ph = 'over'; R.quit = 1; finish(); }; d.appendChild(q); }
-  B.appendChild(d);
-  const h = el('div', 'bp-hd'), m = mods(R), intr = Math.floor(R.atm * (.07 + m.int));
-  [['debt', '갚을 빚', nf(debtOf(R))], ['chip', '손에 든 칩', nf(R.chips)], ['debt', 'ATM' + (intr ? ` +${nf(intr)}` : ''), nf(R.atm)], ['tk', '티켓', R.cards]].forEach(([k, a, v]) => { const x = el('div'), s2 = el('small'); s2.innerHTML = (k === 'tk' ? TK : ci(k)) + a; x.append(s2, el('b', null, v)); h.appendChild(x); });
-  B.appendChild(h);
+function head(F) {
+  const d = lb(F, `${R.endless ? '끝없는 밤 · ' : ''}마감 ${R.dl}${R.endless ? '' : '/' + FINAL}`, ''), i = el('i', 'sl-rd'); for (let k = 1; k <= 3; k++) i.appendChild(el('u', k < R.rd ? 'on' : k === R.rd ? 'now' : '')); d.lastChild.replaceWith(i);
+  d.appendChild(el('em', 'sl-sk', `끊김 ${(skullP(R) * 100).toFixed(1)}%`)); return d;
 }
-function machine(B, g) {
-  const W = el('div', 'cabw'), C = el('div', 'cab'), win = el('div', 'rwin'); win.id = 'rwin';
+// 릴 = 테이블 위 5×3 종이 칸 (애니메이션이 쓰는 id·클래스 rwin/reel/strip/sc/bpl 그대로, .cab은 숫자 팝 자리)
+function reels(F, g) {
+  const C = el('div', 'cab sl-cab'), win = el('div', 'rwin'); win.id = 'rwin';
   g = g || (last && last.g) || Array.from({ length: 15 }, (_, i) => SY[(i * 3 + R.dl) % 7]);
   for (let c = 0; c < 5; c++) { const reel = el('div', 'reel'), strip = el('div', 'strip'); strip.style.setProperty('--n', 3); strip.style.height = '100%';
     for (let r = 0; r < 3; r++) { const sc = el('div', 'sc'), i = el('img'); sc.dataset.i = r * 5 + c; i.src = IM(SIM[g[r * 5 + c]]); i.alt = SN[g[r * 5 + c]]; sc.appendChild(i); strip.appendChild(sc); }
     reel.appendChild(strip); win.appendChild(reel); }
   const sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sv.setAttribute('class', 'bp-lines'); sv.setAttribute('viewBox', '0 0 100 60'); sv.setAttribute('preserveAspectRatio', 'none'); sv.id = 'bpl'; win.appendChild(sv);
-  C.appendChild(win); const tray = el('div', 'tray', ''); tray.id = 'tray'; C.appendChild(tray); W.appendChild(C);
-  if (R.ph === 'spin') W.appendChild(leverEl()); else W.classList.add('bp-mini');
-  B.appendChild(W); return W;
+  C.appendChild(win); const W = el('div', 'cabw sl-cabw'); W.appendChild(C); F.appendChild(W); lvSet = null; return W;
+}
+function mine(F) {
+  const vis = R.ch.filter(id => !CHM[id].hide), M = el('div', 'bp-mine');
+  M.appendChild(el('span', 'bp-mt', `부적 ${used(R)}/${slots(R)}${R.chain.snow ? ` · 눈덩이 +${(R.chain.snow * .2).toFixed(1)}` : ''} · ×${nf(mods(R).heat)}`)); if (!vis.length) M.appendChild(el('span', 'bp-mt dim', R.ph === 'round' ? '— 가게에서 사' : '— 아직 없어'));
+  vis.forEach(id => { const c = CHM[id], b = el('button', c.curse ? 'cur' : ''), i = el('img'); b.dataset.id = id; i.src = IM(c.i); i.alt = c.n; b.title = c.n; b.appendChild(i);
+    b.onclick = () => { if (R.ph === 'round' && confirm(`${c.n}: ${c.d}\n\n팔까? 티켓 ${Math.max(1, Math.floor(c.p / 2))}장`)) { sell(R, id); persist(); draw(); } else if (R.ph !== 'round') toast(`${c.n}: ${c.d}`); }; M.appendChild(b); });
+  F.appendChild(M);
 }
 function lineOf() {
   if (R.ph === 'spin') return R.say || '한 번 당겨 봐. 7 셋이면 오늘 밤은 네 거야.';
@@ -356,59 +371,43 @@ function draw() {
   if (R.ph === 'over' && R.reward == null) { finish(); return; }
   frame(NAME, B => {
     top(B, lineOf()); if (R.ph !== 'spin') R.say = '';
-    hdr(B);
     if (R.ph === 'spin') {
-      machine(B);
-      const pb = el('button', 'bp-go'); pb.id = 'bpgo'; pb.innerHTML = `레버 당기기<small>남은 ${R.spins}번 · 라운드 ${R.rd}/3</small>`; pb.onclick = () => pull();
-      if (R.ch.includes('redbtn')) { const rb = el('button', 'bp-go y', R.btnUsed ? '빨간 버튼 (씀)' : '빨간 버튼 +10'); rb.disabled = !!R.btnUsed; rb.onclick = () => { pressRed(R); persist(); tone([880, 1320], .08, .06, 'square'); draw(); }; const w = el('div', 'bp-row bp-pull'); w.append(pb, rb); B.appendChild(w); } else B.appendChild(pb);
+      const F = felt(B); head(F); reels(F); mine(F); resLine(B, ''); stats(B);
+      const L = [[`레버 당기기<small class="tb-mul">남은 ${R.spins}번 · 라운드 ${R.rd}/3</small>`, 'go', () => pull(), false, 'bpgo']];
+      if (R.ch.includes('redbtn')) L.push([R.btnUsed ? '빨간 버튼<small class="tb-mul">씀</small>' : '빨간 버튼<small class="tb-mul">행운 +10</small>', 'sl-red', () => { pressRed(R); persist(); tone([880, 1320], .08, .06, 'square'); draw(); }, !!R.btnUsed]);
+      L.push(['그만두기', 'sl-q', quit]); acts(B, L);
     } else if (R.ph === 'round') roundUI(B);
     else if (R.ph === 'call') callUI(B);
     else if (R.ph === 'win') winUI(B);
     else if (R.ph === 'over') overUI(B);
-    mine(B);
   }, true);
 }
 function roundUI(B) {
-  const d = debtOf(R), lev = leverOf(R.dl), have = R.atm + R.chips;
-  const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, `라운드 ${R.rd} 준비`));
-  const a = el('div', 'bp-row');
-  a.append(btn(`ATM에 넣기 (${lev} 남김)`, 'ghost', () => { deposit(R, R.chips - lev); coinSound(); persist(); draw(); }), btn('전부 넣기', 'ghost', () => { deposit(R, R.chips); coinSound(); persist(); draw(); }));
-  P.appendChild(a);
-  const g = el('div', 'bp-row'), free = R.chips < lev;
-  const b7 = el('button', 'bp-go'); b7.innerHTML = `7번 돌리기<small>${free ? '칩이 모자라 이번은 공짜' : `레버 값 ${lev}칩`}</small>`; b7.onclick = () => { startRound(R, 7); persist(); draw(); };
-  const b3 = el('button', 'bp-go t'); b3.innerHTML = `3번 + 티켓 2<small>레버 값 ${lev}칩</small>`; b3.disabled = free; b3.onclick = () => { const t = R.cards; startRound(R, 3); persist(); draw(); tkOut(R.cards - t); tk0 = R.cards; };
-  g.append(b7, b3); P.appendChild(g);
-  if (canPayEarly(R)) { const e = el('button', 'bp-go y'); e.style.cssText = 'width:100%;margin-top:8px'; e.innerHTML = `빚 ${nf(d)} 갚고 마감 넘기기<small>남은 라운드 ${4 - R.rd}개 × 티켓 4장</small>`; e.onclick = () => { payEarly(R); coinSound(); setTimeout(coinSound, 150); after(); }; P.appendChild(e); }
-  B.appendChild(P); shopUI(B);
-}
-function shopUI(B) {
-  const P = el('div', 'bp-panel bp-shop'), h = el('h4', null, `부적 가게 · 칸 ${used(R)}/${slots(R)}`), rc = restockOf(R);
-  h.appendChild(btn(`다시 채우기 · ${nf(rc)}칩`, 'ghost', () => { if (!restock(R)) { toast('손에 든 칩이 모자라.'); return; } coinSound(); persist(); draw(); })); P.appendChild(h);
+  const d = debtOf(R), lev = leverOf(R.dl), free = R.chips < lev, rc = restockOf(R), F = felt(B, 'slshop');
+  const h = lb(F, `라운드 ${R.rd} 준비 · 부적 가게`); const rb = el('button', 'sl-mini', `다시 채우기 ${nf(rc)}칩`); rb.onclick = () => { if (!restock(R)) { toast('손에 든 칩이 모자라.'); return; } coinSound(); persist(); draw(); }; h.appendChild(rb);
   const G = el('div', 'bp-ch');
-  R.offers.forEach(id => { const c = CHM[id], x = el('button', 'bp-c r' + c.r + (c.curse ? ' cur' : '')), i = el('img'), t = el('div'); i.src = IM(c.i); i.alt = ''; t.append(el('b', null, c.n), el('small', null, c.d + (c.free ? '' : ''))); const em = el('em'); em.innerHTML = TK + priceOf(R, id); x.append(i, t, em);
-    x.onclick = () => { const r = buy(R, id); if (r === 'cards') toast('티켓가 모자라요.'); else if (r === 'full') toast('부적 칸이 꽉 찼어요. 아래 내 부적을 눌러 팔 수 있어요.'); else if (r === 'ok') { tone([660, 990], .07, .05, 'triangle'); meta().seen[id] = 1; persist(); draw(); } }; G.appendChild(x); });
-  if (!R.offers.length) G.appendChild(el('div', 'hint', '다 샀어요.'));
-  P.appendChild(G);
-  B.appendChild(P);
-}
-function mine(B) {
-  const vis = R.ch.filter(id => !CHM[id].hide); if (!vis.length && R.ph === 'spin') return;
-  const M = el('div', 'bp-mine'); M.appendChild(el('span', 'bp-mt', `내 부적 ${used(R)}/${slots(R)}${R.chain.snow ? ` · 눈덩이 +${(R.chain.snow * .2).toFixed(1)}` : ''} · ×${nf(mods(R).heat)}`)); if (!vis.length) M.appendChild(el('span', 'hint', '아직 없어 — 라운드 사이에 가게에서 사'));
-  vis.forEach(id => { const c = CHM[id], b = el('button', c.curse ? 'cur' : ''), i = el('img'); b.dataset.id = id; i.src = IM(c.i); i.alt = ''; b.append(i, document.createTextNode(c.n));
-    b.onclick = () => { if (R.ph === 'round' && confirm(`${c.n}: ${c.d}\n\n팔까요? 티켓 ${Math.max(1, Math.floor(c.p / 2))}장`)) { sell(R, id); persist(); draw(); } else if (R.ph !== 'round') toast(`${c.n}: ${c.d}`); }; M.appendChild(b); });
-  B.appendChild(M);
+  R.offers.forEach(id => { const c = CHM[id], x = el('button', 'bp-c r' + c.r + (c.curse ? ' cur' : '')), i = el('img'), t = el('div'); i.src = IM(c.i); i.alt = ''; t.append(el('b', null, c.n), el('small', null, c.d)); const em = el('em'); em.innerHTML = TK + priceOf(R, id); x.append(i, t, em);
+    x.onclick = () => { const r = buy(R, id); if (r === 'cards') toast('티켓이 모자라.'); else if (r === 'full') toast('부적 칸이 꽉 찼어. 아래 내 부적을 누르면 팔 수 있어.'); else if (r === 'ok') { tone([660, 990], .07, .05, 'triangle'); meta().seen[id] = 1; persist(); draw(); } }; G.appendChild(x); });
+  if (!R.offers.length) G.appendChild(el('div', 'tb-hint', '다 샀어.'));
+  F.appendChild(G); mine(F);
+  const a = el('div', 'sl-atm'), A = (t, f, c) => { const b = el('button', c || '', t); b.onclick = f; a.appendChild(b); };
+  A(`ATM에 넣기 (${lev} 남김)`, () => { deposit(R, R.chips - lev); coinSound(); persist(); draw(); }); A('전부 넣기', () => { deposit(R, R.chips); coinSound(); persist(); draw(); });
+  if (canPayEarly(R)) A(`빚 ${nf(d)} 갚기`, () => { payEarly(R); coinSound(); setTimeout(coinSound, 150); after(); }, 'pay');
+  F.appendChild(a);
+  resLine(B, ''); stats(B);
+  acts(B, [[`7번 돌리기<small class="tb-mul">${free ? '이번은 공짜' : `레버 값 ${lev}칩`}</small>`, 'go', () => { startRound(R, 7); persist(); draw(); }], [`3번 + 티켓 2<small class="tb-mul">레버 값 ${lev}칩</small>`, 'tl', () => { const t = R.cards; startRound(R, 3); persist(); draw(); tkOut(R.cards - t); tk0 = R.cards; }, free], ['그만두기', 'sl-q', quit]]);
 }
 function callUI(B) {
-  const C = el('div', 'bp-call'), r = el('div', 'ring'); r.append(el('i'), document.createTextNode('레나의 전화')); C.appendChild(r);
-  R.call.forEach((o, i) => { const t = callText(R, o), b = el('button', 'bp-opt' + (t.red ? ' red' : '')); b.append(el('b', null, t.t), el('small', null, t.d)); b.onclick = () => { takeCall(R, i); meta().calls++; tone([523, 784], .1, .06, 'triangle'); persist(); draw(); }; C.appendChild(b); });
-  const rc = recallCost(R); const rb = btn(`다시 걸기 · 티켓 ${rc}`, 'ghost wide', () => { if (!recall(R)) { toast('티켓가 모자라요.'); return; } dtmf(5); persist(); draw(); }); rb.style.marginTop = '10px'; C.appendChild(rb);
-  B.appendChild(C);
+  const F = felt(B, 'slcall'); lb(F, '☎ 레나의 전화 — 하나 골라');
+  R.call.forEach((o, i) => { const t = callText(R, o), b = el('button', 'bp-opt' + (t.red ? ' red' : '')); b.append(el('b', null, t.t), el('small', null, t.d)); b.onclick = () => { takeCall(R, i); meta().calls++; tone([523, 784], .1, .06, 'triangle'); persist(); draw(); }; F.appendChild(b); });
+  resLine(B, ''); stats(B);
+  acts(B, [[`다시 걸기<small class="tb-mul">티켓 ${recallCost(R)}</small>`, '', () => { if (!recall(R)) { toast('티켓이 모자라.'); return; } dtmf(5); persist(); draw(); }], ['그만두기', 'sl-q', quit]]);
 }
 function winUI(B) {
   const M = meta(); if (!R.counted) { R.counted = 1; M.wins++; ach('a_win'); persist(); }
-  const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, '빚을 다 갚았어요 🎉'));
-  P.appendChild(el('div', 'hint', `여기서 끝내면 게임 동전 +${Math.min(60, R.dl * 2 + 20)}. 끝없는 밤으로 가면 빚이 계속 커지고, 넘긴 마감마다 동전이 더 붙어요.`));
-  const r = el('div', 'bp-row'); r.append(btn('끝없는 밤으로', 'teal', () => { goEndless(R); persist(); draw(); }), btn('여기서 끝내기', 'ghost', () => { R.ph = 'over'; finish(); })); P.appendChild(r); B.appendChild(P);
+  const F = felt(B); F.appendChild(el('div', 'sl-title', '빚 다 갚았어')); F.appendChild(el('div', 'tb-hint', `여기서 끝내면 게임 동전 +${Math.min(60, R.dl * 2 + 20)}. 끝없는 밤으로 가면 빚이 계속 커지고, 넘긴 마감마다 동전이 더 붙어.`));
+  resLine(B, '클리어!', 'w'); stats(B);
+  acts(B, [['끝없는 밤으로', 'go', () => { goEndless(R); persist(); draw(); }], ['여기서 끝내기', 'tl', () => { R.ph = 'over'; finish(); }]]);
 }
 function finish() {
   const M = meta(), passed = R.ph === 'win' ? R.dl : R.dl - 1; R.passed = passed; R.won = R.ph === 'win' || R.endless;
@@ -417,9 +416,9 @@ function finish() {
   R.ph = 'over'; if (g) gcAdd(g); persist(); draw();
 }
 function overUI(B) {
-  const P = el('div', 'bp-panel'); P.appendChild(el('h4', null, `넘긴 마감 ${R.passed} · 게임 동전 +${R.reward}`));
-  P.appendChild(el('div', 'hint', `가장 크게 번 한 번: ${nf(R.log.bestWin)}칩 · 잭팟 ${R.log.jack}번 · 통화 끊김 ${R.log.skulls}번 · 레나의 전화 ${R.log.calls}번`));
-  P.appendChild(el('div', 'bp-row')).appendChild(btn('다시 하기', 'teal wide', () => { S.slot2 = null; R = null; save(); lobby(); })); B.appendChild(P);
+  const F = felt(B); F.appendChild(el('div', 'sl-title', `넘긴 마감 ${R.passed}`)); F.appendChild(el('div', 'tb-hint', `가장 크게 번 한 번 ${nf(R.log.bestWin)}칩 · 잭팟 ${R.log.jack}번 · 통화 끊김 ${R.log.skulls}번 · 레나의 전화 ${R.log.calls}번`));
+  resLine(B, `게임 동전 +${R.reward}`, R.reward ? 'w' : 'l'); stats(B);
+  acts(B, [['다시 하기', 'go', () => { S.slot2 = null; R = null; save(); lobby(); }]]);
 }
 let tk0 = null;
 function tkOut(n) { const c = document.querySelector('#arc .cab'); if (!c || n <= 0) return; const t = el('div', 'bp-tkout'); t.innerHTML = `티켓 +${n}`; c.appendChild(t); [0, 80, 160].forEach(d => setTimeout(() => tone([1400], .02, .03, 'square'), d)); setTimeout(() => t.remove(), 1650); }
@@ -472,17 +471,17 @@ async function go() {
     if (c6) { const k = el('div', 'bp-cut'); k.innerHTML = '<b>뚝 — 통화 끊김</b><svg viewBox="0 0 100 20" preserveAspectRatio="none"><polyline points="0,10 30,10 36,2 42,18 48,10 100,10"/></svg>'; c6.appendChild(k); }
     const dd = el('div', 'bp-dead'); document.body.appendChild(dd); setTimeout(() => dd.remove(), 1600);
     [0, 500, 1000].forEach(d => setTimeout(() => tone([480, 620], .3, .07, 'sine'), d)); if (tray) tray.textContent = res.lost ? `−${nf(res.lost)}` : '뚝';
-    R.say = res.lost ? `(해골 셋이 웃는다) 손에 든 ${nf(res.lost)}칩이 날아갔어요. …ATM에 넣어 두랬잖아요.` : '(뚝— 해골이 수화기를 내려놨다) 다행히 손에 든 칩이 없었어요.'; R.sayW = 'sk';
+    R.say = res.lost ? `(해골 셋이 웃는다) 손에 든 ${nf(res.lost)}칩 날아갔어. …ATM에 넣어 두랬잖아.` : '(뚝— 해골이 수화기를 내려놨다) 다행히 손에 든 칩은 없었어.'; R.sayW = 'sk';
     await wait(1700);
   } else {
-    if (res.blocked) { pop('해골 우산이 끊김을 막았어요!'); R.say = '(해골 우산이 펴졌다) 이번엔 봐줬대요.'; R.sayW = 'sk'; await wait(700); }
+    if (res.blocked) { pop('해골 우산이 끊김을 막았어!'); R.say = '(해골 우산이 펴졌다) 이번엔 봐줬대.'; R.sayW = 'sk'; await wait(700); }
     const sv = $('bpl'), cabE = document.querySelector('#arc .cab'), wE = $('rwin'); let run = 0, n = 0;
     const NOTE = [523, 587, 659, 784, 880, 988, 1047, 1175, 1319, 1568];
     for (const w of res.wins) {
       if (sv) { sv.innerHTML = ''; const pl = document.createElementNS('http://www.w3.org/2000/svg', 'polyline'); pl.setAttribute('points', w.cells.map(i => `${(i % 5) * 20 + 10},${Math.floor(i / 5) * 20 + 10}`).join(' ')); sv.appendChild(pl); }
       document.querySelectorAll('#rwin .sc.hit').forEach(x => x.classList.remove('hit')); void (wE && wE.offsetWidth); w.cells.forEach(i => { const x = document.querySelector(`#rwin .sc[data-i="${i}"]`); x && x.classList.add('hit'); });
       run += w.amt; n++;
-      if (cabE && wE) { const cx = w.cells.reduce((a, i) => a + i % 5, 0) / w.cells.length, cy = w.cells.reduce((a, i) => a + Math.floor(i / 5), 0) / w.cells.length; const q = el('div', 'bp-num'); q.innerHTML = `+${nf(w.amt)}<small>${PN[w.k]}</small>`; q.style.left = (17.9 + 64 * (cx + .5) / 5) + '%'; q.style.top = (28.3 + 24.7 * (cy + .5) / 3) + '%'; cabE.appendChild(q); setTimeout(() => q.remove(), 820); }
+      if (cabE && wE) { const cx = w.cells.reduce((a, i) => a + i % 5, 0) / w.cells.length, cy = w.cells.reduce((a, i) => a + Math.floor(i / 5), 0) / w.cells.length; const q = el('div', 'bp-num'); q.innerHTML = `+${nf(w.amt)}<small>${PN[w.k]}</small>`; const wr = wE.getBoundingClientRect(), cr = cabE.getBoundingClientRect(); q.style.left = ((wr.left - cr.left + wr.width * (cx + .5) / 5) / cr.width * 100) + '%'; q.style.top = ((wr.top - cr.top + wr.height * (cy + .5) / 3) / cr.height * 100) + '%'; cabE.appendChild(q); setTimeout(() => q.remove(), 820); }
       if (tray) tray.textContent = '+' + nf(run);
       tone([NOTE[Math.min(9, n - 1)], NOTE[Math.min(9, n - 1)] * 1.5], .07, .06, 'square'); coinSound();
       const cw = document.querySelector('#arc .cabw'); if (cw && w.amt >= 10) { cw.classList.remove('bp-shk'); void cw.offsetWidth; cw.classList.add('bp-shk'); }
@@ -497,7 +496,7 @@ async function go() {
       else if (res.tot >= debtOf(R) * .1 || res.wins.length >= 4) burst(Math.min(30, 8 + res.wins.length * 2));
     }
     else if (tray) tray.textContent = res.consol ? `꽝 +${res.tot}` : '꽝';
-    R.say = jack ? '잭팟!! …기계가 송휘한테 반했나 봐요.' : res.tot >= debtOf(R) * .3 ? pick(['대박. 지금 저 보고 웃은 거 맞죠?', '해골이 장부를 떨어뜨렸어요.']) : res.tot ? pick(['좋아요, 그 손맛.', '조금씩이라도 모아요.', '티끌 모아 빚 갚기.']) : pick(['꽝. …괜찮아요, 저 아직 여기 있어요.', '(해골이 어깨를 으쓱한다)', '다음 거 당겨요.']); R.sayW = res.tot ? 'l' : 'sk';
+    R.say = jack ? '잭팟!! …기계가 너한테 반했나 봐.' : res.tot >= debtOf(R) * .3 ? pick(['대박. 지금 나 보고 웃은 거 맞지?', '해골이 장부 떨어뜨렸어.']) : res.tot ? pick(['좋아, 그 손맛.', '조금씩이라도 모아.', '티끌 모아 빚 갚기.']) : pick(['꽝. …괜찮아, 나 아직 여기 있어.', '(해골이 어깨를 으쓱한다)', '다음 거 당겨.']); R.sayW = res.tot ? 'l' : 'sk';
     await wait(res.tot ? 700 : 350);
   }
   win && win.closest('.abody') && win.closest('.abody').removeEventListener('pointerdown', tapSkip);
