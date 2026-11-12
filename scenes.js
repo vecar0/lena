@@ -90,7 +90,7 @@
     if (n !== 'brief') { if (sheet.classList.contains('scn')) off(); return _os(n); }
     var show = function () { on(); _os('brief'); var t = decorate(); settle(hero, [t, sbody.querySelector('.brief'), sbody.querySelector('.brief + .row, .row')], 0); };
     if (sheet.classList.contains('scn') && sheet.classList.contains('open')) { show(); return; }
-    door('연결 중', outside() ? '고양이가 받았어 · 오늘 브리핑' : '1번 회선 · 오늘 브리핑', '#2fe0c8', show, 860);
+    door('연결 중', outside() ? '고양이가 받았어 · 오늘 브리핑' : '레나 · 오늘 브리핑', '#2fe0c8', show, 860);
   };
   // 부스 유리 틀: 자주 쓰는 네 화면에만
   var GL = { 1: 1, cal: 1, tt: 1, 6: 1 }, glbg = E('div', 'glbg');
@@ -102,7 +102,7 @@
   // ---------- 오락실: 들어갈 때 문 연출 ----------
   if (typeof SH !== 'undefined' && SH[8] && window.openArc) {
     var _oa = window.openArc;
-    SH[8].direct = function () { door('연결 중', outside() ? '고양이가 받았어 · 오락실' : '4번 회선 · 오락실', '#ff3d9a', function () { _oa(); }, 720); };
+    SH[8].direct = function () { door('연결 중', outside() ? '고양이가 받았어 · 오락실' : '딜러 레나 · 오락실', '#ff3d9a', function () { _oa(); }, 720); };
   }
 
   // ---------- 다이얼 버튼 배지: 부재중 + 밀린 것 ----------

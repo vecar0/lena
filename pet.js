@@ -116,7 +116,7 @@
       raf = requestAnimationFrame(frame);
       var act = !o.active || o.active(); if (!act) { was = false; last = now; return; }
       var dt = Math.min(.033, (now - last) / 1000 || .016); last = now;
-      if (!was || now - scanT > (st.on ? 100 : 350)) { scanT = now; scan(); was = true; }
+      if (!was || now - scanT > (st.on ? 0 : 350)) { scanT = now; scan(); was = true; }
       var m = st.mode; st.t += dt; st.quiet += dt;
       var breathe = Math.sin(now / 1000 * (m === 'sleep' ? 1.5 : 2.4)), tT = 0, hT = 0, hyT = 0, aT = 0, bT = 0, yA = 0, yB = 0, sT = 1, tyT = 0, arT = 0;
 
@@ -292,11 +292,16 @@
     if (!sPad) return; var open = sPad.classList.contains('open') && !S.petOff && !(sheetEl && sheetEl.classList.contains('open'));
     if (!pst) { pst = document.createElement('div'); pst.id = 'lpPad'; sPad.appendChild(pst); }
     pst.classList.toggle('on', open); if (!open) return;
-    var body = sPad.querySelector('.pad'), keys = document.getElementById('keys'), lcd = sPad.querySelector('.lcd');
+    makePad(); var body = sPad.querySelector('.pad');
+    setTimeout(function () { if (!pst.classList.contains('on')) return; var b = body.getBoundingClientRect(), s = pst.getBoundingClientRect(); pad.scan(); pad.drop(b.left - s.left + b.width * (.25 + Math.random() * .5), Math.max(40, b.top - s.top - 150)); }, 340);
+  }
+  // 처음 열 때 만들면 한 프레임이 크게 멈춰서(첫 화면 전환 렉) 앱이 한가할 때 미리 만들어 둠
+  function makePad() {
+    if (!sPad) return; if (!pst) { pst = document.createElement('div'); pst.id = 'lpPad'; sPad.appendChild(pst); }
+    var body = sPad.querySelector('.pad'), keys = document.getElementById('keys');
     if (!pad) pad = LenaPet(pst, { img: IMG, meta: META, size: 50, lines: LINES,
       active: function () { return pst.classList.contains('on'); },
       platforms: function (r) { var L = rects(keys.children, r, 8, 3); if (body) L = L.concat(rects([body], r, 16, 3)); return L; } });
-    setTimeout(function () { if (!pst.classList.contains('on')) return; var b = body.getBoundingClientRect(), s = pst.getBoundingClientRect(); pad.scan(); pad.drop(b.left - s.left + b.width * (.25 + Math.random() * .5), Math.max(40, b.top - s.top - 150)); }, 340);
   }
   if (sPad) new MutationObserver(padOn).observe(sPad, { attributes: true, attributeFilter: ['class'] });
 
@@ -306,12 +311,17 @@
     if (!sheetEl) return; var open = sheetEl.classList.contains('open') && !sheetEl.classList.contains('scn') && !S.petOff;
     if (!shs) { shs = document.createElement('div'); shs.id = 'lpSheet'; sheetEl.appendChild(shs); }
     shs.classList.toggle('on', open); if (!open) { shWas = false; return; }
+    makeSheet(); var panel = sheetEl.querySelector('.panel');
+    if (!shWas) { shWas = true; setTimeout(function () { if (!shs.classList.contains('on')) return; var s = shs.getBoundingClientRect(); shp.scan(); shp.drop(s.width * (.25 + Math.random() * .5), Math.max(60, panel.getBoundingClientRect().top - s.top - 120)); }, 360); }
+  }
+  function makeSheet() {
+    if (!sheetEl) return; if (!shs) { shs = document.createElement('div'); shs.id = 'lpSheet'; sheetEl.appendChild(shs); }
     var panel = sheetEl.querySelector('.panel'), top = function (r) { return panel.getBoundingClientRect().top - r.top + 3; };
     if (!shp) shp = LenaPet(shs, { img: IMG, meta: META, size: 46, lines: LINES, reachX: 400, reachUp: 300,
       active: function () { return shs.classList.contains('on'); },
       platforms: function () { return []; }, floor: top });
-    if (!shWas) { shWas = true; setTimeout(function () { if (!shs.classList.contains('on')) return; var s = shs.getBoundingClientRect(); shp.scan(); shp.drop(s.width * (.25 + Math.random() * .5), Math.max(60, panel.getBoundingClientRect().top - s.top - 120)); }, 360); }
   }
+  (window.requestIdleCallback || function (f) { setTimeout(f, 1500); })(function () { if (!S.petOff) { makePad(); makeSheet(); } }, { timeout: 4000 });
   if (sheetEl) new MutationObserver(function () { sheetOn(); padOn(); place(); }).observe(sheetEl, { attributes: true, attributeFilter: ['class'] });
   if (sPad) new MutationObserver(place).observe(sPad, { attributes: true, attributeFilter: ['class'] });
   if (arcEl()) new MutationObserver(place).observe(arcEl(), { attributes: true, attributeFilter: ['class'] });
