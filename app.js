@@ -425,7 +425,7 @@ $('aSet').onclick = () => { dtmf(0); openSheet(0); };
 const KEYS = [[1, '전단지', 1], [2, '캘린더', 'cal'], [3, '시간표', 'tt'], [4, '공부', 6], [5, '전화', 'call'], [6, '모닝콜', 7], [7, '메모', 'memo'], [8, '오늘의 운세', 'fort'], [9, '자판기', 'shop'], ['*', '오락실', 8], [0, '설정', 0], ['#', '닫기']];
 (function buildPad() {
   const K = $('keys');
-  KEYS.forEach(([k, l, id]) => { const b = el('button', 'k' + (k === 6 ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 5) { const e = el('em'); e.hidden = true; b.appendChild(e); }
+  KEYS.forEach(([k, l, id]) => { const b = el('button', 'k' + (k === '*' ? ' hot' : '')); b.dataset.k = k; b.append(el('b', null, k), el('span', null, l)); if (k === 5) { const e = el('em'); e.hidden = true; b.appendChild(e); }
     b.onclick = () => { dtmf(k); $('lcd').textContent = `${k} · ${l}`; if (k === '#') { closePad(); return; } setTimeout(() => k === 1 ? openBoard('today') : openSheet(id), 140); }; K.appendChild(b); });
 })();
 function openPad() { $('lcd').textContent = '번호를 누르세요_'; renderHome(); $('sPad').classList.add('open'); app.classList.add('dim'); }
