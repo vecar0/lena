@@ -51,15 +51,33 @@ const css = `
 .rl-bets button.r{background:#d6245f}.rl-bets button.g{background:#1d5d40}
 .rl-bets button.on{outline:3px solid var(--yel);outline-offset:1px}
 .rl-bets small{display:block;font-family:'Space Mono',monospace;font-size:11px;opacity:.8}
-.rl-nums{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-.rl-nums button{min-height:36px;border-radius:7px;border:1.5px solid #000;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;color:#fff}
-.rl-nums button.on{outline:3px solid var(--yel)}
 @media (prefers-reduced-motion:reduce){.tb *{transition:none!important}}
-.tb-dl{position:relative;flex:none;margin:-4px -14px 0;height:clamp(220px,36vh,310px);overflow:hidden;background:#06080a}
-.tb-dl img{position:absolute;top:0;left:50%;height:140%;width:auto;max-width:none;transform:translateX(-50%)}.tb-dl img.bg{left:0;width:100%;height:100%;transform:scale(1.15);object-fit:cover!important;object-position:50% 20%;filter:blur(16px) brightness(.45) saturate(1.3)}
-.tb-dl::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,#0b0d11 99%);pointer-events:none}
-.tb-cap{position:absolute;left:14px;right:14px;bottom:10px;z-index:1;padding:9px 13px;border-radius:14px;background:rgba(6,8,10,.78);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.16);font-size:14.5px;font-weight:700;line-height:1.45;word-break:keep-all;color:#fff}
-.rl-wheel{display:block;width:min(100%,300px);aspect-ratio:1;margin:0 auto;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))}
+
+.rl-wheel{display:block;flex:none;height:100%;max-height:200px;aspect-ratio:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
+/* v137 한 화면(스크롤 없음): 딜러 띠가 남는 높이를 다 쓰고, 게임 부분은 꼭 필요한 만큼 */
+.abody.tbg{display:flex;flex-direction:column;gap:8px;padding:0 12px calc(var(--sb) + 10px);overflow:hidden}
+.abody.tbg>*{flex:none}
+.tb-dl{position:relative;flex:1 1 0!important;min-height:110px;margin:0 -12px;overflow:hidden;background:#06080a;container-type:size}
+.tb-dl img{position:absolute;max-width:none}
+.tb-dl img.bg{inset:0;width:100%;height:100%;transform:scale(1.15);object-fit:cover!important;filter:blur(16px) brightness(.42) saturate(1.3)}
+.tb-dl img.lena{top:0;left:50%;height:150cqh;width:auto;transform:translateX(-50%)}
+.tb-dl img.ct{left:50%;top:44%;width:min(62cqh,70cqw);height:auto;aspect-ratio:1;object-fit:cover!important;border-radius:50%;transform:translate(-50%,-50%);border:3px solid #000;box-shadow:0 0 0 4px var(--teal),0 0 40px rgba(47,224,200,.45)}
+.tb-dl::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,#0b0d11 99%);pointer-events:none}
+.tb-cap{position:absolute;left:12px;right:12px;bottom:8px;z-index:1;padding:8px 12px;border-radius:14px;background:rgba(6,8,10,.8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.16);font-size:14px;font-weight:700;line-height:1.4;word-break:keep-all;color:#fff}
+.tbg .tb-felt{padding:10px;gap:6px;border-radius:18px}
+.tbg .tb-row{min-height:0;flex-wrap:nowrap;gap:6px}
+.tbg .tc{width:46px;height:64px;border-radius:7px}.tbg .tc b{font-size:20px}.tbg .tc i{font-size:15px}
+.tbg .tc.big{width:72px;height:100px}.tbg .tc.big b{font-size:34px}.tbg .tc.big i{font-size:24px}
+.tbg .tb-res{min-height:26px;font-size:22px;line-height:26px}
+.tbg .tb-bet button{min-height:44px}
+.tbg .tb-act button{min-height:50px}
+.tbg .tb-hint{font-size:12px}
+.rl-top{display:flex;gap:10px;height:clamp(150px,24vh,200px);align-items:center}
+.rl-top .rl-bets{flex:1;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;align-self:stretch;align-content:center}
+.rl-top .rl-bets button{min-height:0;height:100%;max-height:46px;font-size:13px;padding:2px 0;line-height:1.15}
+.rl-num{display:flex;align-items:center;justify-content:center;gap:10px}
+.rl-num button{width:44px;height:40px;border-radius:10px;border:2px solid #000;background:#f2f3ee;color:#111;font-size:20px;font-weight:800;box-shadow:0 3px 0 #000}
+.rl-num b{min-width:64px;height:40px;border-radius:10px;display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:20px;color:#fff;border:2px solid #000}
 `;
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 const EO = 'cubic-bezier(0.23, 1, 0.32, 1)', reduce = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -67,10 +85,11 @@ const BETS = [1, 2, 3, 5];
 // 딜러 레나: 영상 모드면 몸통까지 보이는 그림 띠 + 아래쪽 대사, 밖 모드면 고양이 대사 줄. 게임에 들어올 때 한 번 입구 그림 크기에서 줄어듦
 let enter = false;
 function dealer(B, t) {
-  if ($('app').classList.contains('outside')) return ARC.talk(B, 'l', t);
-  const d = el('div', 'tb-dl'), im = el('img'), bg = el('img', 'bg'); im.src = bg.src = 'assets/lena/menu/play.webp'; im.alt = bg.alt = ''; im.decoding = 'async'; d.appendChild(bg);
-  const cap = el('div', 'tb-cap'), sp = el('span', null, t); cap.appendChild(sp); d.append(im, cap); B.appendChild(d);
-  if (enter) { enter = false; if (!reduce() && d.animate) { const h0 = Math.round(ARC.A.clientHeight * .74); d.animate([{ height: h0 + 'px', marginTop: '-70px' }, { height: getComputedStyle(d).height, marginTop: getComputedStyle(d).marginTop }], { duration: 420, easing: EO }); cap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 300, easing: 'ease-out', fill: 'backwards' }); } }
+  B.classList.add('tbg');
+  const out = $('app').classList.contains('outside'), d = el('div', 'tb-dl' + (out ? ' cat' : '')), bg = el('img', 'bg'), im = el('img', out ? 'ct' : 'lena');
+  bg.src = out ? 'assets/lena/poster.jpg' : 'assets/lena/menu/play.webp'; im.src = out ? 'assets/lena/cat.jpg' : 'assets/lena/menu/play.webp'; bg.alt = im.alt = ''; im.decoding = 'async';
+  const cap = el('div', 'tb-cap'), sp = el('span', null, t); cap.appendChild(sp); d.append(bg, im, cap); B.appendChild(d);
+  if (enter) { enter = false; if (!reduce() && d.animate) { d.animate([{ transform: 'scale(1.06)', opacity: .4 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: EO }); cap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 260, easing: 'ease-out', fill: 'backwards' }); } }
   return sp;
 }
 let bet = 1;
@@ -101,9 +120,9 @@ function blackjack() {
       F.appendChild(el('div', 'tb-lb')).append(el('span', null, nmc().replace(/[,\s]+$/, '') || '나'), el('b', null, String(bjv(st.p))));
       const pr = el('div', 'tb-row'); st.p.forEach(c => { const e = cardEl(c); if (st.nd.includes(c)) dealIn(e, st.nd.indexOf(c)); pr.appendChild(e); }); F.appendChild(pr);
       st.nd = [];
-    } else F.appendChild(el('div', 'tb-hint', '카드 숫자 합이 21에 가까우면 이겨. 21을 넘으면 바로 져. 그림 카드는 10, A는 1이나 11. 처음 두 장이 21이면 블랙잭(1.5배 더).'));
+    } else F.appendChild(el('div', 'tb-hint', '합이 21에 가까우면 이겨. 넘으면 져. 그림 카드는 10, A는 1이나 11. 처음 두 장이 21이면 블랙잭(1.5배 더).'));
     B.appendChild(F);
-    if (st.ph === 'done') res(B, st.res, st.rk);
+    res(B, st.ph === 'done' ? st.res : '', st.rk);
     if (st.ph === 'bet' || st.ph === 'done') { if (noCoin(B)) return; betRow(B, draw); act(B, [[st.ph === 'done' ? '한 판 더' : '카드 받기', 'go', deal]]); }
     else act(B, [['더 받기', 'tl', hit], ['멈추기', '', stand], ['두 배', 'go', dbl, st.p.length !== 2 || ARC.gc() < st.bet]]);
   }, true);
@@ -142,7 +161,7 @@ function hilo() {
       F.appendChild(el('div', 'tb-lb')).append(el('span', null, `맞힌 수 ${st.n} · 지금 받으면`), el('b', null, String(Math.round(st.bet * st.m))));
     } else F.appendChild(el('div', 'tb-hint', '같은 숫자가 나오면 져. A가 가장 낮고 K가 가장 높아. 확률이 낮은 쪽일수록 배수가 커.'));
     B.appendChild(F);
-    if (st.ph === 'done') res(B, st.res, st.rk);
+    res(B, st.ph === 'done' ? st.res : '', st.rk);
     if (st.ph === 'bet' || st.ph === 'done') { if (noCoin(B)) return; betRow(B, draw); act(B, [[st.ph === 'done' ? '한 판 더' : '시작', 'go', start]]); }
     else {
       const v = st.c.r, mh = hlMult(v, 'hi'), ml = hlMult(v, 'lo');
@@ -172,13 +191,13 @@ function roulette() {
   const draw = () => ARC.frame('룰렛', B => {
     dealer(B, st.say || '어디에 걸래? 색이나 홀짝은 2배, 12칸 묶음은 3배, 숫자 하나는 36배.');
     const F = el('div', 'tb-felt');
-    const WH = wheel(st); F.appendChild(WH.svg);
+    const WH = wheel(st), top = el('div', 'rl-top'); top.appendChild(WH.svg); F.appendChild(top);
     const G = el('div', 'rl-bets'), opt = [['red', 0, '빨강', 'r'], ['black', 0, '검정', ''], ['odd', 0, '홀', 'g'], ['even', 0, '짝', 'g'], ['doz', 1, '1~12', 'g'], ['doz', 2, '13~24', 'g'], ['doz', 3, '25~36', 'g'], ['num', st.t === 'num' ? st.v : 0, '숫자 하나', 'g']];
     opt.forEach(([t, v, lab, c]) => { const b = el('button', c + (st.t === t && (t !== 'doz' || st.v === v) ? ' on' : '')); b.append(document.createTextNode(lab), el('small', null, t === 'num' ? '×36' : t === 'doz' ? '×3' : '×2')); b.disabled = st.ph === 'spin'; b.onclick = () => { st.t = t; st.v = t === 'num' ? st.v : v; dtmf(5); draw(); }; G.appendChild(b); });
-    F.appendChild(G);
-    if (st.t === 'num' && st.ph !== 'spin') { const g = el('div', 'rl-nums'); for (let n = 0; n <= 36; n++) { const b = el('button', 'rl-p ' + pc(n) + (st.v === n ? ' on' : ''), String(n)); b.style.width = 'auto'; b.style.height = 'auto'; b.onclick = () => { st.v = n; draw(); }; g.appendChild(b); } F.appendChild(g); }
+    top.appendChild(G);
+    if (st.t === 'num') { const r = el('div', 'rl-num'), v = el('b', null, String(st.v)); v.style.background = st.v === 0 ? '#1a9c5b' : RED.has(st.v) ? '#d6245f' : '#151515'; const st2 = d => { if (st.ph === 'spin') return; st.v = (st.v + d + 37) % 37; dtmf(st.v % 10); draw(); }; const m = el('button', null, '−'), p = el('button', null, '+'); m.setAttribute('aria-label', '숫자 줄이기'); p.setAttribute('aria-label', '숫자 늘리기'); m.onclick = () => st2(-1); p.onclick = () => st2(1); r.append(m, v, p); F.appendChild(r); }
     B.appendChild(F);
-    if (st.res) res(B, st.res, st.rk);
+    res(B, st.res || '', st.rk);
     if (st.ph === 'spin') return; if (noCoin(B)) return; betRow(B, draw);
     const what = st.t === 'num' ? `${st.v}` : st.t === 'doz' ? ['', '1~12', '13~24', '25~36'][st.v] : LAB[st.t];
     act(B, [[`${what}에 걸고 돌리기`, 'go', () => spin(WH)]]);
