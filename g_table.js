@@ -22,13 +22,13 @@ if (typeof window === 'undefined' || !window.ARC) return;
 // ---------- 화면 ----------
 const css = `
 .tb{position:relative;display:flex;flex-direction:column;gap:12px;min-height:100%}
-.tb-felt{position:relative;border-radius:22px;padding:16px 12px;background:radial-gradient(ellipse at 50% 30%,#1f6b47,#0d3324 75%);border:3px solid #000;box-shadow:inset 0 0 0 3px #b8925a,inset 0 0 40px rgba(0,0,0,.55),4px 4px 0 var(--pink);display:flex;flex-direction:column;gap:12px}
+.tb-felt{position:relative;border-radius:22px;padding:16px 12px;background:radial-gradient(ellipse at 50% 30%,rgba(31,107,71,.35),rgba(4,20,13,.82) 78%),url(assets/lena/tb/felt.webp) center/320px #0d3324;border:3px solid #000;box-shadow:inset 0 0 0 3px #b8925a,inset 0 0 40px rgba(0,0,0,.55),4px 4px 0 var(--pink);display:flex;flex-direction:column;gap:12px}
 .tb-lb{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:#d9f2e4}.tb-lb b{font-family:'Space Mono',monospace;font-size:15px;color:var(--yel);min-width:26px}
 .tb-row{display:flex;gap:8px;flex-wrap:wrap;min-height:86px;align-items:center}
-.tc{width:58px;height:82px;border-radius:9px;background:var(--paper);border:2px solid #111;box-shadow:2px 3px 0 rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#111;line-height:1}
+.tc{width:58px;height:82px;border-radius:9px;background:url(assets/lena/tb/card_face.webp) center/cover var(--paper);border:2px solid #111;box-shadow:2px 3px 0 rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#111;line-height:1}
 .tc b{font-family:'Black Han Sans';font-weight:400;font-size:26px}.tc i{font-style:normal;font-size:20px;margin-top:2px}
 .tc.red{color:#e8217a}
-.tc.back{background:repeating-linear-gradient(45deg,#ff3d9a 0 6px,#d61f78 6px 12px);border-color:#000}
+.tc.back{background:url(assets/lena/tb/card_back.webp) center/cover #111;border-color:#000}
 .tc.big{width:96px;height:136px}.tc.big b{font-size:44px}.tc.big i{font-size:32px}
 .tb-bet{display:flex;gap:8px;align-items:center}
 .tb-bet button{flex:1;min-height:48px;border-radius:24px;border:2px solid #000;background:#f2f3ee;color:#111;font-family:'Space Mono',monospace;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:3px;box-shadow:0 3px 0 #000}

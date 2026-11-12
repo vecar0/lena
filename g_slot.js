@@ -210,7 +210,7 @@ window.JACKPOT = CORE;
 const { frame, talk, gcAdd, gc } = window.ARC;
 const IM = n => `assets/lena/${n}.webp`;
 const SIM = { cherry: 's/d_cherry', coin: 'st_coin', heart: 'st_heart', lips: 'st_lips', bolt: 'st_bolt', star: 'st_star', crown: 's/d_crown', skull: 'st_skull' };
-const NAME = 'LAST CALL';
+const NAME = '끊기기 전에';
 const TK = '<i class="bp-tk"></i>';
 const css = `
 .bp-hd{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
