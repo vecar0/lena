@@ -105,7 +105,7 @@ function catSay(B, t) {
   return sp;
 }
 function dealer(B, t) { B.classList.add('tbg'); if ($('app').classList.contains('outside')) { B.classList.add('out'); return catSay(B, t); } return band(B, t); }
-ARC.band = (B, t) => $('app').classList.contains('outside') ? null : band(B, t);
+ARC.dealer = dealer; ARC.band = (B, t) => $('app').classList.contains('outside') ? null : band(B, t);
 let bet = 1;
 function cardEl(c, back, big) { const e = el('div', 'tc' + (back ? ' back' : '') + (big ? ' big' : '') + (!back && (c.s === '♥' || c.s === '♦') ? ' red' : '')); if (!back) e.append(el('b', null, RK[c.r - 1]), el('i', null, c.s)); return e; }
 function dealIn(e, i) { if (!reduce() && e.animate) e.animate([{ opacity: 0, transform: 'translateY(-28px) rotate(-6deg)' }, { opacity: 1, transform: 'none' }], { duration: 240, delay: (i || 0) * 90, easing: EO, fill: 'backwards' }); }

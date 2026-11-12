@@ -75,9 +75,10 @@
   var cat = E('div', 'scn-cat'), x = E('button', 'scn-x'); x.setAttribute('aria-label', '브리핑 닫기');
   x.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg>';
   x.onclick = function () { closeBrief(); };
+  var scnKey = 'brief';
   function ttl() {
     var d = new Date(), w = '일월화수목금토'[d.getDay()], h = d.getHours(), t = E('div', 'scn-ttl');
-    t.append(E('small', null, (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + w + '요일'), E('b', null, h < 11 ? '아침 브리핑' : h < 17 ? '오후 브리핑' : '저녁 브리핑'));
+    t.append(E('small', null, (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + w + '요일'), E('b', null, scnKey === 'eve' ? '저녁 브리핑' : h < 11 ? '아침 브리핑' : h < 17 ? '오후 브리핑' : '저녁 브리핑'));
     return t;
   }
   function decorate() { if (!sheet.classList.contains('scn')) return; var t = ttl(); sbody.insertBefore(t, sbody.firstChild); return t; }
@@ -87,10 +88,10 @@
 
   var _os = openSheet;
   openSheet = function (n) {
-    if (n !== 'brief') { if (sheet.classList.contains('scn')) off(); return _os(n); }
-    var show = function () { on(); _os('brief'); var t = decorate(); settle(hero, [t, sbody.querySelector('.brief'), sbody.querySelector('.brief + .row, .row')], 0); };
+    if (n !== 'brief' && n !== 'eve') { if (sheet.classList.contains('scn')) off(); return _os(n); }
+    scnKey = n; var show = function () { on(); _os(n); var t = decorate(); settle(hero, [t, sbody.querySelector('.brief'), sbody.querySelector('.brief + .row, .row')], 0); };
     if (sheet.classList.contains('scn') && sheet.classList.contains('open')) { show(); return; }
-    door('연결 중', outside() ? '고양이가 받았어 · 오늘 브리핑' : '레나 · 오늘 브리핑', '#2fe0c8', show, 860);
+    var nm = n === 'eve' ? '저녁 브리핑' : '오늘 브리핑'; door('연결 중', outside() ? '고양이가 받았어 · ' + nm : '레나 · ' + nm, n === 'eve' ? '#ff3d9a' : '#2fe0c8', show, 860);
   };
   // 부스 유리 틀: 자주 쓰는 네 화면에만
   var GL = { 1: 1, cal: 1, tt: 1, 6: 1 }, glbg = E('div', 'glbg');
