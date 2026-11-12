@@ -220,6 +220,21 @@ SH.brief = { t: '오늘 브리핑', s: () => { const d = new Date(); return `${d
   const s1 = el('div', 'bsec'); s1.appendChild(el('h5', null, '오늘 일정'));
   if (ev.length) ev.forEach(t => { const r = el('div', 'r' + (isLate(t) ? ' late' : '')); r.append(el('b', null, t.due.slice(11, 16)), document.createTextNode(t.text)); s1.appendChild(r); }); else s1.appendChild(el('div', 'muted', '비어 있어.'));
   wrap.appendChild(s1);
+  // 어제 공부 확인: 어제 계획한 것 중 한 것·못 한 것, 못 한 건 남은 날에 다시 나눠진 결과를 말해 줌
+  try { const LS = window.lenaStudy, st = LS.ST(), y = new Date(n.getFullYear(), n.getMonth(), n.getDate() - 1), yk = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(y.getDate()).padStart(2, '0')}`;
+    const plan = (st.pk || {})[yk] || [], lg = st.log[yk] || [], doneL = new Set(lg.map(l => l.label));
+    if (plan.length) {
+      const lab = b => b.parts.map(p => p.label).join(' / '), miss = plan.filter(b => !doneL.has(lab(b))), mm = miss.reduce((a, b) => a + (b.e - b.s), 0);
+      const today = LS.plan(), tm = today.days[0] ? today.days[0].mins : 0;
+      const sy = el('div', 'bsec'); sy.appendChild(el('h5', null, '어제 공부 확인'));
+      sy.appendChild(el('div', 'r', !miss.length ? `어제 계획한 거 ${plan.length}개 다 했네. 잘했어.`
+        : `어제 ${plan.length}개 중 ${miss.length}개를 못 했어(${mm}분). 못 한 건 마감까지 남은 날에 다시 나눠 놨어. 그래서 오늘 공부는 ${tm}분이야${today.strained ? '. 좀 빡빡하니까 오늘은 꼭 지켜.' : '.'}`));
+      plan.forEach(b => { const ok = doneL.has(lab(b)), r = el('div', 'r' + (ok ? '' : ' late')); r.append(el('b', null, ok ? '✓' : '✗'), document.createTextNode(`${b.sub ? b.sub + ' · ' : ''}${lab(b)}`));
+        if (!ok) { const k = btn('사실 했어', 'ghost', () => { LS.finishBlock(b); const tk = LS.todayK(), t = st.log[tk] || [], last = t.pop(); if (last) (st.log[yk] = st.log[yk] || []).push(last); save(); LS.dirty(); refreshSheet(); toast('어제 한 걸로 고쳤어. 계획도 다시 짰어.'); }); k.style.marginLeft = 'auto'; r.appendChild(k); }
+        sy.appendChild(r); });
+      if (miss.length) sy.appendChild(row(btn('오늘 공부 보기', 'ghost wide', () => openSheet(6))));
+      wrap.appendChild(sy);
+    } } catch (e) { console.warn('brief yesterday', e); }
   const t3 = top3(); if (t3.length) { const s2 = el('div', 'bsec'), L = el('div', 'top3'); s2.appendChild(el('h5', null, '레나가 고른 오늘 꼭 할 3가지')); t3.forEach(t => { const r = el('div', 'r'); r.appendChild(document.createTextNode(t.text + (isLate(t) ? ' (밀림)' : t.due ? ` · ${t.due.slice(11, 16)}` : ''))); L.appendChild(r); }); s2.appendChild(L); wrap.appendChild(s2); }
   const f = S.fort && S.fort[today()]; const s3 = el('div', 'bsec'); s3.appendChild(el('h5', null, '운세 한 줄'));
   if (f) s3.appendChild(el('div', 'r', `${'★'.repeat(f.total)}${'☆'.repeat(5 - f.total)} ${f.line}`)); else s3.appendChild(row(btn('오늘 운세 쪽지 펴기', 'ghost wide', () => openSheet(2))));

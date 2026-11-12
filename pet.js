@@ -108,7 +108,7 @@
       st.on = true; st.gel = p.el; st.vx = 0; st.vy = 0; sq.v -= CL(hit / 150, 1.5, 6);
       if (st.mode === 'happy') { if (--st.hop > 0) { st.vy = -400; st.on = false; puff('♥', '#ff3d9a', 2); } else { eyes(0); go('idle'); st.next = R(1.2, 2.2); } return; }
       go('idle'); st.next = R(.7, 1.8); var pk = st.peak; st.peak = 0;
-      if (pk > 2) { dizzy(1.8); puff('✦', '#f2ea3a', 4); react('sky', pk); } else if (hit > 1150) { dizzy(1); puff('✦', '#f2ea3a', 2); react('ouch'); }
+      if (pk > 2) { dizzy(1.8); puff('✦', '#f2ea3a', 4); react('ouch'); } else if (hit > 1150) { dizzy(1); puff('✦', '#f2ea3a', 2); react('ouch'); }
       fire('land'); fire('cb');
     }
     var last = 0, raf = 0, vis = true, altOn = false;
@@ -127,6 +127,7 @@
         var py = st.y; st.vy = Math.min(2700, st.vy + G * dt); st.x += st.vx * dt; st.y += st.vy * dt; if (st.spin) st.rot += st.spin * dt;
         var up = Math.round((H - st.y) / 38); if (up > st.peak) st.peak = up;
         if (st.x < 8) { st.x = 8; st.vx = -st.vx * .55; } else if (st.x > bw - 8) { st.x = bw - 8; st.vx = -st.vx * .55; }
+        if (st.vy < 0 && st.y - H < 2) { st.y = H + 2; st.vy = -st.vy * .5; st.vx *= .8; sq.v -= 2; }   // 천장에서 튕김
         if (st.vy > 0) { var hitP = null; for (var i = 0; i < plats.length; i++) { var p = plats[i]; if (p.el !== st.skip && py <= p.y + .5 && st.y >= p.y && st.x >= p.l - 5 && st.x <= p.r + 5 && (!hitP || p.y < hitP.y)) hitP = p; } if (hitP) landOn(hitP, st.vy); }
         if (st.y > bh + H * 2) { st.y = -H; st.vy = 0; st.spin = 0; }                       // 혹시 밖으로 빠지면 위에서 다시
         tT = CL(st.vx * .035, -28, 28); aT = 13; bT = -13; yA = yB = -H * .02; sT = 1 + CL(Math.abs(st.vy) / 5000, 0, .12); hT = CL(st.vy * .006, -6, 6); arT = 36;
@@ -172,8 +173,7 @@
       var S = CL(sq.step(dt), .7, 1.3);
       var rot = st.spin ? (rs.x = st.rot, rs.v = 0, st.rot) : rs.step(dt);
       root.style.transform = 'translate3d(' + (st.x - W * fxp).toFixed(2) + 'px,' + (st.y - H).toFixed(2) + 'px,0) rotate(' + rot.toFixed(1) + 'deg)';
-      var hi = st.y < H * .2; if (hi !== altOn) { altOn = hi; alt.classList.toggle('on', hi); }
-      if (hi) { alt.textContent = '▲ ' + Math.max(1, Math.round((H - st.y) / 38)) + 'm'; alt.style.transform = 'translate3d(' + CL(st.x - 26, 6, bw - 70).toFixed(1) + 'px,0,0)'; }
+      
       rig.style.transform = 'rotate(' + tilt.step(dt).toFixed(2) + 'deg) scale(' + (2 - S).toFixed(3) + ',' + S.toFixed(3) + ')';
       lL.style.transform = 'translateY(' + ya.step(dt).toFixed(2) + 'px) rotate(' + la.step(dt).toFixed(2) + 'deg)';
       lR.style.transform = 'translateY(' + yb.step(dt).toFixed(2) + 'px) rotate(' + lb.step(dt).toFixed(2) + 'deg)';
@@ -206,7 +206,7 @@
   var META = {w:356,h:370,neck:[43.95,42.29],hipL:[34.38,92.58],hipR:[58.4,92.58],feet:[46.48,98.12],sh:[75.39,79.51],top:[43.95,11.28],ak:-0.18,wave:[-16,9],wag:5,hk:0.5}, A = 'assets/lena/pet/';
   var IMG = { head: A + 'head.webp', headc: A + 'headc.webp', body: A + 'body.webp', arm: A + 'arm.webp', legl: A + 'legl.webp', legr: A + 'legr.webp' };
   var css = document.createElement('style');
-  css.textContent = '#lpStage,#lpPad{position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden}#lpStage{display:none}.app.outside #lpStage.on{display:block}#lpStage .lp,#lpPad .lp{pointer-events:auto}#lpPad{display:none}#sPad.open #lpPad.on{display:block}' +
+  css.textContent = '#lpStage,#lpPad,#lpSheet{position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden}#lpStage{display:none}.app.outside #lpStage.on{display:block}#lpStage .lp,#lpPad .lp{pointer-events:auto}#lpPad{display:none}#sPad.open #lpPad.on{display:block}#lpSheet{display:none;z-index:6!important}#lpSheet.on{display:block}#lpSheet .lp{pointer-events:auto}' +
     '.app.outside .callv.haspet .log{margin-bottom:56px}' +
     '.ab{transition:transform .14s cubic-bezier(0.23,1,0.32,1)}.ab.lp-press{transform:scale(.88)}.ab.lp-hl i{outline:2px solid #ff3d9a;outline-offset:3px;box-shadow:0 0 16px rgba(255,61,154,.6)}';
   document.head.appendChild(css);
@@ -223,17 +223,19 @@
   function bumpOn(box, sel, getPet, pick) { box.addEventListener('pointerdown', function (e) { var b = e.target.closest && e.target.closest(sel), p = getPet(); if (!b || !p || !p.state.on) return; if (p.state.gel === pick(b)) p.bump(); }, true); }
   function rects(list, r, inx, iny) { var L = []; for (var i = 0; i < list.length; i++) { var q = list[i].getBoundingClientRect(); if (q.width > 20) L.push({ l: q.left - r.left + inx, r: q.right - r.left - inx, y: q.top - r.top + iny, el: list[i] }); } return L; }
 
+  var sheetEl = document.getElementById('sheet'), sPadEl = document.getElementById('sPad'), arcEl = function () { return document.getElementById('arc'); };
+  function covered() { var a = arcEl(); return (sheetEl && sheetEl.classList.contains('open')) || (sPadEl && sPadEl.classList.contains('open')) || !!(a && a.classList.contains('on')); }
   // ---------- 음성통화 화면 ----------
   var stage = document.createElement('div'); stage.id = 'lpStage'; cv.appendChild(stage);
   var pet = null, cur = null, curT = 0, nextAt = Date.now() + 7000, seen = {}, typing = false;
   var quick = document.getElementById('quick'), inrow = cv.querySelector('.inrow');
   function place() {
-    var on = !S.petOff && !typing && app.classList.contains('outside') && grid.getBoundingClientRect().height > 0;
+    var on = !S.petOff && !typing && !covered() && app.classList.contains('outside') && grid.getBoundingClientRect().height > 0;
     stage.classList.toggle('on', on); cv.classList.toggle('haspet', on); if (!on) { if (cur) cancel(); return; }
     if (!pet) {
       pet = LenaPet(stage, { img: IMG, meta: META, size: 62, lines: LINES,
         active: function () { return stage.classList.contains('on'); },
-        platforms: function (r) { return rects(grid.querySelectorAll('.ab i'), r, 9, 5); },
+        platforms: function (r) { return rects(grid.querySelectorAll('.ab'), r, 9, 5); },
         floor: function (r) { var e = quick && quick.offsetHeight ? quick : inrow, q = e ? e.getBoundingClientRect() : null; return q && q.top ? q.top - r.top + 2 : r.height; },
         onTap: function () { if (cur && !cur.walking) { act(); return true; } return false; } });
       var g = grid.getBoundingClientRect(), s = stage.getBoundingClientRect(); pet.drop(g.left - s.left + g.width * (.2 + Math.random() * .6), g.top - s.top - 170);
@@ -258,7 +260,7 @@
   }
   function suggest() {
     var L = ideas(); if (!L.length) return;
-    var imp = L.filter(function (x) { return x.p; }), it = imp.length ? imp[0] : L[Math.floor(Math.random() * L.length)], btn = document.getElementById(it.b), ic = btn && btn.querySelector('i');
+    var imp = L.filter(function (x) { return x.p; }), it = imp.length ? imp[0] : L[Math.floor(Math.random() * L.length)], btn = document.getElementById(it.b), ic = btn;   // 발판 = 버튼 전체(v133)
     if (!ic || !btn.offsetWidth) return;
     seen[it.k] = Date.now(); pet.busy(1); cur = { btn: btn, go: it.go, walking: 1, n: 0 };
     var me = cur, arrive = function () {
@@ -287,7 +289,7 @@
   // ---------- 다이얼 화면: 키 위를 돌아다님 ----------
   var pad = null, pst = null;
   function padOn() {
-    if (!sPad) return; var open = sPad.classList.contains('open') && !S.petOff;
+    if (!sPad) return; var open = sPad.classList.contains('open') && !S.petOff && !(sheetEl && sheetEl.classList.contains('open'));
     if (!pst) { pst = document.createElement('div'); pst.id = 'lpPad'; sPad.appendChild(pst); }
     pst.classList.toggle('on', open); if (!open) return;
     var body = sPad.querySelector('.pad'), keys = document.getElementById('keys'), lcd = sPad.querySelector('.lcd');
@@ -297,6 +299,22 @@
     setTimeout(function () { if (!pst.classList.contains('on')) return; var b = body.getBoundingClientRect(), s = pst.getBoundingClientRect(); pad.scan(); pad.drop(b.left - s.left + b.width * (.25 + Math.random() * .5), Math.max(40, b.top - s.top - 150)); }, 340);
   }
   if (sPad) new MutationObserver(padOn).observe(sPad, { attributes: true, attributeFilter: ['class'] });
+
+  // ---------- 다이얼 번호로 연 화면(시트): 판 윗선 위를 돌아다님 ----------
+  var shp = null, shs = null, shWas = false;
+  function sheetOn() {
+    if (!sheetEl) return; var open = sheetEl.classList.contains('open') && !sheetEl.classList.contains('scn') && !S.petOff;
+    if (!shs) { shs = document.createElement('div'); shs.id = 'lpSheet'; sheetEl.appendChild(shs); }
+    shs.classList.toggle('on', open); if (!open) { shWas = false; return; }
+    var panel = sheetEl.querySelector('.panel'), top = function (r) { return panel.getBoundingClientRect().top - r.top + 3; };
+    if (!shp) shp = LenaPet(shs, { img: IMG, meta: META, size: 46, lines: LINES, reachX: 400, reachUp: 300,
+      active: function () { return shs.classList.contains('on'); },
+      platforms: function () { return []; }, floor: top });
+    if (!shWas) { shWas = true; setTimeout(function () { if (!shs.classList.contains('on')) return; var s = shs.getBoundingClientRect(); shp.scan(); shp.drop(s.width * (.25 + Math.random() * .5), Math.max(60, panel.getBoundingClientRect().top - s.top - 120)); }, 360); }
+  }
+  if (sheetEl) new MutationObserver(function () { sheetOn(); padOn(); place(); }).observe(sheetEl, { attributes: true, attributeFilter: ['class'] });
+  if (sPad) new MutationObserver(place).observe(sPad, { attributes: true, attributeFilter: ['class'] });
+  if (arcEl()) new MutationObserver(place).observe(arcEl(), { attributes: true, attributeFilter: ['class'] });
 
   // 0번 설정: 켜기/끄기
   try {

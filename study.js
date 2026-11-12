@@ -331,6 +331,10 @@ function splan() {
   S.planErr = '';
   if (r.late.length) { const r2 = simulate(n, 'max'); if (r2.late.length < r.late.length) { r = r2; strained = true; } }
   cache = { sig, ...r, strained };
+  // 그날 계획한 공부 목록을 모아 둠(다음 날 브리핑의 '어제 공부 확인'용, 3일치). 같은 일(parts 열쇠)은 처음 것만
+  try { const st = ST(), k = todayK(), D = r.days[0]; st.pk = st.pk || {}; const L = st.pk[k] = st.pk[k] || [], has = new Set(L.map(x => x.id));
+    (D ? D.blocks : []).forEach(b => { if (b.play || b.rest || !b.parts) return; const parts = b.parts.map(p => ({ key: p.t ? p.t.key : p.key, mins: p.mins, label: (p.t || p).label })), id = parts.map(p => p.key).join('|'); if (!id || has.has(id)) return; has.add(id); L.push({ id, s: b.s, e: b.e, sub: b.sub, parts }); });
+    Object.keys(st.pk).sort().slice(0, -3).forEach(x => delete st.pk[x]); } catch (e) {}
   try { const k = todayK(), D = r.days[0], tot = (D ? D.mins : 0) + (ST().log[k] || []).reduce((a, b) => a + b.mins, 0); if (tot > (ST().pl[k] || 0)) { ST().pl[k] = tot; const ks = Object.keys(ST().pl).sort(); while (ks.length > 14) delete ST().pl[ks.shift()]; } } catch (e) {}
   return cache;
 }
@@ -750,5 +754,5 @@ const _ap = apply; apply = function (r) {
   if (res) { res.querySelector('span').textContent += ' · ' + txt; return res; } return noteEl(txt);
 };
 try { dedupExams(); if (window.dedupItems && dedupItems()) save(); } catch (e) {}
-window.lenaStudy = { dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, colOf, plan: () => splan(), dayRows, todayK, toT, splan: () => { dirty(); return splan(); }, tasks, parseOutline, simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
+window.lenaStudy = { ST, dedupExams, findExam, tab: v => { sub = v; ed = -1; addOpen = formOpen = timeOpen = false; }, keepRate, colOf, plan: () => splan(), dayRows, todayK, toT, splan: () => { dirty(); return splan(); }, tasks, parseOutline, simulate, freeIv, addMat, addExam, finishBlock, dirty, freeze, phaseOf };
 })();

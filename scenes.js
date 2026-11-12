@@ -33,7 +33,7 @@
     '.app.outside .agrid{grid-template-columns:repeat(2,1fr)!important;padding-left:56px!important;padding-right:56px!important}' +
     '#flyers,#flyers *,#aInfo,#aInfo *{pointer-events:none!important}#knock{pointer-events:none!important}' +
     '.dbad{position:absolute;top:-4px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--hot);color:#fff;font:700 11px/20px "Space Mono",monospace;font-style:normal;text-align:center;border:2px solid #000;pointer-events:none}.dbad[hidden]{display:none}' +
-    '#dialBtn,#aPad i{position:relative}' +
+    '#dialBtn,#aPad{position:relative}#aPad>.dbad{top:-9px;right:-9px}' +
     /* 1 전단지·2 캘린더·3 시간표·4 공부: 바깥 틀 = 비 오는 부스 유리 */
     '.sheet.boothgl .panel{background:#0a0e10;box-shadow:0 -1px 0 rgba(159,245,228,.55),0 -10px 28px rgba(47,224,200,.18);border-top:1px solid rgba(255,255,255,.22);overflow:hidden}.sheet.boothgl .panel::before{display:none}' +
     '.glbg{position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;overflow:hidden}.glbg:before{content:"";position:absolute;inset:-40px;background:url(assets/lena/poster.jpg) center top/cover;filter:blur(24px) brightness(.36) saturate(1.35)}' +
@@ -107,7 +107,7 @@
 
   // ---------- 다이얼 버튼 배지: 부재중 + 밀린 것 ----------
   var badge = function (host) { if (!host) return null; var b = host.querySelector('.dbad'); if (!b) { b = E('em', 'dbad'); b.hidden = true; host.appendChild(b); } return b; };
-  var b1 = badge(document.getElementById('dialBtn')), b2 = badge(document.querySelector('#aPad i'));
+  var b1 = badge(document.getElementById('dialBtn')), b2 = badge(document.getElementById('aPad'));
   function count() { var n = 0; try { n += missed().length; } catch (e) {} try { n += S.items.filter(isLate).length; } catch (e) {} return n; }
   function paintBadge() { var n = count(); [b1, b2].forEach(function (b) { if (!b) return; b.hidden = !n; b.textContent = n > 9 ? '9+' : String(n); }); }
   var _rh = renderHome; renderHome = function () { _rh.apply(this, arguments); paintBadge(); };
