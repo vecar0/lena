@@ -64,7 +64,14 @@ const css = `
 .tb-dl img.ct{left:50%;top:44%;width:min(62cqh,70cqw);height:auto;aspect-ratio:1;object-fit:cover!important;border-radius:50%;transform:translate(-50%,-50%);border:3px solid #000;box-shadow:0 0 0 4px var(--teal),0 0 40px rgba(47,224,200,.45)}
 .tb-dl::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,#0b0d11 99%);pointer-events:none}
 .tb-cap{position:absolute;left:12px;right:12px;bottom:8px;z-index:1;padding:8px 12px;border-radius:14px;background:rgba(6,8,10,.8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.16);font-size:14px;font-weight:700;line-height:1.4;word-break:keep-all;color:#fff}
-.tbg .tb-felt{padding:10px;gap:6px;border-radius:18px}
+.tbg .tb-felt{padding:10px;gap:6px;border-radius:18px;height:clamp(196px,27vh,236px);justify-content:center}
+.tb-dl.sl{flex:none!important;height:clamp(150px,22vh,200px);margin:-4px -14px 6px}
+.tb-room{flex:0 0 clamp(110px,16vh,150px)!important;position:relative}.tb-say{display:none}
+.tbg.out .tb-felt{flex:1 1 0!important;height:auto;min-height:0;gap:12px}
+.tbg.out .tc{width:62px;height:88px}.tbg.out .tc b{font-size:28px}.tbg.out .tc i{font-size:20px}
+.tbg.out .tc.big{width:104px;height:146px}.tbg.out .tc.big b{font-size:48px}.tbg.out .tc.big i{font-size:34px}
+.tbg.out .rl-top{flex-direction:column;gap:12px}.tbg.out .rl-wheel{height:auto;width:min(100%,290px);max-height:none;flex:0 1 auto;min-height:0}
+.tbg.out .rl-top .rl-bets{flex:none;width:100%;align-self:auto;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:none}.tbg.out .rl-top .rl-bets button{height:46px}.tbg.out .rl-num{height:46px}
 .tbg .tb-row{min-height:0;flex-wrap:nowrap;gap:6px}
 .tbg .tc{width:46px;height:64px;border-radius:7px}.tbg .tc b{font-size:20px}.tbg .tc i{font-size:15px}
 .tbg .tc.big{width:72px;height:100px}.tbg .tc.big b{font-size:34px}.tbg .tc.big i{font-size:24px}
@@ -72,32 +79,39 @@ const css = `
 .tbg .tb-bet button{min-height:44px}
 .tbg .tb-act button{min-height:50px}
 .tbg .tb-hint{font-size:12px}
-.rl-top{display:flex;gap:10px;height:clamp(150px,24vh,200px);align-items:center}
+.rl-top{display:flex;gap:10px;height:100%;align-items:center}
+.rl-top .rl-bets{grid-template-rows:repeat(3,minmax(0,1fr))}
 .rl-top .rl-bets{flex:1;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;align-self:stretch;align-content:center}
 .rl-top .rl-bets button{min-height:0;height:100%;max-height:46px;font-size:13px;padding:2px 0;line-height:1.15}
-.rl-num{display:flex;align-items:center;justify-content:center;gap:10px}
-.rl-num button{width:44px;height:40px;border-radius:10px;border:2px solid #000;background:#f2f3ee;color:#111;font-size:20px;font-weight:800;box-shadow:0 3px 0 #000}
-.rl-num b{min-width:64px;height:40px;border-radius:10px;display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:20px;color:#fff;border:2px solid #000}
+.rl-num{grid-column:1 / -1;display:flex;gap:5px;border-radius:12px}.rl-num.on{outline:3px solid var(--yel);outline-offset:1px}
+.rl-num button{flex:1;min-height:0;height:100%;max-height:46px;border-radius:10px;border:2px solid #000;background:#f2f3ee;color:#111;font-size:20px;font-weight:800;box-shadow:0 3px 0 #000}.rl-num button.nv{flex:1.6;color:#fff;font-family:'Space Mono',monospace;font-size:18px;line-height:1.05}.rl-num button.nv small{display:block;font-size:11px;opacity:.8}
 `;
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 const EO = 'cubic-bezier(0.23, 1, 0.32, 1)', reduce = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const BETS = [1, 2, 3, 5];
 // 딜러 레나: 영상 모드면 몸통까지 보이는 그림 띠 + 아래쪽 대사, 밖 모드면 고양이 대사 줄. 게임에 들어올 때 한 번 입구 그림 크기에서 줄어듦
 let enter = false;
-function dealer(B, t) {
-  B.classList.add('tbg');
-  const out = $('app').classList.contains('outside'), d = el('div', 'tb-dl' + (out ? ' cat' : '')), bg = el('img', 'bg'), im = el('img', out ? 'ct' : 'lena');
-  bg.src = out ? 'assets/lena/poster.jpg' : 'assets/lena/menu/play.webp'; im.src = out ? 'assets/lena/cat.jpg' : 'assets/lena/menu/play.webp'; bg.alt = im.alt = ''; im.decoding = 'async';
+// 영상 모드 = 레나 딜러 띠(머리~가슴) / 밖 모드 = 띠 없이 테이블을 크게, 대사는 돌아다니는 큰 고양이 말풍선(pet.js lenaPet.arcSay)
+function band(B, t) {
+  const d = el('div', 'tb-dl'), bg = el('img', 'bg'), im = el('img', 'lena'); bg.src = im.src = 'assets/lena/menu/play.webp'; bg.alt = im.alt = ''; im.decoding = 'async';
   const cap = el('div', 'tb-cap'), sp = el('span', null, t); cap.appendChild(sp); d.append(bg, im, cap); B.appendChild(d);
   if (enter) { enter = false; if (!reduce() && d.animate) { d.animate([{ transform: 'scale(1.06)', opacity: .4 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: EO }); cap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 260, easing: 'ease-out', fill: 'backwards' }); } }
   return sp;
 }
+function catSay(B, t) {
+  const sp = el('span', 'tb-say', t), say = () => { if (window.lenaPet && lenaPet.arcSay) lenaPet.arcSay(sp.textContent); };
+  const room = el('div', 'tb-room'); room.appendChild(sp); B.appendChild(room); enter = false;
+  new MutationObserver(say).observe(sp, { childList: true, characterData: true, subtree: true }); setTimeout(say, 60);
+  return sp;
+}
+function dealer(B, t) { B.classList.add('tbg'); if ($('app').classList.contains('outside')) { B.classList.add('out'); return catSay(B, t); } return band(B, t); }
+ARC.band = (B, t) => $('app').classList.contains('outside') ? null : band(B, t);
 let bet = 1;
 function cardEl(c, back, big) { const e = el('div', 'tc' + (back ? ' back' : '') + (big ? ' big' : '') + (!back && (c.s === '♥' || c.s === '♦') ? ' red' : '')); if (!back) e.append(el('b', null, RK[c.r - 1]), el('i', null, c.s)); return e; }
 function dealIn(e, i) { if (!reduce() && e.animate) e.animate([{ opacity: 0, transform: 'translateY(-28px) rotate(-6deg)' }, { opacity: 1, transform: 'none' }], { duration: 240, delay: (i || 0) * 90, easing: EO, fill: 'backwards' }); }
-function betRow(B, onPick) {
+function betRow(B, onPick, lock) {
   const r = el('div', 'tb-bet'); if (bet > ARC.gc()) bet = Math.max(1, BETS.filter(x => x <= ARC.gc()).pop() || 1);
-  BETS.forEach(v => { const b = el('button', v === bet ? 'on' : ''); b.innerHTML = `${ci('gc')}${v}`; b.disabled = v > ARC.gc(); b.setAttribute('aria-label', `판돈 동전 ${v}개`); b.onclick = () => { bet = v; dtmf(v); onPick(); }; r.appendChild(b); });
+  BETS.forEach(v => { const b = el('button', v === bet ? 'on' : ''); b.innerHTML = `${ci('gc')}${v}`; b.disabled = lock || v > ARC.gc(); b.setAttribute('aria-label', `판돈 동전 ${v}개`); b.onclick = () => { bet = v; dtmf(v); onPick(); }; r.appendChild(b); });
   B.appendChild(r);
 }
 function act(B, list) { const r = el('div', 'tb-act'); list.forEach(([t, c, f, dis]) => { const b = el('button', c || '', t); if (dis) b.disabled = true; b.onclick = f; r.appendChild(b); }); B.appendChild(r); return r; }
@@ -124,7 +138,7 @@ function blackjack() {
     B.appendChild(F);
     res(B, st.ph === 'done' ? st.res : '', st.rk);
     if (st.ph === 'bet' || st.ph === 'done') { if (noCoin(B)) return; betRow(B, draw); act(B, [[st.ph === 'done' ? '한 판 더' : '카드 받기', 'go', deal]]); }
-    else act(B, [['더 받기', 'tl', hit], ['멈추기', '', stand], ['두 배', 'go', dbl, st.p.length !== 2 || ARC.gc() < st.bet]]);
+    else { betRow(B, draw, true); act(B, [['더 받기', 'tl', hit], ['멈추기', '', stand], ['두 배', 'go', dbl, st.p.length !== 2 || ARC.gc() < st.bet]]); }
   }, true);
   function deal() {
     if (ARC.gc() < bet) return; ARC.gcAdd(-bet); dtmf(1);
@@ -165,7 +179,7 @@ function hilo() {
     if (st.ph === 'bet' || st.ph === 'done') { if (noCoin(B)) return; betRow(B, draw); act(B, [[st.ph === 'done' ? '한 판 더' : '시작', 'go', start]]); }
     else {
       const v = st.c.r, mh = hlMult(v, 'hi'), ml = hlMult(v, 'lo');
-      const a = act(B, [['높게', 'tl', () => guess('hi'), !mh], ['낮게', 'tl', () => guess('lo'), !ml], ['멈추고 받기', 'go', cash, st.n === 0]]);
+      betRow(B, draw, true); const a = act(B, [['높게', 'tl', () => guess('hi'), !mh], ['낮게', 'tl', () => guess('lo'), !ml], ['멈추고 받기', 'go', cash, st.n === 0]]);
       if (mh) a.children[0].appendChild(el('span', 'tb-mul', `×${mh}`)); if (ml) a.children[1].appendChild(el('span', 'tb-mul', `×${ml}`));
     }
     st.fresh = false;
@@ -189,17 +203,20 @@ function roulette() {
   const LAB = { red: '빨강', black: '검정', odd: '홀', even: '짝', num: '숫자' };
   const pc = n => n === 0 ? 'z' : RED.has(n) ? 'r' : 'k';
   const draw = () => ARC.frame('룰렛', B => {
-    dealer(B, st.say || '어디에 걸래? 색이나 홀짝은 2배, 12칸 묶음은 3배, 숫자 하나는 36배.');
+    dealer(B, st.say || '어디에 걸래? 색이나 홀짝은 2배, 숫자 하나는 36배.');
     const F = el('div', 'tb-felt');
     const WH = wheel(st), top = el('div', 'rl-top'); top.appendChild(WH.svg); F.appendChild(top);
-    const G = el('div', 'rl-bets'), opt = [['red', 0, '빨강', 'r'], ['black', 0, '검정', ''], ['odd', 0, '홀', 'g'], ['even', 0, '짝', 'g'], ['doz', 1, '1~12', 'g'], ['doz', 2, '13~24', 'g'], ['doz', 3, '25~36', 'g'], ['num', st.t === 'num' ? st.v : 0, '숫자 하나', 'g']];
-    opt.forEach(([t, v, lab, c]) => { const b = el('button', c + (st.t === t && (t !== 'doz' || st.v === v) ? ' on' : '')); b.append(document.createTextNode(lab), el('small', null, t === 'num' ? '×36' : t === 'doz' ? '×3' : '×2')); b.disabled = st.ph === 'spin'; b.onclick = () => { st.t = t; st.v = t === 'num' ? st.v : v; dtmf(5); draw(); }; G.appendChild(b); });
+    const G = el('div', 'rl-bets');
+    [['red', '빨강', 'r'], ['black', '검정', ''], ['odd', '홀', 'g'], ['even', '짝', 'g']].forEach(([t, lab, c]) => { const b = el('button', c + (st.t === t ? ' on' : '')); b.append(document.createTextNode(lab), el('small', null, '×2')); b.disabled = st.ph === 'spin'; b.onclick = () => { st.t = t; dtmf(5); draw(); }; G.appendChild(b); });
+    // 숫자 하나(×36): 가운데 숫자를 누르면 숫자에 걸기, − + 로 숫자 바꾸기
+    const nr = el('div', 'rl-num' + (st.t === 'num' ? ' on' : '')), nv = el('button', 'nv'), mv = d => { if (st.ph === 'spin') return; st.v = (st.v + d + 37) % 37; st.t = 'num'; dtmf(st.v % 10); draw(); };
+    nv.append(document.createTextNode(String(st.v)), el('small', null, '×36')); nv.style.background = st.v === 0 ? '#1a9c5b' : RED.has(st.v) ? '#d6245f' : '#151515'; nv.onclick = () => { if (st.ph !== 'spin') { st.t = 'num'; draw(); } };
+    const m = el('button', null, '−'), p = el('button', null, '+'); m.setAttribute('aria-label', '숫자 줄이기'); p.setAttribute('aria-label', '숫자 늘리기'); m.onclick = () => mv(-1); p.onclick = () => mv(1); nr.append(m, nv, p); G.appendChild(nr);
     top.appendChild(G);
-    if (st.t === 'num') { const r = el('div', 'rl-num'), v = el('b', null, String(st.v)); v.style.background = st.v === 0 ? '#1a9c5b' : RED.has(st.v) ? '#d6245f' : '#151515'; const st2 = d => { if (st.ph === 'spin') return; st.v = (st.v + d + 37) % 37; dtmf(st.v % 10); draw(); }; const m = el('button', null, '−'), p = el('button', null, '+'); m.setAttribute('aria-label', '숫자 줄이기'); p.setAttribute('aria-label', '숫자 늘리기'); m.onclick = () => st2(-1); p.onclick = () => st2(1); r.append(m, v, p); F.appendChild(r); }
     B.appendChild(F);
     res(B, st.res || '', st.rk);
     if (st.ph === 'spin') return; if (noCoin(B)) return; betRow(B, draw);
-    const what = st.t === 'num' ? `${st.v}` : st.t === 'doz' ? ['', '1~12', '13~24', '25~36'][st.v] : LAB[st.t];
+    const what = st.t === 'num' ? `${st.v}` : LAB[st.t];
     act(B, [[`${what}에 걸고 돌리기`, 'go', () => spin(WH)]]);
   }, true);
   function spin(WH) {
