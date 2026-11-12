@@ -8,11 +8,15 @@
 //   GET  /inbox?t=..                                             앱이 받은 걸 가져가고 비움
 //   POST /in?t=..&src=share  (본문 = 파일 그대로: 사진·PDF·글)      v2: 공유하기로 파일 보내기. 글이면 메모로, 아니면 파일로 보관(15MB까지, 14일)
 //   GET  /file?t=..&id=..                                        앱이 파일을 받아 가면 지움
+//   POST /state {t, w, st:[{s,e,l}], on, pause, tz}               v3: 앱이 위젯 내용·공부 시간(ms)을 올림
+//   GET  /widget?t=..                                            v3: 홈 화면 위젯(Scriptable)이 받아 감
+//   GET  /now?t=..                                               v3: 단축어 자동화가 물어봄 → '공부 중 · 과목 · HH:mm까지' 또는 '자유'
 const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' };
 const J = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...H, 'Content-Type': 'application/json; charset=utf-8' } });
 const T = (t, s = 200) => new Response(t, { status: s, headers: { ...H, 'Content-Type': 'text/plain; charset=utf-8' } });
 const ok = t => typeof t === 'string' && /^[a-f0-9]{24,64}$/.test(t);
-const VER = 'v2';
+const VER = 'v3';
+const nowOf = o => { const n = Date.now(); if (!o || o.on === false || (o.pause || 0) > n) return { study: false }; const b = (o.st || []).find(x => x.s <= n && n < x.e); if (!b) return { study: false }; return { study: true, l: b.l, until: new Date(b.e - (o.tz || 0) * 60000).toISOString().slice(11, 16) }; };
 
 export default {
   async fetch(req, env) {
@@ -73,6 +77,17 @@ export default {
       const k = 'i:' + t, cur = JSON.parse((await env.BOX.get(k)) || '[]');
       if (cur.length) await env.BOX.delete(k);
       return J({ items: cur });
+    }
+    if (p === '/state' && req.method === 'POST') {
+      const o = { w: body.w || null, st: (Array.isArray(body.st) ? body.st : []).slice(0, 40).map(b => ({ s: +b.s, e: +b.e, l: String(b.l || '공부').slice(0, 40) })), on: body.on !== false, pause: +body.pause || 0, tz: +body.tz || 0, up: Date.now() };
+      await env.BOX.put('s:' + t, JSON.stringify(o), { expirationTtl: 60 * 60 * 24 * 14 });
+      return J({ ok: true });
+    }
+    if (p === '/widget' || p === '/now') {
+      const o = JSON.parse((await env.BOX.get('s:' + t)) || 'null'), n = nowOf(o);
+      if (p === '/widget') return J({ ...(o && o.w || {}), up: o ? o.up : 0, now: n });
+      if (u.searchParams.get('f') === 'json') return J(n);
+      return T(n.study ? `공부 중 · ${n.l} · ${n.until}까지` : '자유');
     }
     return J({ error: 'not found' }, 404);
   }
