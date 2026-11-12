@@ -44,11 +44,8 @@ const css = `
 .tb-res{text-align:center;font-family:'Black Han Sans';font-size:26px;min-height:30px;text-shadow:2px 2px 0 #000}.tb-res.w{color:var(--yel)}.tb-res.l{color:var(--hot)}.tb-res.p{color:#d9f2e4}
 .tb-hint{font-size:12.5px;color:#a9c4b6;text-align:center;word-break:keep-all}
 .tb-mul{font-family:'Space Mono',monospace;font-size:12px;display:block;opacity:.75;margin-top:2px}
-.rl-win{position:relative;height:70px;border-radius:12px;background:#08140e;border:3px solid #000;overflow:hidden}
-.rl-strip{position:absolute;left:0;top:7px;display:flex;gap:6px;will-change:transform}
 .rl-p{flex:none;width:50px;height:50px;border-radius:10px;display:grid;place-items:center;font-family:'Space Mono',monospace;font-weight:700;font-size:18px;color:#fff;border:2px solid #000}
 .rl-p.r{background:#d6245f}.rl-p.k{background:#151515}.rl-p.z{background:#1a9c5b}
-.rl-win::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--yel);box-shadow:0 0 10px var(--yel)}
 .rl-bets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .rl-bets button{min-height:46px;border-radius:10px;border:2px solid #000;font-size:14px;font-weight:800;color:#fff;background:#151515;box-shadow:0 3px 0 #000}
 .rl-bets button.r{background:#d6245f}.rl-bets button.g{background:#1d5d40}
@@ -58,10 +55,24 @@ const css = `
 .rl-nums button{min-height:36px;border-radius:7px;border:1.5px solid #000;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;color:#fff}
 .rl-nums button.on{outline:3px solid var(--yel)}
 @media (prefers-reduced-motion:reduce){.tb *{transition:none!important}}
+.tb-dl{position:relative;flex:none;margin:-4px -14px 0;height:clamp(220px,36vh,310px);overflow:hidden;background:#06080a}
+.tb-dl img{position:absolute;top:0;left:50%;height:140%;width:auto;max-width:none;transform:translateX(-50%)}.tb-dl img.bg{left:0;width:100%;height:100%;transform:scale(1.15);object-fit:cover!important;object-position:50% 20%;filter:blur(16px) brightness(.45) saturate(1.3)}
+.tb-dl::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,#0b0d11 99%);pointer-events:none}
+.tb-cap{position:absolute;left:14px;right:14px;bottom:10px;z-index:1;padding:9px 13px;border-radius:14px;background:rgba(6,8,10,.78);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.16);font-size:14.5px;font-weight:700;line-height:1.45;word-break:keep-all;color:#fff}
+.rl-wheel{display:block;width:min(100%,300px);aspect-ratio:1;margin:0 auto;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))}
 `;
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 const EO = 'cubic-bezier(0.23, 1, 0.32, 1)', reduce = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const BETS = [1, 2, 3, 5];
+// 딜러 레나: 영상 모드면 몸통까지 보이는 그림 띠 + 아래쪽 대사, 밖 모드면 고양이 대사 줄. 게임에 들어올 때 한 번 입구 그림 크기에서 줄어듦
+let enter = false;
+function dealer(B, t) {
+  if ($('app').classList.contains('outside')) return ARC.talk(B, 'l', t);
+  const d = el('div', 'tb-dl'), im = el('img'), bg = el('img', 'bg'); im.src = bg.src = 'assets/lena/menu/play.webp'; im.alt = bg.alt = ''; im.decoding = 'async'; d.appendChild(bg);
+  const cap = el('div', 'tb-cap'), sp = el('span', null, t); cap.appendChild(sp); d.append(im, cap); B.appendChild(d);
+  if (enter) { enter = false; if (!reduce() && d.animate) { const h0 = Math.round(ARC.A.clientHeight * .74); d.animate([{ height: h0 + 'px', marginTop: '-70px' }, { height: getComputedStyle(d).height, marginTop: getComputedStyle(d).marginTop }], { duration: 420, easing: EO }); cap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 300, easing: 'ease-out', fill: 'backwards' }); } }
+  return sp;
+}
 let bet = 1;
 function cardEl(c, back, big) { const e = el('div', 'tc' + (back ? ' back' : '') + (big ? ' big' : '') + (!back && (c.s === '♥' || c.s === '♦') ? ' red' : '')); if (!back) e.append(el('b', null, RK[c.r - 1]), el('i', null, c.s)); return e; }
 function dealIn(e, i) { if (!reduce() && e.animate) e.animate([{ opacity: 0, transform: 'translateY(-28px) rotate(-6deg)' }, { opacity: 1, transform: 'none' }], { duration: 240, delay: (i || 0) * 90, easing: EO, fill: 'backwards' }); }
@@ -77,10 +88,11 @@ const pay = n => { if (n > 0) { ARC.gcAdd(n); coinSound(); } };
 
 // ---------- 블랙잭 ----------
 function blackjack() {
+  enter = true;
   let st = { ph: 'bet' }, line = null;
   const say = t => { if (line) line.textContent = t; };
   const draw = () => ARC.frame('블랙잭', B => {
-    line = ARC.talk(B, 'l', st.say || '앉아. 21에 가까우면 이기는 거야. 얼마 걸래?');
+    line = dealer(B, st.say || '앉아. 21에 가까우면 이기는 거야. 얼마 걸래?');
     const F = el('div', 'tb-felt');
     if (st.ph !== 'bet') {
       const hideHole = st.ph === 'play';
@@ -118,9 +130,10 @@ function blackjack() {
 
 // ---------- 하이로우 ----------
 function hilo() {
+  enter = true;
   let st = { ph: 'bet' };
   const draw = () => ARC.frame('하이로우', B => {
-    ARC.talk(B, 'l', st.say || '다음 장이 높을까 낮을까? 맞힐수록 배수가 쌓여. 언제 멈출지는 네 몫이야.');
+    dealer(B, st.say || '다음 장이 높을까 낮을까? 맞힐수록 배수가 쌓여. 언제 멈출지는 네 몫이야.');
     const F = el('div', 'tb-felt');
     if (st.ph !== 'bet') {
       const r = el('div', 'tb-row'); r.style.justifyContent = 'center'; r.style.gap = '14px';
@@ -152,40 +165,66 @@ function hilo() {
 
 // ---------- 룰렛 ----------
 function roulette() {
-  let st = { ph: 'bet', t: 'red', v: 0 };
+  enter = true;
+  let st = { ph: 'bet', t: 'red', v: 0, wr: 0, ba: 0, br: 128 };
   const LAB = { red: '빨강', black: '검정', odd: '홀', even: '짝', num: '숫자' };
   const pc = n => n === 0 ? 'z' : RED.has(n) ? 'r' : 'k';
   const draw = () => ARC.frame('룰렛', B => {
-    ARC.talk(B, 'l', st.say || '어디에 걸래? 색이나 홀짝은 2배, 12칸 묶음은 3배, 숫자 하나는 36배.');
+    dealer(B, st.say || '어디에 걸래? 색이나 홀짝은 2배, 12칸 묶음은 3배, 숫자 하나는 36배.');
     const F = el('div', 'tb-felt');
-    const W = el('div', 'rl-win'), strip = el('div', 'rl-strip'); W.appendChild(strip); F.appendChild(W);
-    const N = 60; st.seq = st.seq || Array.from({ length: N }, () => Math.random() * 37 | 0); st.seq.forEach(n => strip.appendChild(el('div', 'rl-p ' + pc(n), String(n))));
+    const WH = wheel(st); F.appendChild(WH.svg);
     const G = el('div', 'rl-bets'), opt = [['red', 0, '빨강', 'r'], ['black', 0, '검정', ''], ['odd', 0, '홀', 'g'], ['even', 0, '짝', 'g'], ['doz', 1, '1~12', 'g'], ['doz', 2, '13~24', 'g'], ['doz', 3, '25~36', 'g'], ['num', st.t === 'num' ? st.v : 0, '숫자 하나', 'g']];
     opt.forEach(([t, v, lab, c]) => { const b = el('button', c + (st.t === t && (t !== 'doz' || st.v === v) ? ' on' : '')); b.append(document.createTextNode(lab), el('small', null, t === 'num' ? '×36' : t === 'doz' ? '×3' : '×2')); b.disabled = st.ph === 'spin'; b.onclick = () => { st.t = t; st.v = t === 'num' ? st.v : v; dtmf(5); draw(); }; G.appendChild(b); });
     F.appendChild(G);
     if (st.t === 'num' && st.ph !== 'spin') { const g = el('div', 'rl-nums'); for (let n = 0; n <= 36; n++) { const b = el('button', 'rl-p ' + pc(n) + (st.v === n ? ' on' : ''), String(n)); b.style.width = 'auto'; b.style.height = 'auto'; b.onclick = () => { st.v = n; draw(); }; g.appendChild(b); } F.appendChild(g); }
     B.appendChild(F);
     if (st.res) res(B, st.res, st.rk);
-    const at = () => { const W0 = W.clientWidth, i = st.at == null ? 30 : st.at; return W0 / 2 - (i * 56 + 25); };
-    strip.style.transform = `translateX(${at()}px)`;
     if (st.ph === 'spin') return; if (noCoin(B)) return; betRow(B, draw);
     const what = st.t === 'num' ? `${st.v}` : st.t === 'doz' ? ['', '1~12', '13~24', '25~36'][st.v] : LAB[st.t];
-    act(B, [[`${what}에 걸고 돌리기`, 'go', () => spin(strip, at)]]);
+    act(B, [[`${what}에 걸고 돌리기`, 'go', () => spin(WH)]]);
   }, true);
-  function spin(strip, at) {
+  function spin(WH) {
     if (ARC.gc() < bet) return; ARC.gcAdd(-bet); dtmf(1);
-    const n = Math.random() * 37 | 0, idx = 48 + (Math.random() * 6 | 0); st.seq[idx] = n; strip.children[idx].textContent = n; strip.children[idx].className = 'rl-p ' + pc(n);
-    const from = at(); st.at = idx; const to = at(); st.ph = 'spin'; st.res = ''; st.say = '공 굴린다. 눈 떼지 마.';
-    [...document.querySelectorAll('.rl-bets button,.tb-act button,.tb-bet button')].forEach(b => b.disabled = true);
-    const done = () => { const back = bet * rlWin(st.t, st.v, n); pay(back); st.ph = 'bet'; st.seq = st.seq.slice(idx - 30, idx + 30).concat([]); while (st.seq.length < 60) st.seq.push(Math.random() * 37 | 0); st.at = 30;
+    const n = Math.random() * 37 | 0, i = ORDER.indexOf(n), wr0 = st.wr, ba0 = st.ba, wr1 = wr0 + 720 + Math.random() * 360, base = wr1 + i * SEG, m = Math.ceil((base - (ba0 - 1440)) / 360), ba1 = base - 360 * m;
+    st.ph = 'spin'; st.res = ''; [...document.querySelectorAll('.rl-bets button,.tb-act button,.tb-bet button,.rl-nums button')].forEach(b => b.disabled = true);
+    const sp = document.querySelector('.tb-cap span,.talkr span'); if (sp) sp.textContent = '공 굴린다. 눈 떼지 마.';
+    const done = () => { st.wr = wr1 % 360; st.ba = ((ba1 % 360) + 360) % 360; st.br = 92; const back = bet * rlWin(st.t, st.v, n); pay(back); st.ph = 'bet';
       st.res = `${n} ${n === 0 ? '초록' : RED.has(n) ? '빨강' : '검정'} — ${back ? `이겼어 +${back - bet}` : `졌어 −${bet}`}`; st.rk = back ? 'w' : 'l';
       st.say = back ? (st.t === 'num' ? '숫자를 맞혀? …너 뭐야, 무섭게.' : '좋아, 이번 판은 네 거.') : (n === 0 ? '0이네. 집이 다 가져가는 날이야.' : '아깝다. 한 번 더 굴려 줄까?'); draw(); };
-    if (reduce() || !strip.animate) { strip.style.transform = `translateX(${to}px)`; return done(); }
-    strip.animate([{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }], { duration: 2600, easing: 'cubic-bezier(0.12, 0.7, 0.18, 1)', fill: 'forwards' }).onfinish = done;
+    if (reduce() || !WH.rot.animate) return done();
+    const D = 4200;
+    WH.rot.animate([{ transform: `rotate(${wr0}deg)` }, { transform: `rotate(${wr1}deg)` }], { duration: D, easing: 'cubic-bezier(0.15, 0.6, 0.2, 1)', fill: 'forwards' });
+    WH.arm.animate([{ transform: `rotate(${ba0}deg)` }, { transform: `rotate(${ba1}deg)` }], { duration: D, easing: 'cubic-bezier(0.1, 0.7, 0.15, 1)', fill: 'forwards' });
+    WH.ball.animate([{ transform: `translateY(-${st.br}px)` }, { transform: 'translateY(-128px)', offset: .12 }, { transform: 'translateY(-128px)', offset: .62 }, { transform: 'translateY(-98px)', offset: .78 }, { transform: 'translateY(-106px)', offset: .86 }, { transform: 'translateY(-92px)' }], { duration: D, easing: 'ease-in-out', fill: 'forwards' }).onfinish = done;
   }
   draw();
 }
 
+const ORDER = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26], SEG = 360 / 37;
+function wheel(st) {
+  const NS = 'http://www.w3.org/2000/svg', mk = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+  const svg = mk('svg', { viewBox: '-150 -150 300 300', class: 'rl-wheel', role: 'img', 'aria-label': '룰렛 바퀴' });
+  const df = mk('defs', {}, svg);
+  const g = (id, stops, rad) => { const x = mk(rad ? 'radialGradient' : 'linearGradient', rad ? { id } : { id, x1: 0, y1: 0, x2: 1, y2: 1 }, df); stops.forEach(([o, c]) => mk('stop', { offset: o, 'stop-color': c }, x)); };
+  g('rlWood', [[0, '#7a3a17'], [.7, '#4a1f0b'], [1, '#2a1006']], 1); g('rlSil', [[0, '#f4f6f7'], [.5, '#9aa2a8'], [1, '#e6e9eb']]); g('rlCone', [[0, '#8a5a32'], [.6, '#5a3216'], [1, '#2e1608']], 1); g('rlBall', [[0, '#ffffff'], [.7, '#e7e2d6'], [1, '#b9b1a0']], 1);
+  mk('circle', { r: 148, fill: 'url(#rlWood)', stroke: '#1a0a04', 'stroke-width': 2 }, svg);
+  mk('circle', { r: 135, fill: 'none', stroke: 'url(#rlSil)', 'stroke-width': 9 }, svg);
+  mk('circle', { r: 130, fill: '#3a1a0a' }, svg);
+  const rot = mk('g', { style: `transform:rotate(${st.wr}deg)` }, svg), P = (r, a) => [r * Math.sin(a * Math.PI / 180), -r * Math.cos(a * Math.PI / 180)];
+  ORDER.forEach((n, i) => {
+    const a0 = i * SEG - SEG / 2, a1 = a0 + SEG, col = n === 0 ? '#169a54' : RED.has(n) ? '#c8102e' : '#111';
+    const w = (r0, r1, c) => { const [x0, y0] = P(r1, a0), [x1, y1] = P(r1, a1), [x2, y2] = P(r0, a1), [x3, y3] = P(r0, a0); mk('path', { d: `M${x0} ${y0}A${r1} ${r1} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 0 0 ${x3} ${y3}Z`, fill: c }, rot); };
+    w(100, 126, col); w(82, 100, n === 0 ? '#0e6b3a' : RED.has(n) ? '#7d0a1d' : '#0a0a0a');
+    const [lx, ly] = P(82, a0), [ox, oy] = P(126, a0); mk('line', { x1: lx, y1: ly, x2: ox, y2: oy, stroke: '#c9ced2', 'stroke-width': 1.2 }, rot);
+    const t = mk('text', { x: 0, y: -109, 'text-anchor': 'middle', 'dominant-baseline': 'middle', fill: '#fff', 'font-size': 11, 'font-weight': 700, 'font-family': 'Space Mono,monospace', transform: `rotate(${i * SEG})` }, rot); t.textContent = n;
+  });
+  mk('circle', { r: 100, fill: 'none', stroke: '#c9ced2', 'stroke-width': 1.5 }, rot); mk('circle', { r: 82, fill: 'url(#rlCone)', stroke: '#c9ced2', 'stroke-width': 2 }, rot);
+  [0, 90, 180, 270].forEach(a => mk('rect', { x: -4, y: -46, width: 8, height: 30, rx: 4, fill: 'url(#rlSil)', transform: `rotate(${a})` }, rot));
+  mk('circle', { r: 22, fill: 'url(#rlSil)', stroke: '#6b7277', 'stroke-width': 1.5 }, rot); mk('circle', { r: 10, fill: '#dfe3e6', stroke: '#8a9196', 'stroke-width': 1 }, rot);
+  const arm = mk('g', { style: `transform:rotate(${st.ba}deg)` }, svg), ball = mk('g', { style: `transform:translateY(-${st.br}px)` }, arm);
+  mk('circle', { r: 6.5, fill: 'url(#rlBall)', stroke: '#8d8574', 'stroke-width': .8 }, ball);
+  return { svg, rot, arm, ball };
+}
 const IM = n => `assets/lena/${n}.webp`;
 ARC.reg({ id: 'bj', order: 1, name: '블랙잭', icon: IM('st_heart'), color: '#ff3d9a', cost: 0, sub: () => '21에 가깝게 — 레나와 한 판', start: blackjack });
 ARC.reg({ id: 'hilo', order: 2, name: '하이로우', icon: IM('st_star'), color: '#2fe0c8', cost: 0, sub: () => '다음 장이 높을까 낮을까', start: hilo });
