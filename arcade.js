@@ -45,11 +45,11 @@ const css = `
 .abody.hubb{justify-content:flex-end;gap:12px;padding:0 14px calc(var(--sb) + 18px);overflow:hidden}
 .abody.hubb .hsp{flex:1}
 .abody.hubb .talkr{background:rgba(6,8,10,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-.hcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.hcards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .hcard{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;aspect-ratio:5/7;padding:12px 6px 10px;border-radius:12px;background:var(--paper);color:#111;border:2px solid #000;box-shadow:0 0 0 2px var(--gc,var(--pink)) inset,3px 4px 0 #000;transition:transform .14s cubic-bezier(0.23,1,0.32,1)}
 .hcard:active{transform:translateY(2px) scale(.97)}
 .hcard img{flex:1;min-height:0;width:84%;object-fit:contain}
-.hcard b{font-family:'Black Han Sans';font-weight:400;font-size:15px;line-height:1.05;text-align:center;word-break:keep-all}
+.hcard b{font-family:'Black Han Sans';font-weight:400;font-size:13.5px;line-height:1.05;text-align:center;word-break:keep-all}
 .hcard em{position:absolute;top:6px;right:6px;display:flex;align-items:center;gap:1px;font-style:normal;font-family:'Space Mono',monospace;font-weight:700;font-size:11px;background:#111;color:var(--yel);padding:1px 6px 1px 2px;border-radius:9px}.hcard em .ci{width:14px;height:14px}
 @media (max-height:700px){.hcard{aspect-ratio:5/6}}
 /* common */
