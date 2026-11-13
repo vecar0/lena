@@ -13,14 +13,22 @@ const mid = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y
 // ---------- 올릴 내용 ----------
 function stateData() {
   const LS = window.lenaStudy, now = new Date(), k = LS.todayK(), P = LS.plan(), D = P.days.find(x => x.k === k), base = mid(k);
-  const rows = LS.dayRows(k, D).filter(r => r.kind !== 'log' && !r.done).map(r => {
+  const toRows = (kk, DD) => { const b0 = mid(kk); return LS.dayRows(kk, DD).filter(r => r.kind !== 'log' && !r.done).map(r => {
     const endM = r.kind === 'fix' ? ((/~(\d\d):(\d\d)/.exec(r.txt) || []).slice(1).reduce((a, v, i) => a + (+v) * (i ? 1 : 60), 0) || r.s + 60) : r.kind === 'ev' ? r.s + ((r.it && r.it.mins) || 60) : r.s + (r.mins || 0);
-    return { t: r.s >= 0 ? hm(r.s) : '', x: r.txt.replace(/\s*~\d\d:\d\d\s*$/, '').replace(/\s*~$/, ''), k: r.kind, e: r.s >= 0 ? base + Math.max(endM, r.s + 1) * 60e3 : base + 864e5 };
-  });
-  const todos = openItems().filter(t => !isEv(t)).sort((a, b) => (a.due || '9').localeCompare(b.due || '9')).slice(0, 10).map(t => ({ x: t.text, d: t.due ? t.due.slice(5, 16).replace('-', '/').replace('T', ' ') : '' }));
+    return { t: r.s >= 0 ? hm(r.s) : '', x: r.txt.replace(/\s*~\d\d:\d\d\s*$/, '').replace(/\s*~$/, ''), k: r.kind, e: r.s >= 0 ? b0 + Math.max(endM, r.s + 1) * 60e3 : b0 + 864e5 };
+  }); };
+  const rows = toRows(k, D), tk = P.days[1] && P.days[1].k, tm = new Date(now.getTime() + 864e5);
+  const tom = tk ? toRows(tk, P.days[1]).slice(0, 6) : [];
+  // v146 위젯에 더: 날씨·시험 D-day·오늘 공부·밀린 것·모닝콜·부재중
+  const WXN = c => c === 0 ? '맑음' : c <= 3 ? '구름' : c <= 48 ? '안개' : c <= 57 ? '이슬비' : c <= 67 ? '비' : c <= 77 ? '눈' : c <= 82 ? '소나기' : c <= 86 ? '눈' : '뇌우';
+  const wd = S.wx && S.wx.on && S.wx.data && (S.wx.data.days || []).find(x => x.d === k);
+  const st0 = LS.ST(), ex = (st0.exams || []).filter(e => e.date >= k).sort((a, b) => a.date.localeCompare(b.date))[0];
+  const dday = ex ? Math.round((mid(ex.date) - base) / 864e5) : null;
+  const done = (st0.log[k] || []).reduce((a, l) => a + (l.mins || 0), 0), planned = Math.max(st0.pl[k] || 0, done + ((D && D.mins) || 0));
+  const todos = openItems().filter(t => !isEv(t)).sort((a, b) => (a.due || '9').localeCompare(b.due || '9')).slice(0, 10).map(t => ({ x: t.text, d: t.due ? t.due.slice(5, 16).replace('-', '/').replace('T', ' ') : '', l: isLate(t) ? 1 : 0 }));
   const st = [];
   P.days.slice(0, 2).forEach(Dy => { const b0 = mid(Dy.k); (Dy.blocks || []).forEach(b => { if (b.school || b.sub === '할 일' || b.sub === '루틴') return; st.push({ s: b0 + b.s * 60e3, e: b0 + b.e * 60e3, l: [b.sub, ...(b.parts || []).map(p => p.t && p.t.label)].filter(Boolean).join(' ').slice(0, 40) || '공부' }); }); });
-  return { w: { date: `${now.getMonth() + 1}/${now.getDate()} ${WDK[now.getDay()]}`, rows, todos }, st: st.filter(b => b.e > Date.now()), on: S.lockOn !== false, pause: S.lockPause || 0, tz: now.getTimezoneOffset() };
+  return { w: { date: `${now.getMonth() + 1}/${now.getDate()} ${WDK[now.getDay()]}`, rows, todos, tom, tdate: `${tm.getMonth() + 1}/${tm.getDate()} ${WDK[tm.getDay()]}`, wx: wd ? `${WXN(wd.code)} ${wd.min}~${wd.max}°` + (wd.pop >= 30 ? ` ☂${wd.pop}%` : '') : '', exam: ex ? `${ex.name} ${dday ? 'D-' + dday : 'D-DAY'}` : '', study: { done, plan: planned }, late: openItems().filter(isLate).length, mc: S.morning || '', miss: (typeof missed === 'function' ? missed().length : 0) }, st: st.filter(b => b.e > Date.now()), on: S.lockOn !== false, pause: S.lockPause || 0, tz: now.getTimezoneOffset() };
 }
 let last = '', sT = 0;
 async function syncState(force) {
@@ -34,39 +42,16 @@ setTimeout(syncState, 4000); setInterval(() => { if (!document.hidden) syncState
 document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(syncState, 1500); });
 
 // ---------- Scriptable 위젯 코드 ----------
-function widgetCode() {
-  return `// 레나 위젯 — Scriptable 앱에 붙여 넣기
+function widgetCode() { // v146: 그리는 방법은 앱의 wgr.js에서 받아 옴(위젯 모양을 바꿔도 다시 붙여 넣을 필요 없음)
+  return `// 레나 위젯 — Scriptable 앱에 붙여 넣기 (그리는 방법은 레나 앱에서 받아 와요)
 const U = ${JSON.stringify(url('/widget'))};
 const APP = "https://vecar0.github.io/lena/";
-let d = null; try { d = await new Request(U).loadJSON(); } catch (e) {}
-const fam = config.widgetFamily || "medium";
-const C = { bg: new Color("#0b0f12"), teal: new Color("#2fe0c8"), pink: new Color("#ff3d9a"), yel: new Color("#f2ea3a"), txt: new Color("#eef4f1"), dim: new Color("#7f8f8b") };
-const w = new ListWidget(); w.backgroundColor = C.bg; w.url = APP; w.setPadding(12, 14, 10, 14);
-function T(st, s, c, size, mono) { const t = st.addText(s); t.textColor = c; t.font = mono ? Font.boldMonospacedSystemFont(size) : Font.semiboldSystemFont(size); t.lineLimit = 1; return t; }
-if (!d || !d.rows) { T(w, "레나", C.teal, 14); T(w, "레나 앱을 한 번 열어 줘", C.dim, 12); }
-else {
-  const now = Date.now(), h = w.addStack(); h.centerAlignContent();
-  T(h, "☎ " + d.date, C.teal, 13); h.addSpacer();
-  if (d.now && d.now.study) T(h, "공부 중 ~" + d.now.until, C.pink, 11, true);
-  w.addSpacer(6);
-  const body = w.addStack(); body.topAlignContent();
-  const L = body.addStack(); L.layoutVertically();
-  const rows = d.rows.filter(r => r.e > now).slice(0, fam === "small" ? 4 : fam === "large" ? 13 : 5);
-  if (!rows.length) T(L, "오늘 남은 일정 없음", C.dim, 12);
-  rows.forEach(r => { const s = L.addStack(); s.spacing = 6; T(s, r.t || "종일", r.k === "st" ? C.teal : r.k === "todo" ? C.yel : C.pink, 11, true); T(s, r.x, C.txt, 12); L.addSpacer(3); });
-  if (fam !== "small") {
-    body.addSpacer(12); const R = body.addStack(); R.layoutVertically();
-    T(R, "할 일", C.yel, 11, true); R.addSpacer(3);
-    const td = (d.todos || []).slice(0, fam === "large" ? 12 : 4);
-    if (!td.length) T(R, "다 했어", C.dim, 12);
-    td.forEach(x => { T(R, "□ " + x.x, C.txt, 12); R.addSpacer(2); });
-  }
-  w.addSpacer();
-  const up = new Date(d.up || 0); T(w, "앱에서 올린 시각 " + String(up.getHours()).padStart(2, "0") + ":" + String(up.getMinutes()).padStart(2, "0"), C.dim, 9);
-}
-w.refreshAfterDate = new Date(Date.now() + 15 * 60 * 1000);
-if (config.runsInWidget) Script.setWidget(w); else await w.presentMedium();
-Script.complete();
+const fm = FileManager.local(), cp = fm.joinPath(fm.cacheDirectory(), "lena_wgr.js");
+let src = null;
+try { src = await new Request(APP + "wgr.js?t=" + Date.now()).loadString(); if (src && src.length > 200) fm.writeString(cp, src); else src = null; } catch (e) {}
+if (!src && fm.fileExists(cp)) src = fm.readString(cp);
+if (!src) { const w = new ListWidget(); w.addText("레나 위젯을 못 받아 왔어. 인터넷을 확인해 줘."); Script.setWidget(w); Script.complete(); }
+else await (new Function("U", "APP", "return (async () => {" + src + "\\n})()"))(U, APP);
 `;
 }
 function copy(t, msg) { (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast(msg)).catch(() => { prompt('길게 눌러 복사해', t); }); }
