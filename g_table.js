@@ -28,6 +28,7 @@ const css = `
 .tc{width:58px;height:82px;border-radius:9px;background:url(assets/lena/tb/card_face.webp) center/cover var(--paper);border:2px solid #111;box-shadow:2px 3px 0 rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#111;line-height:1}
 .tc b{font-family:'Black Han Sans';font-weight:400;font-size:26px}.tc i{font-style:normal;font-size:20px;margin-top:2px}
 .tc.red{color:#e8217a}
+.tc.pic{background-size:cover;background-position:center}.tc.pic b,.tc.pic i{display:none}
 .tc.back{background:url(assets/lena/tb/card_back.webp) center/cover #111;border-color:#000}
 .tc.big{width:96px;height:136px}.tc.big b{font-size:44px}.tc.big i{font-size:32px}
 .tb-bet{display:flex;gap:8px;align-items:center}
@@ -107,7 +108,8 @@ function catSay(B, t) {
 function dealer(B, t) { B.classList.add('tbg'); if ($('app').classList.contains('outside')) { B.classList.add('out'); return catSay(B, t); } return band(B, t); }
 ARC.dealer = dealer; ARC.band = (B, t) => $('app').classList.contains('outside') ? null : band(B, t);
 let bet = 1;
-function cardEl(c, back, big) { const e = el('div', 'tc' + (back ? ' back' : '') + (big ? ' big' : '') + (!back && (c.s === '♥' || c.s === '♦') ? ' red' : '')); if (!back) e.append(el('b', null, RK[c.r - 1]), el('i', null, c.s)); return e; }
+const SUF = { '♠': 's', '♥': 'h', '♦': 'd', '♣': 'c' }; // v142 카드 52장 그림 assets/lena/tb/c/{A..K}{s,h,d,c}.webp
+function cardEl(c, back, big) { const e = el('div', 'tc' + (back ? ' back' : '') + (big ? ' big' : '') + (!back && (c.s === '♥' || c.s === '♦') ? ' red' : '')); if (!back) { e.classList.add('pic'); e.style.backgroundImage = `url(assets/lena/tb/c/${RK[c.r - 1]}${SUF[c.s]}.webp)`; e.setAttribute('aria-label', RK[c.r - 1] + c.s); e.append(el('b', null, RK[c.r - 1]), el('i', null, c.s)); } return e; }
 function dealIn(e, i) { if (!reduce() && e.animate) e.animate([{ opacity: 0, transform: 'translateY(-28px) rotate(-6deg)' }, { opacity: 1, transform: 'none' }], { duration: 240, delay: (i || 0) * 90, easing: EO, fill: 'backwards' }); }
 function betRow(B, onPick, lock) {
   const r = el('div', 'tb-bet'); if (bet > ARC.gc()) bet = Math.max(1, BETS.filter(x => x <= ARC.gc()).pop() || 1);
