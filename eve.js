@@ -6,15 +6,16 @@
   const pad = n => String(n).padStart(2, '0'), keyOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const toM = t => { const [h, m] = String(t || '').split(':').map(Number); return isNaN(h) ? null : h * 60 + (m || 0); };
   const hmOf = m => `${pad(Math.floor(((m % 1440) + 1440) % 1440 / 60))}:${pad(((m % 60) + 60) % 60)}`;
-  // 새벽 5시 전이면 '어제'의 저녁으로 봄(공부가 자정을 넘기는 날)
-  const baseDay = () => { const d = new Date(); if (d.getHours() < 5) d.setDate(d.getDate() - 1); d.setHours(0, 0, 0, 0); return d; };
+  // v147 하루의 경계 = 모닝콜 시각(없으면 6시). 그 전(새벽)은 아직 '어제' — 새벽까지 이어지는 일정이 끝난 뒤에 뜨게
+  const wakeM = () => toM(S.morning) || 6 * 60;
+  const baseDay = () => { const d = new Date(); if (d.getHours() * 60 + d.getMinutes() < wakeM()) d.setDate(d.getDate() - 1); d.setHours(0, 0, 0, 0); return d; };
 
   // 그날 시간표가 끝나는 시각(분). 없으면 null
   function dayEnd(d) {
     const k = keyOf(d), wd = d.getDay(), ends = [];
     (S.reps || []).forEach(r => { if ((r.days || []).length && !r.days.includes(wd)) return; if ((S.repSkip || {})[r.id + '_' + k]) return; const s = toM(r.time); if (s == null) return; ends.push(toM(r.end) || s + 60); });
     (S.items || []).forEach(t => { if (t.rid || !t.due || t.due.slice(0, 10) !== k || t.kind !== 'event') return; const s = toM(t.due.slice(11, 16)); if (s != null) ends.push(s + (t.mins || 60)); });
-    try { const LS = window.lenaStudy, st = LS.ST(); (st.log[k] || []).forEach(l => ends.push(l.e || l.s + (l.mins || 0))); if (k === LS.todayK()) { const D = LS.plan().days[0]; if (D) { D.blocks.forEach(b => ends.push(b.e)); if (D.play) ends.push(D.play.e); } } } catch (e) {}
+    try { const LS = window.lenaStudy, st = LS.ST(); (st.log[k] || []).forEach(l => ends.push(l.e || l.s + (l.mins || 0))); ((st.pk || {})[k] || []).forEach(b => ends.push(b.e)); if (k === LS.todayK()) { const D = LS.plan().days[0]; if (D) { D.blocks.forEach(b => ends.push(b.e)); if (D.play) ends.push(D.play.e); } } } catch (e) {}
     return ends.length ? Math.max(...ends) : null;
   }
   // 남은 공부는 '지금' 뒤로 계속 밀리니까, 한 번 정한 시각이 지나면 다시 계산하지 않음

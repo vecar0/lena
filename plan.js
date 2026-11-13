@@ -246,11 +246,12 @@ SH.brief = { t: '오늘 브리핑', s: () => { const d = new Date(); return `${d
 const _on = openSheet; openSheet = function (n) { if (n === 'plan' && !drafting) draft = null; _on(n); if (n === 'plan' || n === 'brief') $('shNum').textContent = '☎'; };
 function autoBrief() {
   if (!S.name || B0().brief === false || S.briefDay === today()) return;
+  { const w = (typeof mcAt === 'function' && mcAt(new Date())) || new Date(new Date().setHours(6, 0, 0, 0)); if (Date.now() < w.getTime()) return; } // v147 새벽엔 안 뜸: 모닝콜(없으면 6시) 뒤에만
   if ($('inc') && $('inc').classList.contains('on')) return setTimeout(autoBrief, 4000);
   if ($('sheet').classList.contains('open')) return setTimeout(autoBrief, 4000);
   S.briefDay = today(); save(); openSheet('brief');
 }
-setTimeout(autoBrief, 4500);
+setTimeout(autoBrief, 4500); setInterval(() => { if (!document.hidden) autoBrief(); }, 60e3);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(autoBrief, 2000); });
 
 // 설정: 아침 브리핑 켜기/끄기 (follow.js의 '레나가 챙길 것' 카드에 한 줄 더)
