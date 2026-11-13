@@ -16,8 +16,7 @@
     '.scfx s{position:absolute;left:0;right:0;height:50.5%;background:#05080a repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px)}.scfx s.a{top:0;box-shadow:0 2px 0 var(--lc),0 0 34px 4px var(--lc)}.scfx s.b{bottom:0;box-shadow:0 -2px 0 var(--lc),0 0 34px 4px var(--lc)}' +
     '.scfx u{position:absolute;inset:-96px;opacity:0;background-size:96px 96px;mix-blend-mode:screen;filter:contrast(1.6)}.scfx u:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.55) 0 2px,transparent 2px 5px),linear-gradient(180deg,transparent 38%,rgba(255,255,255,.35) 40%,transparent 43%,transparent 66%,rgba(255,255,255,.22) 67%,transparent 69%)}' +
     '.scfx p em{font-style:normal;margin-left:2px}' +
-    '.scfx b.scdots{display:none;position:absolute;left:0;right:0;top:50%;margin-top:-40px;text-align:center;font:700 64px/80px "Space Mono",monospace;color:#7dffb5;text-shadow:0 0 14px rgba(125,255,181,.8)}.scfx b.scdots i{font-style:normal;opacity:0;margin:0 6px}' +
-    '.scfx.lcd b.scdots{display:block}.scfx.lcd p{display:none}.scfx.lcd s{background:#0d1f17 repeating-linear-gradient(0deg,rgba(125,255,181,.06) 0 1px,transparent 1px 4px)}.scfx.lcd s.a{box-shadow:0 2px 0 #7dffb5,0 0 34px 4px rgba(125,255,181,.7)}.scfx.lcd s.b{box-shadow:0 -2px 0 #7dffb5,0 0 34px 4px rgba(125,255,181,.7)}' +
+    '.scfx.st s,.scfx.st p{display:none}.scfx.st u{mix-blend-mode:normal;filter:contrast(1.4) brightness(.9)}' +
     '.scfx p{position:absolute;left:0;right:0;top:50%;text-align:center;opacity:0;margin:0}.scfx p.t1{margin-top:-44px;font:700 12px "Space Mono",monospace;color:var(--lc);letter-spacing:3px}.scfx p.t2{margin-top:16px;font:400 30px/1 "Black Han Sans",sans-serif;color:#fff;text-shadow:0 0 18px var(--lc)}' +
     /* 아침 브리핑 = 화면 가득. 그림은 뒤에 고정, 내용이 그 위로 올라오며 스크롤 */
     '.sheet.scn{background:#07090b}.sheet.scn .panel{height:100%;max-height:none;border:0;border-radius:0;box-shadow:none;background:transparent;transform:none;transition:none}.sheet.scn .panel::before{display:none}.sheet.scn .shead{display:none}' +
@@ -67,12 +66,12 @@
   // ---------- 전환 연출 (v141: 전화 연결) ----------
   // 문이 닫힌 어두운 화면 → '연결 중 …'(연결음 뚜—) → 지지직 잡음(화면 노이즈·찢김 + 잡음 소리) → 딸깍(수화기 드는 소리)에 화면을 바꾸고 → 문이 위아래로 열림
   var fx = E('div', 'scfx'), dA = E('s', 'a'), dB = E('s', 'b'), nz = E('u'), t1 = E('p', 't1'), t2 = E('p', 't2'), dots = E('em'), fxT = 0, fxT2 = 0;
-  dots.textContent = '…'; t1.append(document.createTextNode(''), dots); var dt = E('b', 'scdots'); dt.innerHTML = '<i>.</i><i>.</i><i>.</i>'; fx.append(dA, dB, nz, t1, t2, dt); app.appendChild(fx);
+  dots.textContent = '…'; t1.append(document.createTextNode(''), dots); fx.append(dA, dB, nz, t1, t2); app.appendChild(fx);
   (function () { try { var c = document.createElement('canvas'); c.width = c.height = 96; var g = c.getContext('2d'), im = g.createImageData(96, 96); for (var i = 0; i < im.data.length; i += 4) { var v = Math.random() * 255 | 0; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; } g.putImageData(im, 0, 0); nz.style.backgroundImage = 'url(' + c.toDataURL() + ')'; } catch (e) {} })();
-  function snd(kind) {
+  function snd(kind, L) {
     try { if (typeof audio !== 'function') return; var a = audio(); if (!a || a.state !== 'running') return; var t = a.currentTime;
       if (kind === 'ring') { tone([440, 480], .42, .05); return; }
-      var len = kind === 'hiss' ? .34 : .05, buf = a.createBuffer(1, Math.ceil(a.sampleRate * len), a.sampleRate), d = buf.getChannelData(0);
+      var len = kind === 'hiss' ? (L || .34) : .05, buf = a.createBuffer(1, Math.ceil(a.sampleRate * len), a.sampleRate), d = buf.getChannelData(0);
       for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (kind === 'hiss' ? (Math.random() < .08 ? 1 : .45) : 1 - i / d.length);
       var src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); src.buffer = buf;
       f.type = kind === 'hiss' ? 'bandpass' : 'lowpass'; f.frequency.value = kind === 'hiss' ? 2600 : 900; f.Q.value = .8;
@@ -83,8 +82,16 @@
   }
   function door(sub, title, color, swap, D, mode) {
     if (reduce() || !fx.animate) { swap(); return; }
+    if (mode === 'static') { // 오락실: 글자·문 없이 지지직만 하다가 바뀜
+      D = D || 650; fx.getAnimations({ subtree: true }).forEach(function (a) { a.cancel(); }); clearTimeout(fxT); clearTimeout(fxT2); fx.classList.add('go', 'st');
+      var sk = [{ opacity: 0, transform: 'translate(0,0)' }];
+      for (var q = 1; q <= 12; q++) sk.push({ opacity: q < 3 ? .5 * q : q > 9 ? .9 - (q - 9) * .28 : (q % 2 ? .95 : .8), transform: 'translate(' + (-Math.random() * 96 | 0) + 'px,' + (-Math.random() * 96 | 0) + 'px)', offset: q / 13, easing: 'steps(1,end)' });
+      sk.push({ opacity: 0, transform: 'translate(0,0)' });
+      nz.animate(sk, { duration: D, fill: 'both' }).onfinish = function () { fx.classList.remove('go', 'st'); };
+      snd('hiss', D / 1000); fxT = setTimeout(swap, D * .5); return;
+    }
     D = D || 1250; fx.style.setProperty('--lc', color || '#2fe0c8'); t1.firstChild.textContent = sub || '연결 중'; t2.textContent = title || '';
-    fx.getAnimations({ subtree: true }).forEach(function (a) { a.cancel(); }); clearTimeout(fxT); clearTimeout(fxT2); fx.classList.add('go'); fx.classList.toggle('lcd', mode === 'dots');
+    fx.getAnimations({ subtree: true }).forEach(function (a) { a.cancel(); }); clearTimeout(fxT); clearTimeout(fxT2); fx.classList.add('go');
     var o = { duration: D, fill: 'both' }, R = .42, Z = .7; // R: 잡음 시작, Z: 딸깍(화면 바꿈)
     // 문: 처음 120ms에 어둡게 켜지고, 딸깍 뒤 위아래로 열림
     var dr = function (el, to) { return el.animate([{ opacity: 0, transform: 'none' }, { opacity: 1, offset: 120 / D }, { opacity: 1, transform: 'none', offset: Z, easing: EO }, { opacity: 1, transform: 'translateY(' + to + ')' }], o); };
@@ -93,8 +100,6 @@
     var jit = []; for (var k = 0; k <= 8; k++) jit.push({ transform: 'translateX(' + (k % 2 ? 1 : -1) * (2 + Math.random() * 7) + 'px)', opacity: Math.random() < .3 ? .35 : 1, offset: R + (Z - R) * k / 8, easing: 'steps(1,end)' });
     [t1, t2].forEach(function (el, i) { el.animate([{ opacity: 0, transform: 'translateY(' + (i ? -6 : 6) + 'px)', easing: EO }, { opacity: 1, transform: 'none', offset: .16 }, { opacity: 1, transform: 'none', offset: R }].concat(jit).concat([{ opacity: 0, transform: 'none', offset: Z + .04 }, { opacity: 0 }]), o); });
     dots.animate([{ opacity: .2 }, { opacity: 1 }], { duration: 300, iterations: 3, easing: 'ease-out' });
-    // 초록 화면 모드: 글자 없이 점 세 개가 하나씩 켜짐(. → .. → ...) → 잡음 → 딸깍
-    if (mode === 'dots') { [].forEach.call(dt.children, function (d, i) { var on = .08 + i * .11; d.animate([{ opacity: 0 }, { opacity: 0, offset: on, easing: 'steps(1,end)' }, { opacity: 1, offset: on + .001 }, { opacity: 1, offset: Z }, { opacity: 0, offset: Z + .04 }, { opacity: 0 }], o); }); dt.animate([{ transform: 'none' }, { transform: 'none', offset: R }].concat(jit.map(function (k) { return { transform: k.transform, offset: k.offset, easing: k.easing }; })).concat([{ transform: 'none', offset: Z }, { transform: 'none' }]), o); }
     // 잡음 층: 잡음 구간에만 깜빡이며 위치가 튐(transform 단계 이동)
     var nk = [{ opacity: 0, transform: 'translate(0,0)', offset: 0 }, { opacity: 0, offset: R, easing: 'steps(1,end)' }];
     for (var j = 1; j <= 10; j++) nk.push({ opacity: j % 3 ? .55 : .3, transform: 'translate(' + (-Math.random() * 96 | 0) + 'px,' + (-Math.random() * 96 | 0) + 'px)', offset: R + (Z - R) * j / 10, easing: 'steps(1,end)' });
@@ -149,7 +154,7 @@
   // ---------- 오락실: 들어갈 때 문 연출 ----------
   if (typeof SH !== 'undefined' && SH[8] && window.openArc) {
     var _oa = window.openArc;
-    SH[8].direct = function () { door('연결 중', outside() ? '고양이가 받았어 · 오락실' : '딜러 레나 · 오락실', '#7dffb5', function () { _oa(); }, 1600, 'dots'); };
+    SH[8].direct = function () { door('연결 중', outside() ? '고양이가 받았어 · 오락실' : '딜러 레나 · 오락실', '', function () { _oa(); }, 650, 'static'); };
   }
 
   // ---------- 다이얼 버튼 배지: 부재중 + 밀린 것 ----------
