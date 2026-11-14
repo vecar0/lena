@@ -248,9 +248,13 @@ function autoBrief() {
   if (!S.name || B0().brief === false || S.briefDay === today()) return;
   { const w = (typeof mcAt === 'function' && mcAt(new Date())) || new Date(new Date().setHours(6, 0, 0, 0)); if (Date.now() < w.getTime()) return; } // v147 새벽엔 안 뜸: 모닝콜(없으면 6시) 뒤에만
   if ($('inc') && $('inc').classList.contains('on')) return setTimeout(autoBrief, 4000);
+  if (document.hidden || curSheet === 'brief') return;
   if ($('sheet').classList.contains('open')) return setTimeout(autoBrief, 4000);
-  S.briefDay = today(); save(); openSheet('brief');
+  openSheet('brief');
 }
+// v148 '봤다'는 화면을 닫거나 다른 화면으로 넘어갈 때 표시(열자마자 표시하면, 업데이트 새로 고침·백그라운드 때 못 보고 지나감)
+{ const _c = closeSheet; closeSheet = function () { if (curSheet === 'brief') { S.briefDay = today(); save(); } return _c.apply(this, arguments); };
+  const _o = openSheet; openSheet = function (n) { if (curSheet === 'brief' && n !== 'brief' && $('sheet').classList.contains('open')) { S.briefDay = today(); save(); } return _o.apply(this, arguments); }; }
 setTimeout(autoBrief, 4500); setInterval(() => { if (!document.hidden) autoBrief(); }, 60e3);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(autoBrief, 2000); });
 

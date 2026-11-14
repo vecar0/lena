@@ -68,9 +68,15 @@
   // 하루 한 번 저절로
   function autoEve() {
     if (!S.name) return; const w = when(); if (S.eveDay === w.k || Date.now() < w.at) return;
+    if (document.hidden || curSheet === 'eve') return;
     if (($('inc') && $('inc').classList.contains('on')) || $('sheet').classList.contains('open') || ($('arc') && $('arc').classList.contains('on'))) return;
-    S.eveDay = w.k; pick = null; save(); openSheet('eve');
+    evK = w.k; pick = null; openSheet('eve');
   }
+  // v148 '봤다'는 닫거나 다른 화면으로 넘어갈 때(열자마자 표시하면 업데이트 새로 고침·백그라운드 때 못 보고 지나감)
+  let evK = '';
+  const seen = () => { if (curSheet === 'eve' && $('sheet').classList.contains('open')) { S.eveDay = evK || when().k; save(); } };
+  { const _c = closeSheet; closeSheet = function () { seen(); return _c.apply(this, arguments); };
+    const _o = openSheet; openSheet = function (n) { if (n !== 'eve') seen(); return _o.apply(this, arguments); }; }
   setInterval(autoEve, 60e3); setTimeout(autoEve, 6000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(autoEve, 2500); });
   // 그 시각 폰 알림
