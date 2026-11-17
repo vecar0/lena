@@ -115,6 +115,7 @@ const _br = boardRender; boardRender = function (B) {
   const ev = {}; dates.forEach(x => { ev[dk(x)] = []; });
   dates.forEach((x, i) => { const d = order[i], k = dk(x); R.filter(r => (!r.days.length || r.days.includes(d)) && !(S.repSkip || {})[r.id + '_' + k]).forEach(r => ev[k].push({ s: toM(r.time), e: toM(repEnd(r)), t: r.text, k: 'fix', r, c: colF(r.text) })); });
   S.items.forEach(t => { if (t.done || t.rid || !t.due || !ev[t.due.slice(0, 10)]) return; const s = toM(t.due.slice(11, 16)); if (!s && t.due.slice(11, 16) !== '00:00') return; if (isEv(t)) ev[t.due.slice(0, 10)].push({ s, e: s + (t.mins || 60), t: t.text, k: 'one', c: '#ff5fa8' }); else ev[t.due.slice(0, 10)].push({ s: Math.max(0, s - 25), e: s, t: t.text + ' 마감', k: 'dl', c: '#f2ea3a' }); });
+  S.items.forEach(t => { if (t.done || t.rid || !t.plan || isEv(t) || !ev[t.plan.slice(0, 10)]) return; const s = toM(t.plan.slice(11, 16)); ev[t.plan.slice(0, 10)].push({ s, e: s + (t.mins || 40), t: t.text, k: 'one', c: t.play ? '#9ff5e4' : '#f2ea3a' }); }); // v149 자리 잡힌 할 일
   try { const P = LS && LS.plan(); (P ? P.days : []).forEach(D => { if (!ev[D.k]) return; { let cur = null; D.blocks.forEach(b => { if (cur && b.s - cur.e <= 20 && !b.school === !cur.school) { cur.e = b.e; cur.raw.push(b); if (!cur.subs.includes(b.sub)) cur.subs.push(b.sub); } else { cur = { s: b.s, e: b.e, subs: [b.sub], raw: [b], school: b.school }; ev[D.k].push(cur); } }); ev[D.k].forEach(o => { if (o.subs) Object.assign(o, { t: o.school ? `🏫 ${o.subs.join('·')}` : `${o.subs.join('·')} 공부`, full: o.school ? `학교에서 ${o.subs.join('·')} 공부` : undefined, k: 'study', c: LS.colOf(o.subs[0]), sub: o.subs[0] }); }); } if (D.play) ev[D.k].push({ s: D.play.s, e: D.play.e, t: '휴식 시간', k: 'play' }); }); } catch (e) {}
   const all = Object.values(ev).flat(), lo = Math.min(9, ...all.map(x => Math.floor(x.s / 60))), hi = Math.max(18, ...all.map(x => Math.ceil(x.e / 60)));
   const PX = 34, H = (hi - lo) * PX, tdw = now0.getDay();
@@ -218,7 +219,9 @@ SH.brief = { t: '오늘 브리핑', s: () => { const d = new Date(); return `${d
   const hd = el('div', 'bhead'); hd.append(el('i', app.classList.contains('outside') ? 'cat' : ''), el('p', null, `${greet} ${sum}`)); wrap.appendChild(hd);
   if (w) { const s = el('div', 'bsec'); s.append(el('h5', null, '날씨'), el('div', 'r', `${w.code === 0 ? '맑음' : w.pop >= 50 ? '비 소식' : '구름'} · ${w.min}~${w.max}° · 강수 ${w.pop}%${w.pop >= 50 ? ' — 우산 챙겨' : ''}`)); wrap.appendChild(s); }
   const s1 = el('div', 'bsec'); s1.appendChild(el('h5', null, '오늘 일정'));
-  if (ev.length) ev.forEach(t => { const r = el('div', 'r' + (isLate(t) ? ' late' : '')); r.append(el('b', null, t.due.slice(11, 16)), document.createTextNode(t.text)); s1.appendChild(r); }); else s1.appendChild(el('div', 'muted', '비어 있어.'));
+  const LF = window.lenaLife, lr = LF ? LF.rowsOf(LF.lday(Date.now())).filter(o => o.kind !== 'gap' && o.kind !== 'rest' && !(o.it && o.it.done)) : null; /* v149: 학교·학원·일정·잡힌 할 일 */
+  if (lr) { lr.forEach(o => { const r = el('div', 'r'); r.append(el('b', null, `${String(Math.floor(o.s / 60) % 24).padStart(2, '0')}:${String(o.s % 60).padStart(2, '0')}`), document.createTextNode(o.txt + (o.kind === 'play' ? ' (놀기)' : ''))); s1.appendChild(r); }); if (!lr.length) s1.appendChild(el('div', 'muted', '비어 있어.')); }
+  else if (ev.length) ev.forEach(t => { const r = el('div', 'r' + (isLate(t) ? ' late' : '')); r.append(el('b', null, t.due.slice(11, 16)), document.createTextNode(t.text)); s1.appendChild(r); }); else s1.appendChild(el('div', 'muted', '비어 있어.'));
   wrap.appendChild(s1);
   // 어제 공부 확인: 어제 계획한 것 중 한 것·못 한 것, 못 한 건 남은 날에 다시 나눠진 결과를 말해 줌
   try { const LS = window.lenaStudy, st = LS.ST(), y = new Date(n.getFullYear(), n.getMonth(), n.getDate() - 1), yk = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(y.getDate()).padStart(2, '0')}`;
@@ -240,7 +243,7 @@ SH.brief = { t: '오늘 브리핑', s: () => { const d = new Date(); return `${d
   if (f) s3.appendChild(el('div', 'r', `${'★'.repeat(f.total)}${'☆'.repeat(5 - f.total)} ${f.line}`)); else s3.appendChild(row(btn('오늘 운세 쪽지 펴기', 'ghost wide', () => openSheet(2))));
   wrap.appendChild(s3);
   B.appendChild(wrap);
-  B.appendChild(row(btn(und.length ? `할 일 ${und.length}개 시간표 짜 주기` : '오늘 시간표 보기', 'teal wide', () => openSheet('plan')), btn('전단지', 'ghost', () => openBoard('today'))));
+  B.appendChild(row(window.lenaLife ? btn('오늘 화면 보기', 'teal wide', () => { closeSheet(); window.lenaLife.go('today'); }) : btn(und.length ? `할 일 ${und.length}개 시간표 짜 주기` : '오늘 시간표 보기', 'teal wide', () => openSheet('plan')), btn('전단지', 'ghost', () => openBoard('today'))));
   B.appendChild(el('div', 'hint', '하루에 한 번, 앱을 처음 열 때 내가 먼저 보여 줄게. 0번 설정 > 레나가 챙길 것에서 끌 수 있어.'));
 } };
 const _on = openSheet; openSheet = function (n) { if (n === 'plan' && !drafting) draft = null; _on(n); if (n === 'plan' || n === 'brief') $('shNum').textContent = '☎'; };

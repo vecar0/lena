@@ -326,6 +326,7 @@ function splan() {
   try { tidy(); } catch (e) {}
   const sig = JSON.stringify([S.study, S.reps, S.repSkip || 0, S.items.filter(t => t.due).map(t => [t.id, t.due, t.mins || 0, t.kind || '', t.done ? 1 : 0]), todayK(), Math.floor(Date.now() / 300000)]); /* v110: 일정 길이·종류·끝냄이 바뀌어도 바로 다시 계산 */
   if (cache && cache.sig === sig) return cache;
+  if (!S.studyPlanOn) { cache = { sig, ...EMPTY, strained: false }; return cache; } // v149: 공부 자동 계획은 끔 — 할 일은 life.js가 자리를 잡음
   let r, strained = false; const n = (() => { try { return horizon(); } catch (e) { return 31; } })();
   try { r = simulate(n); } catch (e) { console.warn('plan', e); S.planErr = String(e && e.message || e).slice(0, 120); cache = { sig, ...EMPTY, strained }; return cache; }
   S.planErr = '';
@@ -425,6 +426,7 @@ function dayRows(k, D) {
   ST().exams.filter(e => e.date === k).forEach(e => add(-1, { kind: 'ex', txt: `${e.name} 시험 · ${exSubs(e).join('·')}` }));
   (S.reps || []).filter(r => (!r.days.length || r.days.includes(d.getDay())) && !(S.repSkip || {})[r.id + '_' + k]).forEach(r => add(toM(r.time), { kind: 'fix', txt: `${r.text} ~${r.end || ''}` }));
   S.items.filter(t => !t.rid && t.due && t.due.slice(0, 10) === k).forEach(t => add(toM(t.due.slice(11, 16)), { kind: t.kind === 'event' ? 'ev' : 'todo', txt: t.kind === 'event' ? t.text : `${t.text} (마감)`, done: t.done, it: t }));
+  S.items.filter(t => t.plan && !t.rid && t.kind !== 'event' && t.plan.slice(0, 10) === k).forEach(t => add(toM(t.plan.slice(11, 16)), { kind: 'pl', txt: t.text, mins: t.mins || 40, done: t.done, it: t })); // v149
   lg.forEach(l => add(l.s, { kind: 'log', sub: l.sub, txt: l.label, mins: l.mins }));
   grp(D ? D.blocks : []).forEach(g => add(g.s, { kind: 'st', sub: g.b.sub, txt: (g.b.school ? '🏫 학교에서 · ' : '') + g.b.parts.map(p => p.t.label).join(' + ') + (g.bs.length > 1 ? ` (~${toT(g.e)})` : ''), mins: g.mins, b: g.b, bs: g.bs }));
   if (D && D.play) add(D.play.s, { kind: 'play', txt: `휴식 시간 ${D.play.e - D.play.s}분`, mins: D.play.e - D.play.s });

@@ -48,7 +48,7 @@ function suggestCard(t, onDone) {
   c.querySelector('.row').appendChild(di); di.onchange = () => { if (!di.value) return; t.due = di.value; save(); pushSync(true); fin(`${when(di.value)}로 붙였어요.`); renderHome(); };
   return c;
 }
-const undated = () => openItems().filter(t => !t.due && t.noSug !== dk(new Date()));
+const undated = () => openItems().filter(t => !t.due && !t.plan && !t.noPlan && t.noSug !== dk(new Date()));
 
 // ---------- D2 끝났는지 묻기 ----------
 const pastDue = () => S.items.filter(t => !t.done && t.due && !t.rid && t.kind !== 'event' && Date.now() - new Date(t.due) > 30 * 60e3 && Date.now() - new Date(t.due) < 3 * DAY);

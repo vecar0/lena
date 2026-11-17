@@ -25,7 +25,7 @@ else {
     if (d.now && d.now.study && !small) T(r, `지금 공부 중 ~${d.now.until}`, C.pink, 10);
   }
   w.addSpacer(8);
-  const rowsOf = (st, list, n) => list.filter(x => x.e > now).slice(0, n).forEach(x => { const s = st.addStack(); s.spacing = 6; T(s, x.t || '종일', x.k === 'st' ? C.teal : x.k === 'todo' ? C.yel : x.k === 'play' ? C.dim : C.pink, 11, true); T(s, x.x, C.txt, 12); st.addSpacer(3); });
+  const rowsOf = (st, list, n) => list.filter(x => x.e > now).slice(0, n).forEach(x => { const s = st.addStack(); s.spacing = 6; T(s, x.t || '종일', x.k === 'st' ? C.teal : x.k === 'todo' || x.k === 'pl' ? C.yel : x.k === 'play' ? C.dim : C.pink, 11, true); T(s, x.x, C.txt, 12); st.addSpacer(3); });
   const body = w.addStack(); body.topAlignContent();
   const L = body.addStack(); L.layoutVertically();
   const left = d.rows.filter(x => x.e > now);
