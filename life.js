@@ -173,6 +173,84 @@
 .lf-ytp{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}.lf-ytp iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .lf-guide{font-size:14px;line-height:1.65}.lf-guide ol{padding-left:20px;margin:6px 0}.lf-guide li{margin-bottom:8px}.lf-guide code{word-break:break-all;background:rgba(255,255,255,.08);padding:1px 4px;border-radius:4px;font-size:12px}
 .lf-ed .opt{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}.lf-ed .opt button{min-height:40px;padding:0 12px;border-radius:8px;font-size:14px}
+
+/* v150 앱 재료로: 비 오는 부스 유리 + 종이·테이프 + 다이얼 키 */
+.lf{background:#07090b;overflow:hidden}
+.lf:before{content:"";position:absolute;inset:-40px;background:url(assets/lena/poster.jpg) center top/cover;filter:blur(24px) brightness(.36) saturate(1.35);pointer-events:none}
+.lf:after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(103deg,transparent 0 26px,rgba(159,245,228,.05) 26px 27px,transparent 27px 70px),linear-gradient(180deg,rgba(255,255,255,.06),transparent 90px),rgba(6,9,11,.42)}
+.lf-pane{z-index:1}
+.lf h1{display:inline;padding:0 4px;color:#fff;background:linear-gradient(transparent 60%,rgba(242,234,58,.55) 60% 94%,transparent 94%)}
+.lf-hd .tm{color:#ff4d7d;font-size:15px}
+.lf-say{display:block;position:relative;margin:20px 2px 4px;padding:30px 54px 14px 16px;background:url(assets/lena/paper_pink.webp) center/cover #ffd3e6;border:2px solid #000;border-radius:3px;box-shadow:5px 6px 0 rgba(0,0,0,.55);transform:rotate(-1.2deg)}
+.lf-say:before{content:"☎ 레나한테서 온 메모";position:absolute;left:16px;top:9px;font:400 14px "Black Han Sans",sans-serif;color:#b0105a}
+.lf-say:after{content:"";position:absolute;right:20px;top:-11px;width:66px;height:20px;background:url(assets/lena/tape_white.webp) center/100% 100%;transform:rotate(8deg)}
+.lf-say img{position:absolute;right:10px;bottom:-16px;width:44px;height:44px;border:2px solid #000;background:#fff}
+.lf-say p{margin:0;background:none;padding:0;border-radius:0;color:#2a0f1c;font-size:15.5px;font-weight:700;line-height:1.55}
+.lf-st{gap:10px;margin-top:24px}
+.lf-st div,.lf-st .y,.lf-st .m{position:relative;background:url(assets/lena/paper_white.webp) center/cover #f3efe6;border:2px solid #000;border-radius:2px;box-shadow:3px 4px 0 rgba(0,0,0,.5);color:#141414;padding:12px 10px 8px}
+.lf-st div:nth-child(1){background:url(assets/lena/paper_yellow.webp) center/cover #f2ea3a;transform:rotate(-1.2deg)}
+.lf-st div:nth-child(2){background:url(assets/lena/paper_teal.webp) center/cover #9ff5e4;transform:rotate(.9deg)}
+.lf-st div:nth-child(3){transform:rotate(-.5deg)}
+.lf-st div:before{content:"";position:absolute;top:-9px;left:50%;width:42px;height:16px;margin-left:-21px;background:url(assets/lena/tape_white.webp) 0 0/100% 100%;transform:rotate(-5deg)}
+.lf-st small{color:#3b3b3b;font-weight:700}.lf-st b,.lf-st .y b,.lf-st .m b{color:#141414}
+.lf-miss{margin-top:18px;background:url(assets/lena/paper_white.webp) center/cover #f3efe6;border:2px solid #000;border-radius:2px;box-shadow:4px 5px 0 rgba(0,0,0,.5);color:#141414;transform:rotate(.4deg)}
+.lf-miss b{color:#d1003f;font-family:"Black Han Sans",sans-serif;font-weight:400;font-size:16px}.lf-miss small{color:#4a4a4a}
+.lf-miss button{background:linear-gradient(#ff6fb3,#ff3d9a);border:3px solid #000;box-shadow:0 3px 0 #000;font-weight:800}
+.lf-miss button:active,.lf-ghost:active,.lf-big:active,.lf-fab:active,.lf-qa .go:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
+.lf-paper{position:relative;margin:22px 2px 6px;padding:24px 12px 14px;background:linear-gradient(rgba(243,239,230,.62),rgba(243,239,230,.62)),#f3efe6 url(assets/lena/paper_white.webp) center/cover;color:#17181a;border:2px solid #000;border-radius:3px;box-shadow:4px 5px 0 rgba(0,0,0,.55);transform:rotate(-.4deg)}
+.lf-paper .tp{position:absolute;top:-11px;left:22px;width:80px;height:22px;background:url(assets/lena/tape_teal1.webp) 0 0/100% 100%;transform:rotate(-5deg)}
+.lf-paper .tp.r{left:auto;right:22px;background-image:url(assets/lena/tape_pink1.webp);transform:rotate(4deg)}
+.lf-paper .lf-r .t{color:#3d3d3d}
+.lf-paper .lf-r.fix,.lf-paper .lf-r.rest,.lf-paper .lf-r.end{opacity:1}
+.lf-paper .lf-r.fix .b,.lf-paper .lf-r.end .b{border-left:3px solid #8a8a8a;color:#555}
+.lf-paper .lf-r.rest .b{border-left:3px dashed #8a8a8a;color:#666}
+.lf-r.todo .b{background:url(assets/lena/paper_yellow.webp) center/cover #f2ea3a;border:2px solid #000;box-shadow:2px 3px 0 rgba(0,0,0,.45);color:#141414}
+.lf-r.play .b{background:url(assets/lena/paper_teal.webp) center/cover #9ff5e4;border:2px solid #000;box-shadow:2px 3px 0 rgba(0,0,0,.45);color:#0d2a25}
+.lf-r.ev .b{background:url(assets/lena/paper_pink.webp) center/cover #ffd1e6;border:2px solid #000;box-shadow:2px 3px 0 rgba(0,0,0,.45);color:#2a0f1c}
+.lf-r.late .b{box-shadow:2px 3px 0 rgba(0,0,0,.45),0 0 0 3px #ff2e6e}
+.lf-r.late .b em{color:#d1003f;font-weight:800}
+.lf-paper .lf-r.gap .b{border:1.5px dashed #1a8f7f;color:#0e6b5f;font-weight:700}
+.lf-ck{border-color:#141414;color:#141414}.lf-r.done .lf-ck{background:#141414}.lf-r.done .lf-ck svg{stroke:#f2ea3a}
+.lf-paper .lf-now b{color:#e0004f}.lf-paper .lf-now i{background:#e0004f}
+.lf h2{color:#9ff5e4;font-size:14px;border-left:4px solid #ff3d9a;padding-left:8px}
+.lf h2 small{color:#b9c4c1}
+.lf-paper .lf-day{color:#4a4a4a;font:400 15px "Black Han Sans",sans-serif;margin:10px 0 4px}.lf-paper .lf-day:first-of-type{margin-top:0}
+.lf-un{background:url(assets/lena/paper_yellow.webp) center/cover #f2ea3a;border:2px dashed #000;color:#141414;font-weight:600}.lf-un em{color:#5a5200}
+.lf-un:nth-child(odd){transform:rotate(-.4deg)}
+.lf-ghost{border-radius:14px;background:linear-gradient(#f2f3ee,#c9cdc4);border:3px solid #000;box-shadow:0 4px 0 #000;color:#111;font-weight:800;font-size:15px;min-height:50px;margin-top:12px}
+.lf-big{border-radius:14px;background:linear-gradient(#ff6fb3,#ff3d9a);border:3px solid #000;box-shadow:0 4px 0 #000;color:#fff;font-weight:800;height:54px;margin-top:12px}
+.lf-fab{border-radius:16px;background:linear-gradient(#ff6fb3,#ff3d9a);border:3px solid #000;box-shadow:0 4px 0 #000;color:#fff;font-weight:800}
+.lf-fab svg{stroke:#fff}
+.lf-ex{position:relative;background:url(assets/lena/paper_white.webp) center/cover #f3efe6;border:2px solid #000;border-radius:2px;box-shadow:4px 5px 0 rgba(0,0,0,.5);color:#141414;margin:16px 2px 10px;padding:16px 14px 12px;transform:rotate(-.6deg)}
+.lf-ex:before{content:"";position:absolute;top:-10px;left:24px;width:70px;height:20px;background:url(assets/lena/tape_yellow.webp) 0 0/100% 100%;transform:rotate(-4deg)}
+.lf-ex b{font:400 18px "Black Han Sans",sans-serif}
+.lf-ex .d{display:inline-block;border:2.5px solid #d1003f;border-radius:4px;padding:0 6px;color:#d1003f;transform:rotate(-5deg)}
+.lf-bar{background:rgba(0,0,0,.12);border:1.5px solid #000;height:10px}.lf-bar i{background:#16c4ad;border-radius:0}
+.lf-ex .s{color:#333;font-weight:600}
+.lf-card{position:relative;background:linear-gradient(rgba(243,239,230,.55),rgba(243,239,230,.55)),#f3efe6 url(assets/lena/paper_white.webp) center/cover;border:2px solid #000;border-radius:2px;box-shadow:4px 5px 0 rgba(0,0,0,.5);color:#141414;margin:18px 2px 12px;padding:10px 12px}
+.lf-card:before{content:"";position:absolute;top:-10px;right:26px;width:66px;height:20px;background:url(assets/lena/tape_teal2.webp) 0 0/100% 100%;transform:rotate(5deg)}
+.lf-card .gh b{font:400 18px "Black Han Sans",sans-serif}.lf-card .gh small{color:#555}
+.lf-card .x{color:#555}
+.lf-q{border-top:1px dashed rgba(0,0,0,.25)}.lf-q i{border-color:#141414}.lf-q.on i{background:#141414}.lf-q.on i svg{stroke:#9ff5e4}.lf-q.on span{color:#777}
+.lf-card .lf-addq input{border:2px solid #000;background:rgba(255,255,255,.7);color:#141414}
+.lf-card .lf-addq button{background:#141414;color:#9ff5e4;font-weight:700}
+.lf-card .lf-ghost{margin-top:4px;margin-bottom:6px}
+.lf-pane>.lf-addq input{background:rgba(0,0,0,.35)}
+.lf-vid{background:url(assets/lena/paper_white.webp) center/cover #f3efe6;border:2px solid #000;border-radius:2px;box-shadow:3px 4px 0 rgba(0,0,0,.5);color:#141414;margin-bottom:12px}
+.lf-vid:nth-child(even){transform:rotate(.4deg)}.lf-vid:nth-child(odd){transform:rotate(-.3deg)}
+.lf-vid .th{border:2px solid #000;border-radius:2px}.lf-vid .tx small{color:#555}
+.lf-muted{color:#c4cfcc}
+.lf-qa{background:#14181a;border-top:2px solid #000;box-shadow:0 -2px 0 rgba(47,224,200,.45),0 -12px 30px rgba(0,0,0,.6)}
+.lf-qa:before{content:"LENA-LINE · 할 일 넣기";display:block;background:#0d1f17;border:2px solid #000;border-radius:8px;padding:6px 10px;margin-bottom:8px;font:12px 'Space Mono',monospace;color:#7dffb5;text-shadow:0 0 6px rgba(125,255,181,.6)}
+.lf-qa input{background:url(assets/lena/paper_white.webp) center/cover #f3efe6;color:#141414;border:2px solid #000}
+.lf-qa .go{background:linear-gradient(#ff6fb3,#ff3d9a);color:#fff;border:3px solid #000;box-shadow:0 3px 0 #000;font-weight:800}
+.lf-qa .r2 button{border:2px solid #000;background:linear-gradient(#f2f3ee,#c9cdc4);color:#111;font-weight:700}
+.lf-qa .r2 button.on{background:url(assets/lena/paper_yellow.webp) center/cover #f2ea3a;border-color:#000}.lf-qa .r2 button.pl.on{background:url(assets/lena/paper_teal.webp) center/cover #9ff5e4;border-color:#000}
+.lf-tab{background:#101315;border-top:2px solid #000;box-shadow:inset 0 2px 0 rgba(47,224,200,.28)}
+.lf-tab button.on{color:#7dffb5;text-shadow:0 0 8px rgba(125,255,181,.6)}.lf-tab button.on svg{filter:drop-shadow(0 0 4px rgba(125,255,181,.6))}
+.lf-tab .lena i{background:linear-gradient(#ff6fb3,#ff3d9a);border:3px solid #000;box-shadow:0 4px 0 #000,0 0 0 4px #101315}
+.lf-tab .lena.on i{box-shadow:0 4px 0 #000,0 0 0 4px #101315,0 0 16px rgba(255,61,154,.7)}
+.lf-tab em{border:1.5px solid #000}
 `;
   document.head.appendChild(css);
 
@@ -264,7 +342,7 @@
     const td = plannedOn(d), left = td.filter(t => !t.done && !t.play).length, playM = td.filter(t => t.play).reduce((a, t) => a + mins(t), 0);
     const st = el('div', 'lf-st'); [['y', '남은 할 일', left + '개'], ['m', '놀기', playM ? (playM >= 60 ? Math.round(playM / 6) / 10 + '시간' : playM + '분') : '0분'], ['', '잘 시간', L().end]].forEach(([c, a, b]) => { const x = el('div', c); x.append(el('small', null, a), el('b', null, b)); st.appendChild(x); }); P.appendChild(st);
     const ms = missedL(); if (ms.length) { const m = el('div', 'lf-miss'), tx = el('div'); tx.append(el('b', null, `못 한 거 ${ms.length}개`), el('small', null, ms.map(t => t.text).join(', '))); const b = el('button', null, '다시 잡기'); b.onclick = () => { const r = replanMissed(); toast(r.map(t => `${t.text} → ${t.plan ? whenTxt(t.plan) : '자리 없음'}`).join(' / ')); render(); }; m.append(tx, b); P.appendChild(m); }
-    const tl = el('div', 'lf-tl'), nowM = (Date.now() - d.getTime()) / 60e3; let nowPut = false;
+    const tl = el('div', 'lf-tl lf-paper'), nowM = (Date.now() - d.getTime()) / 60e3; let nowPut = false; tl.append(el('i', 'tp'), el('i', 'tp r'));
     const rows = rowsOf(d, true); rows.push({ s: DEND(), e: DEND(), kind: 'end', txt: `잘 시간${S.morning ? ' · 알람 ' + S.morning : ''}` });
     rows.forEach(o => { if (!nowPut && o.s > nowM) { const n = el('div', 'lf-now'); n.append(el('b', null, '지금'), el('i')); tl.appendChild(n); nowPut = true; }
       if (o.kind === 'end') { const r = el('div', 'lf-r end'); r.append(el('span', 't', hmM(o.s)), el('div', 'b', o.txt)); tl.appendChild(r); } else tl.appendChild(rowEl(o, d)); });
@@ -289,7 +367,7 @@
     // 시간 정한 것
     const pl = open.filter(t => t.plan && !ms.includes(t)).sort((a, b) => a.plan.localeCompare(b.plan));
     const h3 = el('h2'); h3.append('시간 정한 것', el('small', null, pl.length + '개')); P.appendChild(h3);
-    let lastD = ''; pl.forEach(t => { const d = lday(new Date(t.plan).getTime()), k = dk(d); if (k !== lastD) { P.appendChild(el('div', 'lf-day', dLabel(d))); lastD = k; } const s = relM(d, t.plan); const r = rowEl({ s, e: s + mins(t), kind: t.play ? 'play' : 'todo', txt: t.text, it: t }, d); r.style.marginBottom = '6px'; P.appendChild(r); });
+    const pp = el('div', 'lf-tl lf-paper'); pp.append(el('i', 'tp'), el('i', 'tp r')); let lastD = ''; pl.forEach(t => { const d = lday(new Date(t.plan).getTime()), k = dk(d); if (k !== lastD) { pp.appendChild(el('div', 'lf-day', dLabel(d))); lastD = k; } const s = relM(d, t.plan); pp.appendChild(rowEl({ s, e: s + mins(t), kind: t.play ? 'play' : 'todo', txt: t.text, it: t }, d)); }); if (pl.length) P.appendChild(pp);
     if (!pl.length) P.appendChild(el('div', 'lf-muted', '아직 없어. 오른쪽 아래 + 로 넣어.'));
     // 안 정한 것
     const un = open.filter(t => !t.plan);
@@ -384,7 +462,7 @@
     const P = panes.play; P.innerHTML = '';
     const d = lday(Date.now()), td = plannedOn(d).filter(t => t.play), pm = td.reduce((a, t) => a + mins(t), 0);
     const hd = el('div', 'lf-hd'); hd.append(el('h1', null, '놀기'), el('span', 'tm', `오늘 ${pm >= 60 ? Math.round(pm / 6) / 10 + '시간' : pm + '분'}`)); P.appendChild(hd);
-    if (td.length) { const tl = el('div', 'lf-tl'); td.forEach(t => { const s = relM(d, t.plan); tl.appendChild(rowEl({ s, e: s + mins(t), kind: 'play', txt: t.text, it: t }, d)); }); P.appendChild(tl); }
+    if (td.length) { const tl = el('div', 'lf-tl lf-paper'); tl.append(el('i', 'tp'), el('i', 'tp r')); td.forEach(t => { const s = relM(d, t.plan); tl.appendChild(rowEl({ s, e: s + mins(t), kind: 'play', txt: t.text, it: t }, d)); }); P.appendChild(tl); }
     else P.appendChild(sayEl('오늘 놀기 시간은 아직 안 잡았어. 할 일 넣는 칸에 "게임 1시간"처럼 쓰면 빈 자리에 넣어 줄게.'));
     const add = el('button', 'lf-ghost', '+ 놀기 시간 넣기'); add.onclick = () => { go('today'); qaOpen({ play: true, mins: 60 }); }; P.appendChild(add);
     // 게임
