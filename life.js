@@ -91,6 +91,7 @@
     lena: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>',
     play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3M16 12h.01M18 14h.01"/></svg>',
     dial: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="6" r="1.8"/><circle cx="12" cy="6" r="1.8"/><circle cx="18" cy="6" r="1.8"/><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/><circle cx="6" cy="18" r="1.8"/><circle cx="12" cy="18" r="1.8"/><circle cx="18" cy="18" r="1.8"/></svg>',
+    memo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 11h8M8 15h8M8 19h5"/></svg>',
     plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12l5 5 9-10"/></svg>',
     game: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3M16 12h.01M18 14h.01"/></svg>',
@@ -287,22 +288,44 @@
 .lf-strip button.more{background:linear-gradient(#f2f3ee,#c9cdc4)}
 .lf-strip b{font:700 12px 'Space Mono',monospace}
 .lf-strip span{overflow:hidden;text-overflow:ellipsis}
+
+/* v153 탭 바 평평하게(겹침 없앰)·메모·레나 머리 버튼·오늘 위 버튼 줄 */
+.lf-tab .lena i,.lf-tab .lena.on i{width:40px;height:40px;margin-top:0;border-width:2px;box-shadow:0 2px 0 #000}
+.lf-tab .lena.on i{box-shadow:0 2px 0 #000,0 0 12px rgba(255,61,154,.7)}
+.lf-tab .lena svg{width:20px;height:20px}
+.app.lt:not(.outside) .ctl{display:none!important}
+.app.lt .sub{bottom:calc(62px + var(--sb) + 26px)}
+.lf-ib{flex:none;width:40px;height:40px;border-radius:12px;background:linear-gradient(#f2f3ee,#c9cdc4);border:2px solid #000;box-shadow:0 3px 0 #000;display:grid;place-items:center;position:relative}
+.lf-ib svg{width:20px;height:20px;fill:none;stroke:#111;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lf-ib em{position:absolute;top:-7px;right:-7px;min-width:16px;height:16px;border-radius:8px;background:#ff2e6e;color:#fff;font:700 10px/16px 'Space Mono',monospace;font-style:normal;border:1.5px solid #000;padding:0 3px}
+.app.lt.outside .ahead{gap:8px}
+.lf-keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:18px}
+.app.lt.outside .ahead .hd>p{white-space:nowrap;padding:3px 8px}.app.lt.outside .ahead .hd>p::before,.app.lt.outside .ahead .aeq{display:none}
+.lf-keys button{min-height:44px;border-radius:12px;background:linear-gradient(#f2f3ee,#c9cdc4);border:2px solid #000;box-shadow:0 3px 0 #000;color:#111;font-weight:800;font-size:13px;padding:0 2px;word-break:keep-all;line-height:1.2}
+.lf-keys button:active{transform:translateY(2px);box-shadow:0 1px 0 #000}
+.lf-r.end button.b{cursor:pointer;text-align:left}
+.lf-qa .r0{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:12px;color:#9aa6a3}
+.lf-qa .dial{flex:none;height:36px;padding:0 14px;border-radius:10px;background:linear-gradient(#f2f3ee,#c9cdc4);border:2px solid #000;box-shadow:0 2px 0 #000;color:#111;font-weight:800;font-size:13px}
+.lf-mnew textarea{width:100%;box-sizing:border-box;min-height:84px;font-size:16px;padding:10px;border-radius:6px;border:2px solid #000;background:rgba(255,255,255,.75);color:#141414;font-family:inherit;margin-top:6px}
+.lf-memo{padding:12px 40px 10px 14px}.lf-memo .tx{white-space:pre-wrap;font-size:15px;line-height:1.5}.lf-memo small{display:block;margin-top:6px;font-size:11px;color:#666}
+.lf-memo .x{position:absolute;top:6px;right:6px;color:#555}
+.lf-memo:nth-child(odd){transform:rotate(-.4deg)}.lf-memo:nth-child(even){transform:rotate(.4deg)}
 `;
   document.head.appendChild(css);
 
   const root = el('div', 'lf'); root.id = 'life';
-  const panes = {}; ['today', 'tasks', 'play'].forEach(k => { panes[k] = el('div', 'lf-pane'); root.appendChild(panes[k]); });
+  const panes = {}; ['today', 'tasks', 'play', 'memo'].forEach(k => { panes[k] = el('div', 'lf-pane'); root.appendChild(panes[k]); });
   const fab = el('button', 'lf-fab'); fab.innerHTML = IC.plus; fab.appendChild(document.createTextNode('할 일 넣기')); root.appendChild(fab);
   const qa = el('div', 'lf-qa'); root.appendChild(qa);
   const tab = el('nav', 'lf-tab'); tab.setAttribute('aria-label', '메뉴');
-  const TABS = [['today', '오늘'], ['tasks', '할 일'], ['lena', '레나'], ['play', '놀기'], ['dial', '다이얼']];
+  const TABS = [['today', '오늘'], ['tasks', '할 일'], ['lena', '레나'], ['play', '놀기'], ['memo', '메모']];
   const tb = {}; TABS.forEach(([k, l]) => { const b = el('button', k === 'lena' ? 'lena' : ''); b.innerHTML = k === 'lena' ? `<i>${IC.lena}</i>` : IC[k]; b.appendChild(document.createTextNode(l)); b.onclick = () => go(k); tb[k] = b; tab.appendChild(b); });
   app.append(root, tab); app.classList.add('lt');
 
   let cur = 'lena'; // v151: 열면 늘 레나 대화부터
   function go(k) {
     try { audio(); } catch (e) {}
-    if (k === 'dial') { dtmf(0); openPad(); return; }
+    if (k === 'lena' && cur === 'lena' && !app.classList.contains('outside') && !app.classList.contains('calling')) { $('pickBtn').click(); return; } /* v153: 영상 화면에서 레나 탭 = 수화기 들기 */
     cur = k; L().tab = k; save();
     Object.entries(tb).forEach(([x, b]) => b.classList.toggle('on', x === k));
     app.classList.toggle('lv', k !== 'lena');
@@ -318,8 +341,8 @@
   function qaOpen(o) {
     qo = o || {}; qa.innerHTML = '';
     const i = el('input'); i.placeholder = qo.at ? `${whenTxt(localISO(new Date(qo.at)))}에 할 거` : '예: 수학 숙제 목요일까지 50분'; i.enterKeyHint = 'done'; i.autocomplete = 'off';
-    const goB = el('button', 'go', '넣기'), x = el('button', 'x', '×'); x.setAttribute('aria-label', '닫기');
-    const r1 = el('div', 'r1'); r1.append(i, goB, x);
+    const goB = el('button', 'go', '넣기'), x = el('button', 'x', '×'), dl = el('button', 'dial', '⌗ 다이얼'); dl.onclick = () => { i.blur(); dtmf(0); openPad(); }; x.setAttribute('aria-label', '닫기');
+    const r1 = el('div', 'r1'); r1.append(i, goB, x); const r0 = el('div', 'r0'); r0.append(el('span', null, '자주 하는 건 다이얼로 한 번에'), dl);
     const r2 = el('div', 'r2'), chip = (l, on, fn, cls) => { const b = el('button', (cls || '') + (on ? ' on' : ''), l); b.onclick = () => { fn(); qaOpen(Object.assign(qo, {})); qa.querySelector('input').value = i.value; qa.querySelector('input').focus(); }; r2.appendChild(b); };
     const dOpt = [['오늘까지', 0], ['내일까지', 1], ['이번 주까지', 'w']];
     dOpt.forEach(([l, v]) => chip(l, qo.dv === v, () => { qo.dv = qo.dv === v ? undefined : v; }));
@@ -332,7 +355,7 @@
       toast(t.plan ? `${whenTxt(t.plan)}에 넣었어 · ${mins(t)}분` : '빈 자리가 없어서 시간은 아직이야. 할 일 탭에서 골라.', () => { S.items = S.items.filter(x2 => x2 !== t); save(); render(); });
       render(); i.focus(); };
     goB.onclick = send; i.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); send(); } }; x.onclick = () => { root.classList.remove('qa'); i.blur(); };
-    qa.append(r1, r2, el('div', 'hint', '마감·시간·걸리는 분은 글로 써도 알아들어. 시간 적으면(예: 8시) 그 시간에 넣어.'));
+    qa.append(r0, r1, r2, el('div', 'hint', '마감·시간·걸리는 분은 글로 써도 알아들어. 시간 적으면(예: 8시) 그 시간에 넣어.'));
     root.classList.add('qa'); setTimeout(() => i.focus(), 30);
   }
   fab.onclick = () => qaOpen();
@@ -375,13 +398,14 @@
     const P = panes.today, d = lday(Date.now()), now = new Date(); P.innerHTML = '';
     const hd = el('div', 'lf-hd'); hd.append(el('h1', null, `${d.getMonth() + 1}월 ${d.getDate()}일 ${WDN[d.getDay()]}요일`), el('span', 'tm', hm(now))); P.appendChild(hd);
     P.appendChild(sayEl(lineToday(d)));
+    { const q = el('div', 'lf-keys'); [['아침 브리핑', () => openSheet('brief')], ['저녁 브리핑', () => openSheet('eve')], ['캘린더', () => openSheet('cal')], ['시간표', () => openSheet('tt')]].forEach(([l, f]) => q.appendChild(btn(l, '', f))); P.appendChild(q); } /* v153 */
     const td = plannedOn(d), left = td.filter(t => !t.done && !t.play).length, playM = td.filter(t => t.play).reduce((a, t) => a + mins(t), 0);
     const st = el('div', 'lf-st'); [['y', '남은 할 일', left + '개'], ['m', '놀기', playM ? (playM >= 60 ? Math.round(playM / 6) / 10 + '시간' : playM + '분') : '0분'], ['', '잘 시간', L().end]].forEach(([c, a, b]) => { const x = el('div', c); x.append(el('small', null, a), el('b', null, b)); st.appendChild(x); }); P.appendChild(st);
     const ms = missedL(); if (ms.length) { const m = el('div', 'lf-miss'), tx = el('div'); tx.append(el('b', null, `못 한 거 ${ms.length}개`), el('small', null, ms.map(t => t.text).join(', '))); const b = el('button', null, '다시 잡기'); b.onclick = () => { const r = replanMissed(); toast(r.map(t => `${t.text} → ${t.plan ? whenTxt(t.plan) : '자리 없음'}`).join(' / ')); render(); }; m.append(tx, b); P.appendChild(m); }
     const tl = el('div', 'lf-tl lf-paper'), nowM = (Date.now() - d.getTime()) / 60e3; let nowPut = false; tl.append(el('i', 'tp'), el('i', 'tp r'));
     const rows = rowsOf(d, true); rows.push({ s: DEND(), e: DEND(), kind: 'end', txt: `잘 시간${S.morning ? ' · 알람 ' + S.morning : ''}` });
     rows.forEach(o => { if (!nowPut && o.s > nowM) { const n = el('div', 'lf-now'); n.append(el('b', null, '지금'), el('i')); tl.appendChild(n); nowPut = true; }
-      if (o.kind === 'end') { const r = el('div', 'lf-r end'); r.append(el('span', 't', hmM(o.s)), el('div', 'b', o.txt)); tl.appendChild(r); } else tl.appendChild(rowEl(o, d)); });
+      if (o.kind === 'end') { const r = el('div', 'lf-r end'), b = el('button', 'b', o.txt + ' ›'); b.onclick = () => openSheet(7); r.append(el('span', 't', hmM(o.s)), b); tl.appendChild(r); } else tl.appendChild(rowEl(o, d)); });
     P.appendChild(tl);
     const un = S.items.filter(t => isTodo(t) && !t.done && !t.plan); if (un.length) { const b = el('button', 'lf-ghost', `시간 안 정한 할 일 ${un.length}개 — 할 일 탭에서`); b.onclick = () => go('tasks'); P.appendChild(b); }
   }
@@ -519,7 +543,7 @@
     // 유튜브
     const h3 = el('h2'); h3.append('유튜브 · 구독 새 영상', el('small', null, '')); P.appendChild(h3);
     ytRender(P, h3.lastChild);
-    const ar = el('button', 'lf-ghost', '레나 딜러 오락실'); ar.style.borderColor = 'rgba(255,61,154,.5)'; ar.style.color = '#ff3d9a'; ar.onclick = () => openSheet(8); P.appendChild(ar);
+    const ar = el('button', 'lf-ghost', '레나 딜러 오락실'); ar.style.borderColor = 'rgba(255,61,154,.5)'; ar.style.color = '#ff3d9a'; ar.onclick = () => openSheet(8); { const fo = el('button', 'lf-ghost', '오늘의 운세'); fo.onclick = () => openSheet('fort'); P.appendChild(fo); } P.appendChild(ar);
   }
   function askLena(txt) { go('lena'); setTimeout(() => { const m = $('msg'); if (m) { m.value = txt; m.focus(); try { syncSend(); } catch (e) {} } }, 200); }
 
@@ -595,8 +619,9 @@
     try { autoPlace(); } catch (e) {}
     const ms = missedL().length; tb.tasks.querySelector('em') && tb.tasks.querySelector('em').remove(); if (ms) tb.tasks.appendChild(el('em', null, String(ms)));
     try { renderStrip(); } catch (e) {}
+    try { const ph = $('lfPh'), n = missed().length; if (ph) { ph.querySelector('em') && ph.querySelector('em').remove(); if (n) ph.appendChild(el('em', null, String(n))); } } catch (e) {}
     if (!app.classList.contains('lv')) return;
-    if (cur === 'today') renderToday(); else if (cur === 'tasks') renderTasks(); else if (cur === 'play') renderPlay();
+    if (cur === 'today') renderToday(); else if (cur === 'tasks') renderTasks(); else if (cur === 'play') renderPlay(); else if (cur === 'memo') renderMemo();
   }
   const _cs = closeSheet; closeSheet = function () { const r = _cs.apply(this, arguments); render(); return r; };
   setInterval(() => { if (!document.hidden) render(); }, 60e3);
@@ -611,7 +636,7 @@
 
 
   // ---------- v151: 레나 대화 머리에 영상통화 버튼, 자판기 빼기 ----------
-  { const hd = document.querySelector('#callv .ahead'), vb = el('button', 'lf-vbtn'); vb.innerHTML = '<svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5l6-3.5v10l-6-3.5z"/></svg>영상'; vb.setAttribute('aria-label', '영상통화'); vb.onclick = () => $('aVid').click(); if (hd) hd.appendChild(vb); }
+  { const hd = document.querySelector('#callv .ahead'), vb = el('button', 'lf-vbtn'); vb.innerHTML = '<svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5l6-3.5v10l-6-3.5z"/></svg>영상'; vb.setAttribute('aria-label', '영상통화'); vb.onclick = () => $('aVid').click(); if (hd) { const ic = (svg, lab, f) => { const b = el('button', 'lf-ib'); b.innerHTML = svg; b.setAttribute('aria-label', lab); b.onclick = f; return b; }; const ph = ic('<svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>', '전화·부재중', () => openSheet('call')); ph.id = 'lfPh'; hd.append(ph, ic('<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>', '설정', () => openSheet(0)), vb); } }
   { const _o = openSheet; openSheet = function (n) { if (n === 'shop' || n === 3) return; return _o.apply(this, arguments); }; }
 
   // ---------- v151: 다이얼 = 할 일 프리셋 (누르면 바로 빈 시간에, 길게 누르면 고치기) ----------
@@ -622,7 +647,7 @@
     const K = $('keys'); if (!K) return; K.innerHTML = '';
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].forEach(k => {
       const o = PRE()[k], b = el('button', 'k'); b.dataset.k = k;
-      if (k === '0') { b.append(el('b', null, '0'), el('span', null, '메뉴')); b.onclick = () => { dtmf(0); openSheet('lmenu'); }; }
+      if (k === '0') { b.append(el('b', null, '0'), el('span', null, '직접 넣기')); b.onclick = () => { dtmf(0); closePad(); if (cur !== 'today' && cur !== 'tasks') go('today'); qaOpen(); }; }
       else if (k === '#') { b.append(el('b', null, '#'), el('span', null, '닫기')); b.onclick = () => { dtmf('#'); closePad(); }; }
       else {
         b.classList.add('pre'); if (o && o.p) b.classList.add('play'); if (!o || !o.t) b.classList.add('empty');
@@ -650,12 +675,7 @@
     B.appendChild(row(btn('저장', 'teal wide', () => { closeSheet(); openPad(); })));
     B.appendChild(row(btn('이 번호 비우기', 'ghost wide', () => { o.t = ''; save(); closeSheet(); openPad(); })));
   } };
-  SH.lmenu = { t: '메뉴', s: () => '', r: B => {
-    const M = el('div', 'lf-menu');
-    [['시험 체크', 'lexam'], ['캘린더', 'cal'], ['시간표', 'tt'], ['전화·부재중', 'call'], ['모닝콜', 7], ['메모', 'memo'], ['전단지', 1], ['운세', 'fort'], ['오락실', 8], ['설정', 0]].forEach(([l, id]) => { const b = el('button', null, l); b.onclick = () => openSheet(id); M.appendChild(b); });
-    B.appendChild(M);
-  } };
-  if (typeof NUMOF !== 'undefined') { NUMOF.lpre = '#'; NUMOF.lmenu = '0'; }
+  if (typeof NUMOF !== 'undefined') { NUMOF.lpre = '#'; }
 
   // ---------- v152: 레나 대화 화면에 오늘 할 일 띠 ----------
   const strip = el('div', 'lf-strip'); { const hd = document.querySelector('#callv .ahead'); if (hd) hd.after(strip); }
@@ -668,6 +688,18 @@
     const left = list.length - 4, un = S.items.filter(t => isTodo(t) && !t.done && !t.plan).length;
     if (left > 0 || un) { const b = el('button', 'more'); b.append(el('span', null, left > 0 ? `+${left}개 더` : `시간 안 정한 ${un}개`)); b.onclick = () => go(left > 0 ? 'today' : 'tasks'); strip.appendChild(b); }
     if (!list.length && !un) { const b = el('button', 'more'); b.append(el('span', null, '오늘 할 일 없음 · + 넣기')); b.onclick = () => { go('today'); qaOpen(); }; strip.appendChild(b); }
+  }
+
+  // ---------- v153: 메모 탭 ----------
+  function renderMemo() {
+    const P = panes.memo; P.innerHTML = ''; S.memos = S.memos || [];
+    const hd = el('div', 'lf-hd'); hd.append(el('h1', null, '메모'), el('span', 'tm', `${S.memos.length}개`)); P.appendChild(hd);
+    const c = el('div', 'lf-card lf-mnew'), t = el('textarea'); t.placeholder = '메모 적기… (레나한테 "메모해 둬"라고 해도 돼)'; t.rows = 3;
+    const ok = el('button', 'lf-big', '붙이기'); ok.onclick = () => { const v = t.value.trim(); if (!v) { t.focus(); return; } S.memos.unshift({ id: uid('n'), text: v.slice(0, 2000), at: Date.now() }); save(); render(); };
+    c.append(t, ok); P.appendChild(c);
+    S.memos.forEach(m => { const k = el('div', 'lf-card lf-memo'), tx = el('div', 'tx', m.text), meta = el('small', null, new Date(m.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + (m.by === 'lena' ? ' · 레나가 적음' : ''));
+      k.append(tx, meta, xbtn(() => { S.memos = S.memos.filter(x => x !== m); save(); render(); toast('메모 지웠어.', () => { S.memos.push(m); S.memos.sort((a, b) => b.at - a.at); save(); render(); }); })); P.appendChild(k); });
+    if (!S.memos.length) P.appendChild(el('div', 'lf-muted', '아직 메모가 없어.'));
   }
 
   window.lenaLife = { go, render, parse, quickAdd, findSlot, free, fixed, autoPlace, replanMissed, missedL, rowsOf, lday, YT, ends: d => plannedOn(d).map(t => relM(d, t.plan) + mins(t)) };
