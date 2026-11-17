@@ -16,6 +16,7 @@
     (S.reps || []).forEach(r => { if ((r.days || []).length && !r.days.includes(wd)) return; if ((S.repSkip || {})[r.id + '_' + k]) return; const s = toM(r.time); if (s == null) return; ends.push(toM(r.end) || s + 60); });
     (S.items || []).forEach(t => { if (t.rid || !t.due || t.due.slice(0, 10) !== k || t.kind !== 'event') return; const s = toM(t.due.slice(11, 16)); if (s != null) ends.push(s + (t.mins || 60)); });
     try { const LS = window.lenaStudy, st = LS.ST(); (st.log[k] || []).forEach(l => ends.push(l.e || l.s + (l.mins || 0))); ((st.pk || {})[k] || []).forEach(b => ends.push(b.e)); if (k === LS.todayK()) { const D = LS.plan().days[0]; if (D) { D.blocks.forEach(b => ends.push(b.e)); if (D.play) ends.push(D.play.e); } } } catch (e) {}
+    try { window.lenaLife.ends(d).forEach(e => ends.push(e)); } catch (e) {} // v149
     return ends.length ? Math.max(...ends) : null;
   }
   // 남은 공부는 '지금' 뒤로 계속 밀리니까, 한 번 정한 시각이 지나면 다시 계산하지 않음
@@ -28,7 +29,7 @@
   // 내일 첫 일정 90분 전(10분 단위 내림, 5:00~10:00), 일정 없으면 지금 모닝콜이나 7:30
   function tomorrowRows() {
     const d = baseDay(); d.setDate(d.getDate() + 1); const k = keyOf(d);
-    try { const LS = window.lenaStudy, D = LS.plan().days.find(x => x.k === k); return { d, rows: LS.dayRows(k, D) }; } catch (e) { return { d, rows: [] }; }
+    try { const F = window.lenaLife; if (F) return { d, rows: F.rowsOf(d).filter(r => r.kind !== 'gap').map(r => ({ s: r.s, kind: r.kind, txt: r.kind === 'fix' ? `${r.txt} ~${hmOf(r.e)}` : r.txt })) }; /* v149 */ const LS = window.lenaStudy, D = LS.plan().days.find(x => x.k === k); return { d, rows: LS.dayRows(k, D) }; } catch (e) { return { d, rows: [] }; }
   }
   function recWake(rows) {
     const first = rows.filter(r => (r.kind === 'fix' || r.kind === 'ev') && r.s >= 4 * 60).sort((a, b) => a.s - b.s)[0];
@@ -38,15 +39,18 @@
     return { m, why: `내일 ${hmOf(first.s)} '${nm}'${ga} 첫 일정이라, 준비 시간 90분 잡았어.` };
   }
 
-  let pick = null;
+  let pick = null, mv = null;
   SH.eve = { t: '저녁 브리핑', s: () => '', r: B => {
     const d = baseDay(), k = keyOf(d), wrap = el('div', 'brief');
-    const doneN = (S.items || []).filter(t => t.done && t.doneAt && keyOf(new Date(t.doneAt)) === k).length;
-    let studied = 0, planned = 0; try { const st = window.lenaStudy.ST(); studied = (st.log[k] || []).reduce((a, l) => a + l.mins, 0); planned = st.pl[k] || 0; } catch (e) {}
-    const miss = Math.max(0, planned - studied);
-    const hd = el('div', 'bhead'); hd.append(el('i', app.classList.contains('outside') ? 'cat' : ''), el('p', null, `수고했어, ${S.name || ''}. 오늘 일정 다 끝났네. ${miss ? `공부는 ${miss}분 못 했는데, 남은 날에 다시 나눠 놨으니까 걱정 마.` : studied ? '공부도 계획만큼 다 했어. …칭찬해 줄까?' : '오늘은 푹 쉬어.'}`)); wrap.appendChild(hd);
-    const s1 = el('div', 'bsec'); s1.appendChild(el('h5', null, '오늘 정리'));
-    s1.appendChild(el('div', 'r', `끝낸 일 ${doneN}개 · 공부 ${studied}분${planned ? ` / 계획 ${planned}분` : ''}`)); wrap.appendChild(s1);
+    // v149: 오늘 한 것 + 못 한 건 빈 자리로 옮김
+    const doneL = (S.items || []).filter(t => t.done && !t.auto && t.kind !== 'event' && t.doneAt && keyOf(new Date(t.doneAt)) === k);
+    if (!mv || mv.k !== k) { mv = { k, L: [] }; try { mv.L = window.lenaLife.replanMissed(); } catch (e) {} } const moved = mv.L;
+    const hd = el('div', 'bhead'); hd.append(el('i', app.classList.contains('outside') ? 'cat' : ''), el('p', null, `수고했어, ${S.name || ''}. ${doneL.length ? `오늘 ${doneL.length}개 했네.` : '오늘은 체크한 게 없네.'} ${moved.length ? `못 한 ${moved.length}개는 빈 자리로 옮겨 놨어.` : doneL.length ? '…칭찬해 줄까?' : '내일은 하나만 해 보자.'}`)); wrap.appendChild(hd);
+    const s1 = el('div', 'bsec'); s1.appendChild(el('h5', null, '오늘 한 것'));
+    doneL.forEach(t => s1.appendChild(el('div', 'r', '✓ ' + t.text)));
+    moved.forEach(t => s1.appendChild(el('div', 'r', `→ ${t.text} · ${t.plan ? t.plan.slice(5, 16).replace('-', '/').replace('T', ' ') : '자리 없음(할 일 탭)'}`)));
+    if (!doneL.length && !moved.length) s1.appendChild(el('div', 'muted', '없어.'));
+    wrap.appendChild(s1);
     const { d: td, rows } = tomorrowRows(), s2 = el('div', 'bsec'); s2.appendChild(el('h5', null, `내일 (${td.getMonth() + 1}/${td.getDate()})`));
     const show = rows.filter(r => r.kind !== 'log').slice(0, 6);
     if (show.length) show.forEach(r => { const x = el('div', 'r'); x.append(el('b', null, r.s >= 0 ? hmOf(r.s) : '종일'), document.createTextNode(r.txt)); s2.appendChild(x); }); else s2.appendChild(el('div', 'muted', '잡힌 게 없어.'));

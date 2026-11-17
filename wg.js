@@ -27,7 +27,7 @@ function stateData() {
   const done = (st0.log[k] || []).reduce((a, l) => a + (l.mins || 0), 0), planned = Math.max(st0.pl[k] || 0, done + ((D && D.mins) || 0));
   const todos = openItems().filter(t => !isEv(t)).sort((a, b) => (a.due || '9').localeCompare(b.due || '9')).slice(0, 10).map(t => ({ x: t.text, d: t.due ? t.due.slice(5, 16).replace('-', '/').replace('T', ' ') : '', l: isLate(t) ? 1 : 0 }));
   const st = [];
-  P.days.slice(0, 2).forEach(Dy => { const b0 = mid(Dy.k); (Dy.blocks || []).forEach(b => { if (b.school || b.sub === '할 일' || b.sub === '루틴') return; st.push({ s: b0 + b.s * 60e3, e: b0 + b.e * 60e3, l: [b.sub, ...(b.parts || []).map(p => p.t && p.t.label)].filter(Boolean).join(' ').slice(0, 40) || '공부' }); }); });
+  S.items.forEach(t => { if (t.done || t.play || !t.plan || isEv(t)) return; const s = new Date(t.plan).getTime(); if (s < Date.now() + 2 * 864e5) st.push({ s, e: s + (t.mins || 40) * 60e3, l: t.text.slice(0, 40) }); }); // v149: 자리 잡힌 할 일 시간
   return { w: { date: `${now.getMonth() + 1}/${now.getDate()} ${WDK[now.getDay()]}`, rows, todos, tom, tdate: `${tm.getMonth() + 1}/${tm.getDate()} ${WDK[tm.getDay()]}`, wx: wd ? `${WXN(wd.code)} ${wd.min}~${wd.max}°` + (wd.pop >= 30 ? ` ☂${wd.pop}%` : '') : '', exam: ex ? `${ex.name} ${dday ? 'D-' + dday : 'D-DAY'}` : '', study: { done, plan: planned }, late: openItems().filter(isLate).length, mc: S.morning || '', miss: (typeof missed === 'function' ? missed().length : 0) }, st: st.filter(b => b.e > Date.now()), on: S.lockOn !== false, pause: S.lockPause || 0, tz: now.getTimezoneOffset() };
 }
 let last = '', sT = 0;
