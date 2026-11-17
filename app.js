@@ -146,11 +146,11 @@ function renderHome() {
     f.onclick = () => openBoard('today'); F.appendChild(f);
   }
   // v83: 노랑 = 할 일 전부(마감 가까운 것 먼저, 마감 없는 건 뒤), 줄마다 '~마감'
-  const todo = openItems().filter(t => !isEv(t) && !t.rid).sort((a, b) => (a.due || '9').localeCompare(b.due || '9')), doneToday = S.items.filter(t => t.done && !isEv(t) && t.doneAt && dk(new Date(t.doneAt)) === dk(now));
+  const todo = openItems().filter(t => !isEv(t) && !t.rid).sort((a, b) => (a.plan || a.due || '9').localeCompare(b.plan || b.due || '9')) /* v152: 자리 잡힌 시간 순 */, doneToday = S.items.filter(t => t.done && !isEv(t) && t.doneAt && dk(new Date(t.doneAt)) === dk(now));
   if (todo.length || doneToday.length) {
     const f = el('button', 'fly f2'); f.append(el('div', 'tp'), el('small', null, todo.length ? `할 일 ${todo.length}` : '할 일 끝!'));
     f.querySelector('.tp').style.backgroundImage = 'url(assets/lena/tape_teal1.webp)';
-    todo.slice(0, 3).forEach(t => { const i = el('i', t.due && new Date(t.due) < now ? 'late' : null, t.text); if (t.due) i.appendChild(el('em', null, '~' + when(t.due).replace(/ 00:00$/, ''))); f.appendChild(i); });
+    todo.slice(0, 3).forEach(t => { const i = el('i', t.due && new Date(t.due) < now ? 'late' : null, t.text); if (t.plan) i.appendChild(el('em', null, when(t.plan))); else if (t.due) i.appendChild(el('em', null, '~' + when(t.due).replace(/ 00:00$/, ''))); f.appendChild(i); });
     if (todo.length < 3) doneToday.slice(-1).forEach(t => f.appendChild(el('i', 'd', t.text)));
     if (todo.length > 3) f.appendChild(el('u', null, `+${todo.length - 3}개 더`));
     f.onclick = () => openBoard('all'); F.appendChild(f);

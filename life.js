@@ -271,6 +271,22 @@
 .lf-menu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .lf-menu button{min-height:72px;border-radius:14px;background:linear-gradient(#f2f3ee,#c9cdc4);border:3px solid #000;box-shadow:0 4px 0 #000;color:#111;font-weight:800;font-size:14px}
 .lf-menu button:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
+
+/* v152 레나 화면 배치: 탭 바 위로 올림 + 할 일 띠 */
+.app.lt .ctl{bottom:calc(62px + var(--sb) + 36px)}
+.app.lt .sub{bottom:calc(62px + var(--sb) + 150px)}
+.app.lt .ctl>div:has(#dialBtn){display:none!important}
+.lf-strip{display:none;gap:8px;padding:10px 14px 4px;overflow-x:auto;scrollbar-width:none;flex:none}
+.lf-strip::-webkit-scrollbar{display:none}
+.app.lt.outside .lf-strip{display:flex}
+.lf-strip button{flex:none;max-width:200px;display:flex;align-items:center;gap:6px;height:40px;padding:0 12px;border:2px solid #000;border-radius:4px;box-shadow:2px 3px 0 rgba(0,0,0,.55);background:url(assets/lena/paper_yellow.webp) center/cover #f2ea3a;color:#141414;font-size:13.5px;font-weight:700;white-space:nowrap}
+.lf-strip button:nth-child(odd){transform:rotate(-1deg)}.lf-strip button:nth-child(even){transform:rotate(1deg)}
+.lf-strip button.pl{background:url(assets/lena/paper_teal.webp) center/cover #9ff5e4}
+.lf-strip button.ev{background:url(assets/lena/paper_pink.webp) center/cover #ffd1e6}
+.lf-strip button.late{box-shadow:2px 3px 0 rgba(0,0,0,.55),0 0 0 2px #ff2e6e}
+.lf-strip button.more{background:linear-gradient(#f2f3ee,#c9cdc4)}
+.lf-strip b{font:700 12px 'Space Mono',monospace}
+.lf-strip span{overflow:hidden;text-overflow:ellipsis}
 `;
   document.head.appendChild(css);
 
@@ -291,7 +307,7 @@
     Object.entries(tb).forEach(([x, b]) => b.classList.toggle('on', x === k));
     app.classList.toggle('lv', k !== 'lena');
     root.classList.remove('qa');
-    if (k === 'lena') { if (!app.classList.contains('calling') && app.classList.contains('outside')) openCall(); return; }
+    if (k === 'lena') { if (!app.classList.contains('calling') && app.classList.contains('outside')) openCall(); render(); return; }
     Object.entries(panes).forEach(([x, p]) => p.classList.toggle('on', x === k));
     root.classList.toggle('fab', k === 'today' || k === 'tasks');
     render();
@@ -578,6 +594,7 @@
   function render() {
     try { autoPlace(); } catch (e) {}
     const ms = missedL().length; tb.tasks.querySelector('em') && tb.tasks.querySelector('em').remove(); if (ms) tb.tasks.appendChild(el('em', null, String(ms)));
+    try { renderStrip(); } catch (e) {}
     if (!app.classList.contains('lv')) return;
     if (cur === 'today') renderToday(); else if (cur === 'tasks') renderTasks(); else if (cur === 'play') renderPlay();
   }
@@ -639,6 +656,19 @@
     B.appendChild(M);
   } };
   if (typeof NUMOF !== 'undefined') { NUMOF.lpre = '#'; NUMOF.lmenu = '0'; }
+
+  // ---------- v152: 레나 대화 화면에 오늘 할 일 띠 ----------
+  const strip = el('div', 'lf-strip'); { const hd = document.querySelector('#callv .ahead'); if (hd) hd.after(strip); }
+  function renderStrip() {
+    strip.innerHTML = ''; const d = lday(Date.now()), now = Date.now();
+    const ms = missedL(), td = plannedOn(d).filter(t => !t.done && !ms.includes(t)).sort((a, b) => a.plan.localeCompare(b.plan));
+    const evs = fixed(d).list.filter(x => x.kind === 'ev' && d.getTime() + x.e * 60e3 > now);
+    const list = ms.map(t => ({ c: 'late', b: '못 함', t: t.text, it: t })).concat(evs.map(x => ({ c: 'ev', b: hmM(x.s), t: x.txt, s: x.s })), td.map(t => ({ c: t.play ? 'pl' : '', b: hmM(relM(d, t.plan)), t: t.text, it: t, s: relM(d, t.plan) }))).sort((a, b) => (a.c === 'late' ? -1 : a.s) - (b.c === 'late' ? -1 : b.s));
+    list.slice(0, 4).forEach(o => { const b = el('button', o.c); b.append(el('b', null, o.b), el('span', null, o.t)); b.onclick = () => o.it ? edit(o.it) : go('today'); strip.appendChild(b); });
+    const left = list.length - 4, un = S.items.filter(t => isTodo(t) && !t.done && !t.plan).length;
+    if (left > 0 || un) { const b = el('button', 'more'); b.append(el('span', null, left > 0 ? `+${left}개 더` : `시간 안 정한 ${un}개`)); b.onclick = () => go(left > 0 ? 'today' : 'tasks'); strip.appendChild(b); }
+    if (!list.length && !un) { const b = el('button', 'more'); b.append(el('span', null, '오늘 할 일 없음 · + 넣기')); b.onclick = () => { go('today'); qaOpen(); }; strip.appendChild(b); }
+  }
 
   window.lenaLife = { go, render, parse, quickAdd, findSlot, free, fixed, autoPlace, replanMissed, missedL, rowsOf, lday, YT, ends: d => plannedOn(d).map(t => relM(d, t.plan) + mins(t)) };
   go(cur);
