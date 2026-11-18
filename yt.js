@@ -29,7 +29,8 @@
     return call(u(q), { headers: { Authorization: 'Bearer ' + await LY.token() } });
   }
   const POP = {};
-  async function popular(cat) { const k = cat || '0'; if (POP[k] && Date.now() - POP[k].at < 30 * 60e3) return POP[k].list; const j = await api('videos', { part: 'snippet,contentDetails,statistics', chart: 'mostPopular', regionCode: 'KR', hl: 'ko', maxResults: 30, ...(cat ? { videoCategoryId: cat } : {}) }); const list = (j.items || []).map(x => vOf(x)); await chans(list.map(v => v.cid)); POP[k] = { at: Date.now(), list }; return list; }
+  async function popular(cat) { const k = cat || '0'; if (POP[k] && Date.now() - POP[k].at < 30 * 60e3) return POP[k].list; const j = await api('videos', { part: 'snippet,contentDetails,statistics', chart: 'mostPopular', regionCode: 'KR', hl: 'ko', maxResults: 30, ...(cat ? { videoCategoryId: cat } : {}) }); const list = (j.items || []).map(x => vOf(x)); await chans(list.map(v => v.cid)); POP[k] = { at: Date.now(), list, next: j.nextPageToken || '' }; return list; }
+  async function popularP(cat, pt) { const j = await api('videos', { part: 'snippet,contentDetails,statistics', chart: 'mostPopular', regionCode: 'KR', hl: 'ko', maxResults: 24, pageToken: pt, ...(cat ? { videoCategoryId: cat } : {}) }); const list = (j.items || []).map(x => vOf(x)); await chans(list.map(v => v.cid)); return { list, next: j.nextPageToken || '' }; }
   async function feed() {
     const sl = await subs(), since = Date.now() - 10 * 864e5, got = []; let i = 0;
     const work = async () => { while (i < sl.length) { const c = sl[i++]; try { (await uploads(c.cid, 4)).forEach(v => { if (v.at > since) got.push(v); }); } catch (e) {} } };
@@ -210,6 +211,18 @@
 .yt-msh{border-radius:16px 16px 0 0}
 .yt-ban{border-radius:12px}
 .yt-inf{border-radius:12px}
+
+.yt-cpan{position:absolute;left:0;right:0;bottom:0;z-index:5;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:rgba(14,18,20,.97);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:2px solid #000;border-radius:16px 16px 0 0;box-shadow:0 -2px 0 rgba(47,224,200,.45),0 -12px 30px rgba(0,0,0,.6);padding-bottom:calc(16px + var(--sb))}
+.yt-cpan>.yt-h{position:sticky;top:0;z-index:1;margin:0;padding:14px 8px 10px 14px;background:rgba(14,18,20,.98);align-items:center;border-bottom:1px solid rgba(255,255,255,.08)}
+.yt-cpan>.yt-h:before{content:"";position:absolute;left:50%;top:5px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:rgba(255,255,255,.25)}
+.yt-cx{flex:none;width:44px;height:44px;margin:-8px 0;border:0;background:none;border-radius:50%;display:grid;place-items:center;padding:0}
+.yt-cx svg{width:22px;height:22px;fill:none;stroke:#eef4f1;stroke-width:2.2;stroke-linecap:round}
+.yt-cx:active{background:rgba(159,245,228,.18)}
+.yt-cmw.cl{cursor:pointer}
+.yt-cmw:not(.cl) .yt-h .tg{display:none}
+.yt-desc{position:relative}
+.yt-dm{display:block;margin-top:8px;font-weight:800;color:#0b7d6d}.yt-dm:after{content:"간략히"}
+.yt-desc.cl .yt-dm{position:absolute;right:10px;bottom:8px;margin:0;padding-left:18px;background:linear-gradient(90deg,transparent,#efe9dd 14px)}.yt-desc.cl .yt-dm:after{content:"…더보기"}
 `;
   document.head.appendChild(css);
   const SV = {
@@ -241,7 +254,7 @@
   TABS.forEach(([k, l, svg]) => { const b = E('button'); b.innerHTML = svg; b.appendChild(document.createTextNode(l)); b.dataset.k = k; b.onclick = () => { st.stack = []; tab(k); }; nav.appendChild(b); });
   function tab(k) { st.tab = k; nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); draw(); }
   function push(p) { st.stack.push(p); draw(); }
-  function back() { st.stack.pop(); draw(); }
+  function back() { if (cpan) { cmClose(); return; } st.stack.pop(); draw(); }
   function open(p) { if (!S.yt || !S.yt.on) { openSheet('lyt'); return; } root.classList.add('on'); st.stack = p ? [p] : []; tab(st.tab || 'home'); }
   function close() { stop(); root.classList.remove('on'); body.innerHTML = ''; try { lenaLife.render(); } catch (e) {} }
 
@@ -342,7 +355,18 @@
   function shortCard(v) { const b = E('button', 'yt-sh'); b.append(thumb(v), E('b', null, v.t)); b.onclick = W(v); return b; }
   function chanRow(c) { const b = E('button', 'yt-crow'), a = E('span', 'yt-av'), d = E('div'); if (c.av) a.style.backgroundImage = `url("${c.av}")`; const x = S.ytCh[c.cid]; d.append(E('b', null, c.n), E('small', null, x ? [x.hide ? '' : `구독자 ${num(x.subs)}명`, `동영상 ${num(x.vids)}개`].filter(Boolean).join(' · ') : (c.d || ''))); b.append(a, d); b.onclick = () => push({ v: 'chan', cid: c.cid }); return b; }
   const chips = (L, on, f) => { const ch = E('div', 'yt-chips'); L.forEach(([k, l]) => { const b = E('button', on === k ? 'on' : '', l); b.onclick = () => f(k); ch.appendChild(b); }); return ch; };
-  const more = (box, f) => { const b = E('button', 'yt-more', '더 보기'); b.onclick = async () => { b.disabled = true; b.textContent = '불러오는 중…'; try { const left = await f(); if (left) { b.disabled = false; b.textContent = '더 보기'; box.appendChild(b); } else b.remove(); } catch (e) { b.textContent = errTxt(e); } }; box.appendChild(b); };
+  let obs = [], cpan = null;
+  const RM = matchMedia('(prefers-reduced-motion: reduce)');
+  // 끝까지 내려가면 다음 것을 저절로 불러옴(버튼은 불러오는 동안 보이는 자리 표시)
+  const more = (box, f) => { const b = E('button', 'yt-more', '더 보기'); let io = null;
+    b.onclick = async () => { if (b.disabled) return; b.disabled = true; b.textContent = '불러오는 중…'; try { const left = await f(); if (left && b.isConnected) { b.disabled = false; b.textContent = '더 보기'; box.appendChild(b); if (io) { io.unobserve(b); io.observe(b); } } else { b.remove(); if (io) io.disconnect(); } } catch (e) { b.textContent = errTxt(e); } };
+    box.appendChild(b); io = new IntersectionObserver(es => { if (es[0].isIntersecting && !b.disabled) b.onclick(); }, { root: b.closest('.yt-cpan') || body, rootMargin: '0px 0px 700px 0px' }); io.observe(b); obs.push(io); };
+  // 목록이 끝나면 인기 영상을 이어 붙임(쪽 열쇠 pt: null = 첫 쪽부터, '' = 더 없음)
+  function endless(box, cat, shown, title, pt, mk) { if (pt === '') return; let first = true;
+    const page = async () => { let r; if (pt === null) { await popular(cat); const c = POP[cat || '0']; r = { list: c.list, next: c.next }; } else r = await popularP(cat, pt); pt = r.next;
+      const L = r.list.filter(v => ok(v) && !short(v) && !shown.has(v.id)); if (L.length && first && title) box.appendChild(E('div', 'yt-h', title)); first = false; L.forEach(v => { shown.add(v.id); box.appendChild((mk || card)(v)); }); return pt; };
+    more(box, page); }
+  function cmClose(now) { const pn = cpan; if (!pn) return; cpan = null; if (now || RM.matches) { pn.remove(); return; } pn.animate([{ transform: 'none' }, { transform: 'translateY(100%)' }], { duration: 200, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }).onfinish = () => pn.remove(); }
   const msg = t => E('div', 'yt-msg', t);
   const errTxt = e => /login|401/.test(String(e && (e.code || e.message))) ? '구글 로그인이 풀렸어. 놀기 탭 › 유튜브 설정에서 다시 로그인해 줘.' : /403/.test(String(e && e.message)) ? '오늘 쓸 수 있는 유튜브 양을 다 썼어(구글 하루 한도). 내일 다시 돼.' : '유튜브를 못 불러왔어. 잠깐 뒤 다시 해 봐.';
   async function load(B, f) { const w = msg('불러오는 중…'); B.appendChild(w); try { await f(); w.remove(); } catch (e) { w.textContent = errTxt(e); if (/login/.test(String(e && e.code))) S.yt.on = 0; } }
@@ -351,7 +375,7 @@
   // ---------- 화면들 ----------
   let gen = 0, shObs = null;
   function draw() {
-    const my = ++gen, p = st.stack[st.stack.length - 1]; if (shObs) { shObs.disconnect(); shObs = null; }
+    const my = ++gen, p = st.stack[st.stack.length - 1]; if (shObs) { shObs.disconnect(); shObs = null; } obs.forEach(o => o.disconnect()); obs = []; cmClose(true);
     body.innerHTML = ''; body.className = 'yt-body'; body.scrollTop = 0;
     const alive = () => my === gen, watch = !!(p && p.v === 'watch');
     topBar(p && p.v === 'search' ? 'search' : '');
@@ -366,14 +390,15 @@
   function vHome(alive) {
     body.appendChild(chips(CH, st.chip, k => { st.chip = k; draw(); }));
     const box = E('div'); body.appendChild(box);
-    if (st.chip === 'pop' || /^c\d/.test(st.chip)) { const cat = st.chip === 'pop' ? '' : st.chip.slice(1); load(box, async () => { const L = (await popular(cat)).filter(ok); if (!alive()) return; if (!L.length) box.appendChild(msg('이 주제는 지금 인기 영상이 없어.')); L.forEach(v => box.appendChild(card(v))); }); return; }
+    if (st.chip === 'pop' || /^c\d/.test(st.chip)) { const cat = st.chip === 'pop' ? '' : st.chip.slice(1); load(box, async () => { const L = (await popular(cat)).filter(ok); if (!alive()) return; if (!L.length) box.appendChild(msg('이 주제는 지금 인기 영상이 없어.')); L.forEach(v => box.appendChild(card(v))); endless(box, cat, new Set(L.map(v => v.id)), '', POP[cat || '0'].next); }); return; }
     const put = list => { if (!alive()) return; box.innerHTML = ''; const seen = new Set(S.ytHist.map(h => h.id)), t0 = new Date(); t0.setHours(0, 0, 0, 0);
       if (st.chip === 'all') { const cont = S.ytHist.filter(h => h.p > 2 && h.p < 95).slice(0, 10); if (cont.length) { const h = E('div', 'yt-h'); h.append(E('span', null, '이어서 보기')); box.appendChild(h); const pv = E('div', 'yt-pv'); pv.style.padding = '0 14px'; cont.forEach(v => { const b = E('button'); b.append(thumb(v), E('b', null, v.t)); b.onclick = W(v); pv.appendChild(b); }); box.appendChild(pv); } }
       let L = st.chip === 'later' ? S.ytLater : list.filter(v => !short(v) && ok(v));
       if (st.chip === 'today') L = L.filter(v => v.at >= t0.getTime()); if (st.chip === 'new') L = L.filter(v => !seen.has(v.id)); if (st.chip === 'long') L = L.filter(v => v.dur >= 1200); if (st.chip === 'short') L = L.filter(v => v.dur && v.dur <= 600);
       if (!L.length) box.appendChild(msg(st.chip === 'later' ? '나중에 볼 영상이 없어. 영상 화면에서 \'나중에\'를 눌러 둬.' : '보여 줄 영상이 없어. 위의 \'인기 급상승\'도 봐 봐.'));
+      if (st.chip !== 'later' && L.length) { const r = E('button', 'yt-more', `↻ 새로 고침 · ${S.ytFeed ? ago(S.ytFeed.at) : ''}`); r.onclick = () => { S.ytFeed = null; draw(); }; box.appendChild(r); }
       L.forEach(v => box.appendChild(card(v)));
-      if (st.chip !== 'later') { const r = E('button', 'yt-more', `새로 고침 · ${S.ytFeed ? ago(S.ytFeed.at) : ''}`); r.onclick = () => { S.ytFeed = null; draw(); }; box.appendChild(r); } };
+      if (st.chip === 'all' || st.chip === 'new') endless(box, '', new Set(L.map(v => v.id)), '더 볼 만한 영상', null); };
     if (fresh() || st.chip === 'later') put(S.ytFeed ? S.ytFeed.list : []); else load(box, async () => put(await ensureFeed()));
   }
   // 쇼츠: 위아래로 넘겨 보기(보이는 것만 재생)
@@ -518,7 +543,7 @@
       const op = E('a', null, '유튜브 앱 (댓글 쓰기)'); op.href = `https://youtu.be/${v.id}`; op.target = '_blank'; op.rel = 'noopener';
       const mn = E('button', null, '⋯'); mn.setAttribute('aria-label', '더보기'); mn.onclick = () => menu(v);
       acts.append(lk, pb, lb, sh, ln, op, mn); w.appendChild(acts);
-      if (v.desc) { const d = E('div', 'yt-desc cl'); d.append(E('b', null, [v.views ? `조회수 ${num(v.views)}회` : '', v.at ? new Date(v.at).toLocaleDateString('ko-KR') : ''].filter(Boolean).join('  ')), rich(v.desc)); d.onclick = () => d.classList.toggle('cl'); w.appendChild(d); }
+      if (v.desc) { const d = E('div', 'yt-desc cl'); d.append(E('b', null, [v.views ? `조회수 ${num(v.views)}회` : '', v.at ? new Date(v.at).toLocaleDateString('ko-KR') : ''].filter(Boolean).join('  ')), rich(v.desc), E('span', 'yt-dm')); d.onclick = () => d.classList.toggle('cl'); w.appendChild(d); }
       const cps = chapters(v.desc); if (cps.length) { const h = E('div', 'yt-h'); h.append(E('span', null, '챕터')); w.appendChild(h); const pv = E('div', 'yt-cps'); cps.forEach(x => { const b = E('button'); b.append(E('em', null, dur(x.t) || '0:00'), E('span', null, x.n)); b.onclick = () => seek(x.t); pv.appendChild(b); }); w.appendChild(pv); }
       // 재생목록 큐
       if (p.q && p.q.length > 1) { const qb = E('div', 'yt-q'), qh = E('button', 'hd'); qh.append(E('b', null, '재생목록'), E('small', null, `${p.qi + 1} / ${p.q.length} · 누르면 펼침`)); const ql = E('div'); ql.hidden = true; qh.onclick = () => { ql.hidden = !ql.hidden; }; p.q.forEach((x, i) => { const r = rowCard(x, null, E('span')); if (i === p.qi) r.classList.add('now'); r.onclick = () => watchV(x, { q: p.q, qi: i }); ql.appendChild(r); }); qb.append(qh, ql); w.appendChild(qb); }
@@ -528,20 +553,23 @@
       next = next.concat(((S.ytFeed && S.ytFeed.list) || []).filter(x => x.id !== v.id && x.cid !== v.cid && !short(x) && ok(x)).slice(0, 10)).filter(x => !short(x));
       if (!alive()) return; PL.next = next;
       // 댓글
-      const cm = E('div', 'yt-cmw' + (p.cm ? '' : ' cl')); body.appendChild(cm);
-      cm.addEventListener('click', e => { if (cm.classList.contains('cl')) { cm.classList.remove('cl'); e.stopPropagation(); } }, true);
-      const cmLoad = order => { cm.innerHTML = ''; const h = E('div', 'yt-h'); h.append(E('span', null, `댓글${v.cmts ? ' ' + num(v.cmts) : ''}`), E('small', 'tg')); h.onclick = () => cm.classList.add('cl'); cm.appendChild(h);
-        cm.appendChild(chips([['relevance', '인기 댓글'], ['time', '최신순']], order, k => cmLoad(k)));
-        const box = E('div'); cm.appendChild(box); let pt = '';
+      const cm = E('div', 'yt-cmw cl'); body.appendChild(cm);
+      cm.onclick = () => { if (cm.classList.contains('cl')) cmOpen(); };
+      const cmOpen = () => { cmClose(true); const pn = E('div', 'yt-cpan'); pn.style.top = (top.offsetHeight + Math.round(root.clientWidth * 9 / 16)) + 'px'; root.appendChild(pn); cpan = pn; cmLoad(pn, 'relevance', 1); if (!RM.matches) pn.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 280, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }); };
+      const cmLoad = (T, order, full) => { T.innerHTML = ''; const h = E('div', 'yt-h'); h.append(E('span', null, `댓글${v.cmts ? ' ' + num(v.cmts) : ''}`));
+        if (full) { const x = E('button', 'yt-cx'); x.innerHTML = SV.x; x.setAttribute('aria-label', '댓글 닫기'); x.onclick = () => cmClose(); h.appendChild(x); } else h.appendChild(E('small', 'tg'));
+        T.appendChild(h); if (full) T.appendChild(chips([['relevance', '인기 댓글'], ['time', '최신순']], order, k => cmLoad(T, k, 1)));
+        const box = E('div'); T.appendChild(box); let pt = '';
         const page = async () => { const j = await capi('commentThreads', { part: 'snippet', videoId: v.id, maxResults: 20, order, textFormat: 'plainText', ...(pt ? { pageToken: pt } : {}) }); pt = j.nextPageToken || ''; (j.items || []).forEach(x => box.appendChild(cmt(x.snippet.topLevelComment, x.snippet.totalReplyCount, x.id))); if (!box.children.length) box.appendChild(msg('아직 댓글이 없어.')); return pt; };
-        page().then(left => { if (left) more(cm, page); }).catch(e => { cm.classList.remove('cl');
+        page().then(left => { if (left && full) more(T, page); }).catch(e => { if (!full) cm.classList.remove('cl');
           if (e.reason === 'commentsDisabled') return box.appendChild(msg('이 영상은 올린 사람이 댓글을 막아 놨어.'));
           if (e.st === 403 && !S.ytKey && e.reason !== 'quotaExceeded') { box.appendChild(msg('구글 로그인 권한(읽기 전용)만으로는 댓글이 안 열려. 유튜브 설정에서 \'댓글 보기 키\'를 한 번 넣어 줘.')); const b = E('button', 'yt-more', '댓글 보기 키 넣기'); b.onclick = () => openSheet('lyt'); box.appendChild(b); return; }
           box.appendChild(msg(e.reason === 'quotaExceeded' ? '오늘 쓸 수 있는 유튜브 양을 다 썼어. 내일 다시 돼.' : e.st === 400 && S.ytKey ? '댓글 보기 키가 틀렸어. 유튜브 설정에서 다시 넣어 줘.' : '댓글을 못 불러왔어. 잠깐 뒤 다시 해 봐.')); }); };
-      cmLoad('relevance');
+      cmLoad(cm, 'relevance');
       body.appendChild(nx); nx.appendChild(E('div', 'yt-h', S.ytSet.auto ? '다음 영상 · 끝나면 자동 재생' : '다음 영상'));
       next.forEach(x => nx.appendChild(rowCard(x)));
-      if (p.cm) setTimeout(() => cm.scrollIntoView({ behavior: 'smooth' }), 300);
+      endless(nx, '', new Set([v.id].concat(next.map(x => x.id))), '', null, x => rowCard(x));
+      if (p.cm) setTimeout(cmOpen, 300);
     });
   }
   function cmt(c, nRep, tid, isRep) {
