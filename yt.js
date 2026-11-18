@@ -22,6 +22,12 @@
   async function subs() { if (S.ytSubs && Date.now() - S.ytSubs.at < 6 * 3600e3) return S.ytSubs.list; const list = []; let pt = ''; for (let i = 0; i < 6; i++) { const j = await api('subscriptions', { part: 'snippet', mine: 'true', maxResults: 50, order: 'relevance', ...(pt ? { pageToken: pt } : {}) }); (j.items || []).forEach(s => list.push({ cid: s.snippet.resourceId.channelId, n: s.snippet.title, av: ((s.snippet.thumbnails || {}).default || {}).url || '' })); pt = j.nextPageToken; if (!pt) break; } S.ytSubs = { at: Date.now(), list }; save(); return list; }
   async function uploadsP(cid, n, pt) { const j = await api('playlistItems', { part: 'contentDetails', playlistId: 'UU' + cid.slice(2), maxResults: n || 4, ...(pt ? { pageToken: pt } : {}) }); return { items: (j.items || []).map(x => ({ id: x.contentDetails.videoId, at: Date.parse(x.contentDetails.videoPublishedAt || 0) })), next: j.nextPageToken || '' }; }
   const uploads = async (cid, n) => (await uploadsP(cid, n)).items;
+  async function capi(path, q) {
+    const u = p => `https://www.googleapis.com/youtube/v3/${path}?${new URLSearchParams(p)}`;
+    const call = async (url, h) => { const r = await fetch(url, h); const j = await r.json().catch(() => ({})); if (!r.ok) { const e = new Error('api ' + r.status); e.st = r.status; e.reason = (((j.error || {}).errors || [])[0] || {}).reason || ''; throw e; } return j; };
+    if (S.ytKey) return call(u({ ...q, key: S.ytKey }));
+    return call(u(q), { headers: { Authorization: 'Bearer ' + await LY.token() } });
+  }
   const POP = {};
   async function popular(cat) { const k = cat || '0'; if (POP[k] && Date.now() - POP[k].at < 30 * 60e3) return POP[k].list; const j = await api('videos', { part: 'snippet,contentDetails,statistics', chart: 'mostPopular', regionCode: 'KR', hl: 'ko', maxResults: 30, ...(cat ? { videoCategoryId: cat } : {}) }); const list = (j.items || []).map(x => vOf(x)); await chans(list.map(v => v.cid)); POP[k] = { at: Date.now(), list }; return list; }
   async function feed() {
@@ -153,13 +159,101 @@
 .yt-body.yt-shv{scroll-snap-type:y mandatory;padding:0}
 .yt-sv{position:relative;scroll-snap-align:start;scroll-snap-stop:always;background:#000 center/contain no-repeat;overflow:hidden}
 .yt-sv .f{position:absolute;inset:0}.yt-sv .f iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.yt-sv .in{position:absolute;left:12px;right:72px;bottom:16px;pointer-events:none;text-shadow:0 1px 3px #000}
-.yt-sv .in .ch{pointer-events:auto;display:flex;align-items:center;gap:8px;padding:0;border:0;background:none;color:#fff;font-weight:800;font-size:14px;font-family:inherit}.yt-sv .in .yt-av{width:32px;height:32px}
-.yt-sv .in p{margin:8px 0 0;font-size:14px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.yt-sv .sinf{position:absolute;left:12px;right:72px;bottom:16px;pointer-events:none;text-shadow:0 1px 3px #000}
+.yt-sv .sinf .shc{pointer-events:auto;display:flex;align-items:center;gap:8px;padding:0;border:0;background:none;color:#fff;font-weight:800;font-size:14px;font-family:inherit}.yt-sv .sinf .yt-av{width:32px;height:32px}
+.yt-sv .sinf p{margin:8px 0 0;font-size:14px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .yt-sv .sd{position:absolute;right:8px;bottom:16px;display:flex;flex-direction:column;gap:14px}
 .yt-sv .sd button{width:52px;padding:0;border:0;background:none;color:#fff;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit}
 .yt-sv .sd svg{width:44px;height:44px;padding:10px;border-radius:50%;background:rgba(20,20,20,.7);border:2px solid #000;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .yt-sv .sd small{font-size:11.5px;font-weight:700;text-shadow:0 1px 3px #000}
+
+/* v157 유튜브 모바일 모양 */
+.ytv{background:#0f0f0f;color:#f1f1f1}
+.ytv:before{display:none}
+.yt-top{background:#0f0f0f;border-bottom:0;box-shadow:none;padding:calc(var(--st) + 4px) 8px 4px 12px;gap:2px}
+.yt-logo{font:700 20px Pretendard,sans-serif;letter-spacing:-.6px;gap:4px}
+.yt-logo i{width:30px;height:21px;border-radius:6px;background:#ff0033;border:0;box-shadow:none}
+.yt-logo i:after{border-left-width:8px;border-top-width:5px;border-bottom-width:5px}
+.yt-ib{background:none;border:0;box-shadow:none;border-radius:50%;width:40px;height:40px}
+.yt-ib svg{stroke:#f1f1f1;stroke-width:2}
+.yt-ib:active{transform:none;box-shadow:none;background:rgba(255,255,255,.15)}
+.yt-sbar input{background:#222;border:1px solid #303030;color:#f1f1f1;height:38px}
+.yt-chips{gap:10px;padding:6px 12px 10px}
+.yt-chips button{height:32px;padding:0 12px;border-radius:8px;border:0;background:rgba(255,255,255,.1);box-shadow:none;color:#f1f1f1;font-weight:500;font-size:14px}
+.yt-chips button.on{background:#f1f1f1;color:#0f0f0f}
+.yt-card{margin:0 0 22px}
+.yt-card>.yt-th{margin:0;border-radius:0;border:0;box-shadow:none}
+.yt-th{border:0;box-shadow:none;background-color:#272727}
+.yt-row .yt-th,.yt-pv .yt-th{border-radius:8px;box-shadow:none}
+.yt-sh .yt-th{border-radius:8px}
+.yt-th em{background:rgba(0,0,0,.8);font:500 12px Pretendard,sans-serif;border-radius:4px;padding:1px 4px}
+.yt-th em.live{background:#cc0000}
+.yt-th u{height:3px;background:rgba(255,255,255,.35)}.yt-th u i{background:#ff0033}
+.yt-av{border:0;box-shadow:none;background-color:#333}
+.yt-meta{padding:12px 12px 0}
+.yt-meta b{font-weight:500;font-size:15px}
+.yt-meta small,.yt-row small{color:#aaa}
+.yt-row b{font-weight:500}
+.yt-h{font:700 19px Pretendard,sans-serif;margin:18px 12px 8px}
+.yt-h small{color:#aaa;font-weight:400}
+.yt-subs{border-bottom:0;padding:8px 12px 12px}
+.yt-subs .yt-av{box-shadow:none}
+.yt-subs button{color:#aaa}
+.yt-subs button.on{color:#f1f1f1}.yt-subs button.on .yt-av{box-shadow:0 0 0 2px #f1f1f1}
+.yt-nav{background:#0f0f0f;border-top:1px solid rgba(255,255,255,.1);box-shadow:none;height:calc(50px + var(--sb))}
+.yt-nav button{font-size:10px;color:#f1f1f1;opacity:.75}
+.yt-nav button.on{color:#f1f1f1;opacity:1;text-shadow:none}
+.yt-nav button.on svg{fill:#f1f1f1;stroke:#0f0f0f;stroke-width:1.4}
+.yt-player{border:0}
+.yt-w{padding:12px 12px 4px}
+.yt-w h2{font-size:18px;font-weight:700;line-height:1.3}
+.yt-w .st{color:#aaa}
+.yt-ctl button{height:32px;padding:0 12px;border-radius:16px;border:0;background:rgba(255,255,255,.1);color:#f1f1f1;font:500 13px Pretendard,sans-serif}
+.yt-ctl button.on{background:#f1f1f1;color:#0f0f0f}
+.yt-tags .yt-ln,.yt-ln{color:#3ea6ff;font-weight:500}
+.yt-chan{margin-top:12px}
+.yt-chan b{font-weight:500}.yt-chan small{color:#aaa}
+.yt-chan a.ysub{height:36px;line-height:36px;border:0;box-shadow:none;background:#f1f1f1;color:#0f0f0f;font-weight:600;font-size:14px}
+.yt-chan a.ysub.on{background:rgba(255,255,255,.1);color:#f1f1f1}
+.yt-acts{margin-top:12px;margin-left:-12px;margin-right:-12px;padding:0 12px 4px}
+.yt-acts button,.yt-acts a{height:36px;border:0;border-radius:18px;background:rgba(255,255,255,.1);box-shadow:none;color:#f1f1f1;font-weight:500;font-size:14px}
+.yt-acts .pk{background:#f1f1f1;color:#0f0f0f}
+.yt-acts .on{background:rgba(255,255,255,.2);color:#f1f1f1}
+.yt-acts a.pk,.yt-acts a.on{display:flex}
+.yt-desc{border:0;border-radius:12px;background:rgba(255,255,255,.1);color:#f1f1f1;box-shadow:none;font-size:14px;margin-top:12px}
+.yt-desc b{font-weight:600}
+.yt-desc .yt-ln{color:#3ea6ff}
+.yt-desc.cl{-webkit-mask:none;max-height:4.9em}
+.yt-cps button{border:0;border-radius:10px;background:rgba(255,255,255,.1);color:#f1f1f1;box-shadow:none}
+.yt-cps em{color:#3ea6ff;font-family:Pretendard,sans-serif;font-weight:500}
+.yt-q{border:0;border-radius:12px;background:rgba(255,255,255,.06)}
+.yt-q .hd{background:rgba(255,255,255,.1);color:#f1f1f1}.yt-q .hd small{color:#aaa}
+.yt-cmw .yt-h{cursor:pointer}
+.yt-cmw .yt-h .tg:after{content:"접기 ⌃";font-size:13px}
+.yt-cmw.cl{margin:12px;padding:2px 0 8px;border-radius:12px;background:rgba(255,255,255,.1)}
+.yt-cmw.cl .yt-h{margin:10px 12px 2px;font-size:15px}
+.yt-cmw.cl .yt-h .tg:after{content:"⌄"}
+.yt-cmw.cl .yt-chips,.yt-cmw.cl .yt-more,.yt-cmw.cl .yt-cm~*,.yt-cmw.cl .yt-rb,.yt-cmw.cl .yt-cm em,.yt-cmw.cl .yt-cm small{display:none}
+.yt-cmw.cl .yt-cm{padding:6px 12px;align-items:center}
+.yt-cmw.cl .yt-cm .yt-av{width:24px;height:24px}
+.yt-cmw.cl .yt-cm p{margin:0;font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.yt-cmw.cl .yt-msg{margin:6px 12px;text-align:left}
+.yt-cm small{color:#aaa}.yt-cm em{color:#aaa}
+.yt-cm .yt-rb{color:#3ea6ff}
+.yt-msg{color:#aaa}
+.yt-more{border:0;box-shadow:none;background:rgba(255,255,255,.1);color:#f1f1f1;border-radius:18px;font-weight:500;height:36px}
+.yt-msh{background:#212121;color:#f1f1f1;border-top:0;box-shadow:none;border-radius:12px 12px 0 0}
+.yt-msh>b{color:#f1f1f1;border-bottom:1px solid rgba(255,255,255,.1);font-weight:500}
+.yt-msh button{color:#f1f1f1;font-weight:400}
+.yt-msh button.x{color:#aaa;border-top:1px solid rgba(255,255,255,.1)}
+.yt-pw.mini{background:#212121;border-top:0;box-shadow:none}
+.yt-mb .tx small{color:#aaa}
+.yt-chhd .yt-av{box-shadow:none}.yt-chhd b{font:700 24px Pretendard,sans-serif}.yt-chhd small{color:#aaa}
+.yt-ban{border:0;border-radius:12px}
+.yt-inf{border:0;border-radius:12px;background:rgba(255,255,255,.1)}.yt-inf span{color:#aaa}
+.yt-crow small{color:#aaa}
+.yt-sv .sd svg{background:rgba(255,255,255,.15);border:0}
+.yt-qh svg{stroke:#aaa}
 `;
   document.head.appendChild(css);
   const SV = {
@@ -183,7 +277,7 @@
       i.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(i.value); } };
       bar.appendChild(i); top.append(ib(SV.back, '뒤로', back), bar); setTimeout(() => i.focus(), 40); return;
     }
-    const lg = E('button', 'yt-logo'); lg.innerHTML = '<i></i><b>유튜브</b><small>KR</small>'; lg.onclick = () => { st.stack = []; tab('home'); };
+    const lg = E('button', 'yt-logo'); lg.innerHTML = '<i></i><b>유튜브</b>'; lg.onclick = () => { st.stack = []; tab('home'); };
     top.append(st.stack.length ? ib(SV.back, '뒤로', back) : E('span'), lg, ib(SV.search, '검색', () => push({ v: 'search' })), ib(SV.x, '닫기', close));
   }
   function go(q) { q = (q || '').trim(); if (!q) return; st.q = q; S.ytQ = [q].concat(S.ytQ.filter(x => x !== q)).slice(0, 20); save(); if (document.activeElement) document.activeElement.blur(); const p = st.stack[st.stack.length - 1]; if (p && p.v === 'search') st.stack.pop(); push({ v: 'results', q, ty: 'video', or: 'relevance', du: '' }); }
@@ -338,7 +432,7 @@
       shObs = new IntersectionObserver(es => es.forEach(e => { const s = e.target, v = s._v, f = s.querySelector('.f'); if (e.isIntersecting) { if (!f.firstChild) { f.appendChild(frame(`https://www.youtube.com/embed/${v.id}?playsinline=1&autoplay=1&loop=1&playlist=${v.id}&rel=0&modestbranding=1&hl=ko`)); histAdd(v); } } else f.innerHTML = ''; }), { root: body, threshold: .6 });
       L.forEach(v => {
         const s = E('div', 'yt-sv'); s.style.height = H + 'px'; s._v = v; if (v.th) s.style.backgroundImage = `url("${v.th}")`;
-        const f = E('div', 'f'), info = E('div', 'in'), cb = E('button', 'ch'), side = E('div', 'sd');
+        const f = E('div', 'f'), info = E('div', 'sinf'), cb = E('button', 'shc'), side = E('div', 'sd');
         cb.append(avOf(v.cid), E('span', null, v.ch)); cb.onclick = () => push({ v: 'chan', cid: v.cid });
         info.append(cb, E('p', null, v.t));
         const sb = (svg, l, fn) => { const b = E('button'); b.innerHTML = svg; b.appendChild(E('small', null, l)); b.onclick = fn; side.appendChild(b); };
@@ -354,7 +448,7 @@
   function vSubs(alive) {
     const rowE = E('div', 'yt-subs'), box = E('div'); body.append(rowE, box);
     load(body, async () => { const sl = await subs(); if (!alive()) return;
-      const all = E('button', st.sub ? '' : 'on'); const a0 = E('span', 'yt-av'); a0.style.cssText = 'background:linear-gradient(#ff6fb3,#ff3d9a)'; all.append(a0, E('span', null, '전체')); all.onclick = () => { st.sub = ''; draw(); }; rowE.appendChild(all);
+      const all = E('button', st.sub ? '' : 'on'); const a0 = E('span', 'yt-av'); a0.style.cssText = 'background:rgba(255,255,255,.15)'; all.append(a0, E('span', null, '전체')); all.onclick = () => { st.sub = ''; draw(); }; rowE.appendChild(all);
       sl.forEach(c => { const b = E('button', st.sub === c.cid ? 'on' : ''), av = E('span', 'yt-av'); if (c.av) av.style.backgroundImage = `url("${c.av}")`; b.append(av, E('span', null, c.n)); b.onclick = () => { st.sub = st.sub === c.cid ? '' : c.cid; draw(); }; rowE.appendChild(b); });
       const h = E('div', 'yt-h'); const go2 = E('button', 'yt-more', st.sub ? '채널 보기 ›' : '구독 전체 ›'); go2.style.margin = '0'; go2.onclick = () => push(st.sub ? { v: 'chan', cid: st.sub } : { v: 'sublist', so: 'rel' }); const c = sl.find(x => x.cid === st.sub); h.append(E('span', null, st.sub ? (c ? c.n : '') : '구독 새 영상'), go2); box.appendChild(h);
       const list = await ensureFeed(); if (!alive()) return; const L = list.filter(v => (!st.sub || v.cid === st.sub) && (st.sub || ok(v)));
@@ -478,12 +572,16 @@
       next = next.concat(((S.ytFeed && S.ytFeed.list) || []).filter(x => x.id !== v.id && x.cid !== v.cid && !short(x) && ok(x)).slice(0, 10)).filter(x => !short(x));
       if (!alive()) return; PL.next = next;
       // 댓글
-      const cm = E('div'); body.appendChild(cm);
-      const cmLoad = order => { cm.innerHTML = ''; const h = E('div', 'yt-h'); h.append(E('span', null, `댓글${v.cmts ? ' ' + num(v.cmts) : ''}`)); cm.appendChild(h);
+      const cm = E('div', 'yt-cmw' + (p.cm ? '' : ' cl')); body.appendChild(cm);
+      cm.addEventListener('click', e => { if (cm.classList.contains('cl')) { cm.classList.remove('cl'); e.stopPropagation(); } }, true);
+      const cmLoad = order => { cm.innerHTML = ''; const h = E('div', 'yt-h'); h.append(E('span', null, `댓글${v.cmts ? ' ' + num(v.cmts) : ''}`), E('small', 'tg')); h.onclick = () => cm.classList.add('cl'); cm.appendChild(h);
         cm.appendChild(chips([['relevance', '인기 댓글'], ['time', '최신순']], order, k => cmLoad(k)));
         const box = E('div'); cm.appendChild(box); let pt = '';
-        const page = async () => { const j = await api('commentThreads', { part: 'snippet', videoId: v.id, maxResults: 20, order, textFormat: 'plainText', ...(pt ? { pageToken: pt } : {}) }); pt = j.nextPageToken || ''; (j.items || []).forEach(x => box.appendChild(cmt(x.snippet.topLevelComment, x.snippet.totalReplyCount, x.id))); if (!box.children.length) box.appendChild(msg('아직 댓글이 없어.')); return pt; };
-        page().then(left => { if (left) more(cm, page); }).catch(() => box.appendChild(msg('댓글을 볼 수 없는 영상이야.'))); };
+        const page = async () => { const j = await capi('commentThreads', { part: 'snippet', videoId: v.id, maxResults: 20, order, textFormat: 'plainText', ...(pt ? { pageToken: pt } : {}) }); pt = j.nextPageToken || ''; (j.items || []).forEach(x => box.appendChild(cmt(x.snippet.topLevelComment, x.snippet.totalReplyCount, x.id))); if (!box.children.length) box.appendChild(msg('아직 댓글이 없어.')); return pt; };
+        page().then(left => { if (left) more(cm, page); }).catch(e => { cm.classList.remove('cl');
+          if (e.reason === 'commentsDisabled') return box.appendChild(msg('이 영상은 올린 사람이 댓글을 막아 놨어.'));
+          if (e.st === 403 && !S.ytKey && e.reason !== 'quotaExceeded') { box.appendChild(msg('구글 로그인 권한(읽기 전용)만으로는 댓글이 안 열려. 유튜브 설정에서 \'댓글 보기 키\'를 한 번 넣어 줘.')); const b = E('button', 'yt-more', '댓글 보기 키 넣기'); b.onclick = () => openSheet('lyt'); box.appendChild(b); return; }
+          box.appendChild(msg(e.reason === 'quotaExceeded' ? '오늘 쓸 수 있는 유튜브 양을 다 썼어. 내일 다시 돼.' : e.st === 400 && S.ytKey ? '댓글 보기 키가 틀렸어. 유튜브 설정에서 다시 넣어 줘.' : '댓글을 못 불러왔어. 잠깐 뒤 다시 해 봐.')); }); };
       cmLoad('relevance');
       body.appendChild(nx); nx.appendChild(E('div', 'yt-h', S.ytSet.auto ? '다음 영상 · 끝나면 자동 재생' : '다음 영상'));
       next.forEach(x => nx.appendChild(rowCard(x)));
@@ -494,7 +592,7 @@
     const s = c.snippet, r = E('div', 'yt-cm' + (isRep ? ' rp' : '')), av = E('span', 'yt-av'), d = E('div'); if (s.authorProfileImageUrl) av.style.backgroundImage = `url("${s.authorProfileImageUrl}")`;
     const p = E('p'); p.appendChild(rich(s.textOriginal || s.textDisplay || ''));
     d.append(E('small', null, `${s.authorDisplayName} · ${ago(Date.parse(s.publishedAt))}${s.updatedAt && s.updatedAt !== s.publishedAt ? ' (수정됨)' : ''}`), p, E('em', null, `👍 ${num(s.likeCount)}`));
-    if (nRep && tid) { const rb = E('button', 'yt-rb', `▾ 답글 ${nRep}개`), rl = E('div'); let got = 0; rb.onclick = async () => { if (got) { rl.hidden = !rl.hidden; rb.textContent = `${rl.hidden ? '▾' : '▴'} 답글 ${nRep}개`; return; } got = 1; rb.textContent = '불러오는 중…'; try { const j = await api('comments', { part: 'snippet', parentId: tid, maxResults: 50, textFormat: 'plainText' }); (j.items || []).reverse().forEach(x => rl.appendChild(cmt(x, 0, 0, 1))); rb.textContent = `▴ 답글 ${nRep}개`; } catch (e) { rb.textContent = '답글을 못 불러왔어'; got = 0; } }; d.append(rb, rl); }
+    if (nRep && tid) { const rb = E('button', 'yt-rb', `▾ 답글 ${nRep}개`), rl = E('div'); let got = 0; rb.onclick = async () => { if (got) { rl.hidden = !rl.hidden; rb.textContent = `${rl.hidden ? '▾' : '▴'} 답글 ${nRep}개`; return; } got = 1; rb.textContent = '불러오는 중…'; try { const j = await capi('comments', { part: 'snippet', parentId: tid, maxResults: 50, textFormat: 'plainText' }); (j.items || []).reverse().forEach(x => rl.appendChild(cmt(x, 0, 0, 1))); rb.textContent = `▴ 답글 ${nRep}개`; } catch (e) { rb.textContent = '답글을 못 불러왔어'; got = 0; } }; d.append(rb, rl); }
     r.append(av, d); return r;
   }
 
@@ -509,5 +607,12 @@
     const s2 = el('button', 'lf-ghost', '유튜브 설정'); s2.onclick = () => openSheet('lyt'); P.appendChild(s2);
     if (!fresh()) feed().then(() => { try { lenaLife.render(); } catch (e) {} }).catch(() => {});
   }
+  if (typeof SH !== 'undefined' && SH.lyt) { const _r = SH.lyt.r; SH.lyt.r = B => { _r(B);
+    const c = el('div', 'card'); c.appendChild(el('div', 'lbl', '댓글 보기 키 (API 키)'));
+    const g = el('div', 'lf-guide'); g.innerHTML = '<p>구글 로그인은 읽기 전용이라 <b>댓글</b>이 안 열릴 수 있어. 같은 구글 클라우드 프로젝트에서 키를 하나 만들어 넣으면 댓글이 보여.</p><ol><li>console.cloud.google.com → 위에서 프로젝트 <b>lena</b> 고르기</li><li>왼쪽 메뉴 <b>API 및 서비스</b> → <b>사용자 인증 정보</b></li><li>위 <b>+ 사용자 인증 정보 만들기</b> → <b>API 키</b> → 만든 키 복사</li><li>(더 안전하게) 그 키 → <b>API 제한사항</b> → 키 제한 → <b>YouTube Data API v3</b>만 → 저장</li><li>아래 칸에 붙여 넣고 저장. 키는 이 폰에만 저장되고 백업에도 안 들어가.</li></ol>'; c.appendChild(g);
+    const t = inp('password', S.ytKey ? '••••' + S.ytKey.slice(-4) + ' 저장됨' : 'AIza로 시작하는 키'); t.autocomplete = 'off';
+    c.appendChild(row(t, btn('저장', '', () => { const v = t.value.trim(); if (!/^AIza[\w-]{20,}$/.test(v)) { toast('AIza로 시작하는 키를 넣어 줘.'); return; } S.ytKey = v; save(); refreshSheet(); toast('저장했어. 이제 영상 댓글이 보여.'); })));
+    if (S.ytKey) c.appendChild(row(btn('키 지우기', 'ghost', () => { if (!confirm('댓글 보기 키를 지울까?')) return; S.ytKey = ''; save(); refreshSheet(); })));
+    B.appendChild(c); }; }
   window.lenaYT = { open, close, card: card2, watch: v => open({ v: 'watch', vid: v }), feed, num, ago };
 })();

@@ -390,7 +390,7 @@ SH[0] = { t: '설정', s: '이 폰에만 저장돼요', r: B => {
   B.appendChild(lbl('백업'));
   { const c = B.appendChild(el('div', 'card')), f = el('input'); f.type = 'file'; f.accept = '.json,application/json'; f.hidden = true;
     f.onchange = async () => { const x = f.files[0]; if (!x) return; try { const d = JSON.parse(await x.text()); const keep = { key: S.key, ckey: S.ckey, sec: S.sec, uid: S.uid, sub: S.sub, pushOn: S.pushOn }; Object.assign(S, d, keep); save(); refreshSheet(); renderHome(); say('백업 불러왔어요.', 'happy', false); } catch (e) { say('파일을 못 읽었어요.', 'worry', false); } };
-    c.append(row(btn('내보내기', 'ghost wide', () => { const d = JSON.parse(JSON.stringify(S)); delete d.key; delete d.ckey; delete d.sec; const u = URL.createObjectURL(new Blob([JSON.stringify(d)], { type: 'application/json' })); const a = document.createElement('a'); a.href = u; a.download = 'lena-backup.json'; a.click(); }), btn('불러오기', 'ghost wide', () => f.click())), f); }
+    c.append(row(btn('내보내기', 'ghost wide', () => { const d = JSON.parse(JSON.stringify(S)); delete d.key; delete d.ckey; delete d.sec; delete d.ytKey; const u = URL.createObjectURL(new Blob([JSON.stringify(d)], { type: 'application/json' })); const a = document.createElement('a'); a.href = u; a.download = 'lena-backup.json'; a.click(); }), btn('불러오기', 'ghost wide', () => f.click())), f); }
 }, open: () => { if (S.key && !(S.mlist && S.mlist.length)) loadModels().then(refreshSheet); pushStatus().then(() => { if (curSheet === 0) refreshSheet(); }); } };
 
 
