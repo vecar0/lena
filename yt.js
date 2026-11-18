@@ -167,93 +167,49 @@
 .yt-sv .sd svg{width:44px;height:44px;padding:10px;border-radius:50%;background:rgba(20,20,20,.7);border:2px solid #000;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .yt-sv .sd small{font-size:11.5px;font-weight:700;text-shadow:0 1px 3px #000}
 
-/* v157 유튜브 모바일 모양 */
-.ytv{background:#0f0f0f;color:#f1f1f1}
-.ytv:before{display:none}
-.yt-top{background:#0f0f0f;border-bottom:0;box-shadow:none;padding:calc(var(--st) + 4px) 8px 4px 12px;gap:2px}
-.yt-logo{font:700 20px Pretendard,sans-serif;letter-spacing:-.6px;gap:4px}
-.yt-logo i{width:30px;height:21px;border-radius:6px;background:#ff0033;border:0;box-shadow:none}
-.yt-logo i:after{border-left-width:8px;border-top-width:5px;border-bottom-width:5px}
-.yt-ib{background:none;border:0;box-shadow:none;border-radius:50%;width:40px;height:40px}
-.yt-ib svg{stroke:#f1f1f1;stroke-width:2}
-.yt-ib:active{transform:none;box-shadow:none;background:rgba(255,255,255,.15)}
-.yt-sbar input{background:#222;border:1px solid #303030;color:#f1f1f1;height:38px}
-.yt-chips{gap:10px;padding:6px 12px 10px}
-.yt-chips button{height:32px;padding:0 12px;border-radius:8px;border:0;background:rgba(255,255,255,.1);box-shadow:none;color:#f1f1f1;font-weight:500;font-size:14px}
-.yt-chips button.on{background:#f1f1f1;color:#0f0f0f}
+/* v158 배치는 유튜브 모바일, 색·재료는 레나 앱 */
+.yt-top{padding:calc(var(--st) + 4px) 8px 6px 12px;gap:2px}
+.yt-logo{font-size:21px;gap:6px}
+.yt-logo i{width:32px;height:22px}
+.yt-ib{background:none;border:0;box-shadow:none;border-radius:50%}
+.yt-ib svg{stroke:#eef4f1}
+.yt-ib:active{transform:none;box-shadow:none;background:rgba(159,245,228,.18)}
+.yt-chips{gap:8px;padding:8px 12px 12px}
+.yt-chips button{height:32px;padding:0 12px;border-radius:8px;border-width:1.5px;font-size:13.5px}
 .yt-card{margin:0 0 22px}
-.yt-card>.yt-th{margin:0;border-radius:0;border:0;box-shadow:none}
-.yt-th{border:0;box-shadow:none;background-color:#272727}
-.yt-row .yt-th,.yt-pv .yt-th{border-radius:8px;box-shadow:none}
-.yt-sh .yt-th{border-radius:8px}
-.yt-th em{background:rgba(0,0,0,.8);font:500 12px Pretendard,sans-serif;border-radius:4px;padding:1px 4px}
-.yt-th em.live{background:#cc0000}
-.yt-th u{height:3px;background:rgba(255,255,255,.35)}.yt-th u i{background:#ff0033}
-.yt-av{border:0;box-shadow:none;background-color:#333}
+.yt-card>.yt-th{margin:0;border-radius:0;border:0;border-bottom:2px solid #000;box-shadow:none}
+.yt-th u i{background:#ff3d9a}
 .yt-meta{padding:12px 12px 0}
-.yt-meta b{font-weight:500;font-size:15px}
-.yt-meta small,.yt-row small{color:#aaa}
-.yt-row b{font-weight:500}
-.yt-h{font:700 19px Pretendard,sans-serif;margin:18px 12px 8px}
-.yt-h small{color:#aaa;font-weight:400}
+.yt-h{margin:18px 12px 8px}
 .yt-subs{border-bottom:0;padding:8px 12px 12px}
-.yt-subs .yt-av{box-shadow:none}
-.yt-subs button{color:#aaa}
-.yt-subs button.on{color:#f1f1f1}.yt-subs button.on .yt-av{box-shadow:0 0 0 2px #f1f1f1}
-.yt-nav{background:#0f0f0f;border-top:1px solid rgba(255,255,255,.1);box-shadow:none;height:calc(50px + var(--sb))}
-.yt-nav button{font-size:10px;color:#f1f1f1;opacity:.75}
-.yt-nav button.on{color:#f1f1f1;opacity:1;text-shadow:none}
-.yt-nav button.on svg{fill:#f1f1f1;stroke:#0f0f0f;stroke-width:1.4}
-.yt-player{border:0}
+.yt-nav{height:calc(52px + var(--sb))}
+.yt-nav button.on svg{fill:rgba(125,255,181,.25)}
 .yt-w{padding:12px 12px 4px}
-.yt-w h2{font-size:18px;font-weight:700;line-height:1.3}
-.yt-w .st{color:#aaa}
-.yt-ctl button{height:32px;padding:0 12px;border-radius:16px;border:0;background:rgba(255,255,255,.1);color:#f1f1f1;font:500 13px Pretendard,sans-serif}
-.yt-ctl button.on{background:#f1f1f1;color:#0f0f0f}
-.yt-tags .yt-ln,.yt-ln{color:#3ea6ff;font-weight:500}
+.yt-ctl button{border-radius:16px}
+.yt-tags .yt-ln{color:#2fe0c8}
 .yt-chan{margin-top:12px}
-.yt-chan b{font-weight:500}.yt-chan small{color:#aaa}
-.yt-chan a.ysub{height:36px;line-height:36px;border:0;box-shadow:none;background:#f1f1f1;color:#0f0f0f;font-weight:600;font-size:14px}
-.yt-chan a.ysub.on{background:rgba(255,255,255,.1);color:#f1f1f1}
+.yt-chan a.ysub{height:36px;line-height:32px;border-radius:18px}
 .yt-acts{margin-top:12px;margin-left:-12px;margin-right:-12px;padding:0 12px 4px}
-.yt-acts button,.yt-acts a{height:36px;border:0;border-radius:18px;background:rgba(255,255,255,.1);box-shadow:none;color:#f1f1f1;font-weight:500;font-size:14px}
-.yt-acts .pk{background:#f1f1f1;color:#0f0f0f}
-.yt-acts .on{background:rgba(255,255,255,.2);color:#f1f1f1}
-.yt-acts a.pk,.yt-acts a.on{display:flex}
-.yt-desc{border:0;border-radius:12px;background:rgba(255,255,255,.1);color:#f1f1f1;box-shadow:none;font-size:14px;margin-top:12px}
-.yt-desc b{font-weight:600}
-.yt-desc .yt-ln{color:#3ea6ff}
-.yt-desc.cl{-webkit-mask:none;max-height:4.9em}
-.yt-cps button{border:0;border-radius:10px;background:rgba(255,255,255,.1);color:#f1f1f1;box-shadow:none}
-.yt-cps em{color:#3ea6ff;font-family:Pretendard,sans-serif;font-weight:500}
-.yt-q{border:0;border-radius:12px;background:rgba(255,255,255,.06)}
-.yt-q .hd{background:rgba(255,255,255,.1);color:#f1f1f1}.yt-q .hd small{color:#aaa}
+.yt-acts button,.yt-acts a{height:36px;border-radius:18px}
+.yt-desc{border-radius:12px;margin-top:12px}
+.yt-desc.cl{-webkit-mask:none;max-height:5.2em}
+.yt-cps button{border-radius:10px}
+.yt-q{border-radius:12px}
 .yt-cmw .yt-h{cursor:pointer}
+.yt-cmw .yt-h .tg{font-family:Pretendard,sans-serif}
 .yt-cmw .yt-h .tg:after{content:"접기 ⌃";font-size:13px}
-.yt-cmw.cl{margin:12px;padding:2px 0 8px;border-radius:12px;background:rgba(255,255,255,.1)}
-.yt-cmw.cl .yt-h{margin:10px 12px 2px;font-size:15px}
-.yt-cmw.cl .yt-h .tg:after{content:"⌄"}
+.yt-cmw.cl{margin:12px;padding:2px 0 8px;border:2px solid #000;border-radius:12px;background:rgba(16,19,21,.85);box-shadow:3px 4px 0 rgba(0,0,0,.55)}
+.yt-cmw.cl .yt-h{margin:10px 12px 4px;font-size:16px}
+.yt-cmw.cl .yt-h .tg:after{content:"⌄";font-size:16px}
 .yt-cmw.cl .yt-chips,.yt-cmw.cl .yt-more,.yt-cmw.cl .yt-cm~*,.yt-cmw.cl .yt-rb,.yt-cmw.cl .yt-cm em,.yt-cmw.cl .yt-cm small{display:none}
-.yt-cmw.cl .yt-cm{padding:6px 12px;align-items:center}
+.yt-cmw.cl .yt-cm{padding:4px 12px;align-items:center}
 .yt-cmw.cl .yt-cm .yt-av{width:24px;height:24px}
 .yt-cmw.cl .yt-cm p{margin:0;font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .yt-cmw.cl .yt-msg{margin:6px 12px;text-align:left}
-.yt-cm small{color:#aaa}.yt-cm em{color:#aaa}
-.yt-cm .yt-rb{color:#3ea6ff}
-.yt-msg{color:#aaa}
-.yt-more{border:0;box-shadow:none;background:rgba(255,255,255,.1);color:#f1f1f1;border-radius:18px;font-weight:500;height:36px}
-.yt-msh{background:#212121;color:#f1f1f1;border-top:0;box-shadow:none;border-radius:12px 12px 0 0}
-.yt-msh>b{color:#f1f1f1;border-bottom:1px solid rgba(255,255,255,.1);font-weight:500}
-.yt-msh button{color:#f1f1f1;font-weight:400}
-.yt-msh button.x{color:#aaa;border-top:1px solid rgba(255,255,255,.1)}
-.yt-pw.mini{background:#212121;border-top:0;box-shadow:none}
-.yt-mb .tx small{color:#aaa}
-.yt-chhd .yt-av{box-shadow:none}.yt-chhd b{font:700 24px Pretendard,sans-serif}.yt-chhd small{color:#aaa}
-.yt-ban{border:0;border-radius:12px}
-.yt-inf{border:0;border-radius:12px;background:rgba(255,255,255,.1)}.yt-inf span{color:#aaa}
-.yt-crow small{color:#aaa}
-.yt-sv .sd svg{background:rgba(255,255,255,.15);border:0}
-.yt-qh svg{stroke:#aaa}
+.yt-more{border-radius:18px;height:36px}
+.yt-msh{border-radius:16px 16px 0 0}
+.yt-ban{border-radius:12px}
+.yt-inf{border-radius:12px}
 `;
   document.head.appendChild(css);
   const SV = {
