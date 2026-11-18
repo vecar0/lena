@@ -327,7 +327,7 @@ SH[7] = { t: '모닝콜', s: () => S.morning ? `매일 ${S.morning}에 전화해
     B.appendChild(lbl('진짜 알람도 같이'));
     const a = el('div', 'card');
     a.append(row(btn(`아이폰 알람에 ${S.morning} 넣기`, 'teal wide', () => { location.href = `shortcuts://run-shortcut?name=${encodeURIComponent('레나 알람')}&input=text&text=${encodeURIComponent(S.morning)}`; })));
-    const h = el('div', 'hint'); h.innerHTML = '앱 알림은 한 번씩만 "띵" 울려요. 무음이어도 크게 계속 울리게 하려면 아이폰 <b>시계 알람</b>을 같이 쓰세요.<details class="fold"><summary>처음 한 번만 준비하는 법</summary>1. 단축어 앱 → + → 이름을 <b>레나 알람</b>으로<br>2. 동작 추가에서 <b>알람 생성</b>(시계)을 고르기<br>3. 시간 칸을 눌러 <b>단축어 입력</b>으로, 레이블은 "레나 모닝콜"<br>4. 완료 → 이제 위 버튼을 누르면 알람이 생겨요</details>';
+    const h = el('div', 'hint'); h.innerHTML = '앱 알림은 한 번씩만 "띵" 울려요. 무음이어도 크게 계속 울리게 하려면 아이폰 <b>시계 알람</b>을 같이 쓰세요.<details class="fold"><summary>처음 한 번만 준비하는 법</summary>1. 단축어 앱 → + → 맨 위 이름을 <b>레나 알람</b>으로(띄어쓰기까지 똑같이)<br>2. 검색창에 <b>날짜</b> → <b>입력에서 날짜 가져오기</b>(Get Dates from Input) 추가 → 파란 '입력' 칸을 눌러 <b>단축어 입력</b> 고르기<br>3. 검색창에 <b>알람</b> → <b>알람 생성</b>(Create Alarm, 시계) 추가 → 시간 칸을 길게 눌러 <b>날짜</b>(2번 결과), 레이블 칸에 "레나 모닝콜"<br>4. 맨 위 <b>단축어 입력 받기</b> 줄이 보이면 '텍스트'만 켜기<br>5. 아래 ⓘ 또는 ▶로 한 번 실행해 보기(처음엔 '허용'을 눌러 줘) → 완료<br>6. 이제 위 버튼을 누르면 단축어 앱이 열리며 시계 알람이 생겨요. 안 되면 단축어 화면에 뜬 빨간 글을 레나한테 사진으로 보여 줘</details>';
     a.appendChild(h); B.appendChild(a);
   }
   if (!S.pushOn) B.appendChild(el('div', 'hint', '폰 알림이 꺼져 있으면 앱을 열 때만 울려요. 0번 설정에서 켜 주세요.'));
