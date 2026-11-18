@@ -542,7 +542,7 @@
     ga.append(gn, gr, gb); P.appendChild(ga);
     // 유튜브
     const h3 = el('h2'); h3.append('유튜브 · 구독 새 영상', el('small', null, '')); P.appendChild(h3);
-    ytRender(P, h3.lastChild);
+    if (window.lenaYT) lenaYT.card(P, h3.lastChild); else ytRender(P, h3.lastChild); // v155: 유튜브 화면은 yt.js
     const ar = el('button', 'lf-ghost', '레나 딜러 오락실'); ar.style.borderColor = 'rgba(255,61,154,.5)'; ar.style.color = '#ff3d9a'; ar.onclick = () => openSheet(8); { const fo = el('button', 'lf-ghost', '오늘의 운세'); fo.onclick = () => openSheet('fort'); P.appendChild(fo); } P.appendChild(ar);
   }
   function askLena(txt) { go('lena'); setTimeout(() => { const m = $('msg'); if (m) { m.value = txt; m.focus(); try { syncSend(); } catch (e) {} } }, 200); }
@@ -595,7 +595,7 @@
     B.appendChild(el('div', 'hint', '안 나오는 영상(퍼가기 막힘)은 유튜브 앱에서 열어 줘.'));
   } };
   // 놀기 칸에서 유튜브 할 일을 누르면 바로 재생
-  const _edit = edit; edit = function (t) { if (t.yt) { ytCur = (S.ytFeed && S.ytFeed.list.find(v => v.id === t.yt)) || { id: t.yt, t: t.text.replace(/^유튜브 · /, ''), ch: '', at: t.at }; openSheet('lplay'); return; } _edit(t); };
+  const _edit = edit; edit = function (t) { if (t.yt && window.lenaYT) { lenaYT.watch({ id: t.yt, t: t.text.replace(/^유튜브 · /, '') }); return; } if (t.yt) { ytCur = (S.ytFeed && S.ytFeed.list.find(v => v.id === t.yt)) || { id: t.yt, t: t.text.replace(/^유튜브 · /, ''), ch: '', at: t.at }; openSheet('lplay'); return; } _edit(t); };
   SH.lyt = { t: '유튜브 연결', s: () => '처음 한 번만', r: B => {
     const cb = `${BOX()}/yt/cb`, g = el('div', 'lf-guide');
     g.innerHTML = `<p>구독 목록을 읽으려면 <b>내 구글 계정으로 로그인</b>해야 해. 레나 우편함 서버가 로그인 열쇠를 대신 들고 있어서, 한 번 해 두면 계속 돼.</p><ol>
@@ -702,6 +702,6 @@
     if (!S.memos.length) P.appendChild(el('div', 'lf-muted', '아직 메모가 없어.'));
   }
 
-  window.lenaLife = { go, render, parse, quickAdd, findSlot, free, fixed, autoPlace, replanMissed, missedL, rowsOf, lday, YT, ends: d => plannedOn(d).map(t => relM(d, t.plan) + mins(t)) };
+  window.lenaLife = { go, render, parse, quickAdd, findSlot, free, fixed, autoPlace, replanMissed, missedL, rowsOf, lday, YT, placeOne, whenTxt, ends: d => plannedOn(d).map(t => relM(d, t.plan) + mins(t)) };
   go(cur);
 })();
