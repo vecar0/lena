@@ -97,6 +97,8 @@
     game: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3M16 12h.01M18 14h.01"/></svg>',
     yt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.5v5l4.5-2.5z"/></svg>'
   };
+  function catEmpty(n, t) { const d = el('div', 'lf-empty'), im = el('img'); im.src = `assets/lena/ic/c_${n}.webp`; im.alt = ''; d.appendChild(im); if (t) d.appendChild(el('p', null, t)); return d; }
+  window.lenaCat = catEmpty;
   const css = document.createElement('style');
   css.textContent = `
 .lf{position:absolute;left:0;right:0;top:0;bottom:calc(62px + var(--sb));z-index:25;background:#0f1719;color:#eef4f1;display:none}
@@ -310,6 +312,17 @@
 .lf-memo{padding:12px 40px 10px 14px}.lf-memo .tx{white-space:pre-wrap;font-size:15px;line-height:1.5}.lf-memo small{display:block;margin-top:6px;font-size:11px;color:#666}
 .lf-memo .x{position:absolute;top:6px;right:6px;color:#555}
 .lf-memo:nth-child(odd){transform:rotate(-.4deg)}.lf-memo:nth-child(even){transform:rotate(.4deg)}
+
+/* v161 스티커 아이콘·빈 화면 고양이 */
+.lf-tab .lf-ti{width:30px;height:30px;object-fit:contain;opacity:.55;filter:saturate(.55);transition:opacity .15s,transform .15s}
+.lf-tab button.on .lf-ti{opacity:1;filter:drop-shadow(0 0 5px rgba(125,255,181,.55));transform:translateY(-1px) scale(1.08)}
+#keys .k.pre{position:relative;gap:1px}
+#keys .k.pre>b{position:absolute;left:8px;top:5px;font-size:14px;line-height:1;margin:0}
+#keys .k.pre .ki{width:32px;height:32px;object-fit:contain;flex:none;margin:0}
+#keys .k.pre:has(.ki) small{display:inline;margin:0 0 0 4px}
+.lf-empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 12px 16px;text-align:center}
+.lf-empty img{width:118px;height:118px;object-fit:contain;filter:drop-shadow(2px 4px 0 rgba(0,0,0,.45))}
+.lf-empty p{margin:0;font-size:13.5px;color:#c4cfcc;line-height:1.5}
 `;
   document.head.appendChild(css);
 
@@ -319,7 +332,7 @@
   const qa = el('div', 'lf-qa'); root.appendChild(qa);
   const tab = el('nav', 'lf-tab'); tab.setAttribute('aria-label', '메뉴');
   const TABS = [['today', '오늘'], ['tasks', '할 일'], ['lena', '레나'], ['play', '놀기'], ['memo', '메모']];
-  const tb = {}; TABS.forEach(([k, l]) => { const b = el('button', k === 'lena' ? 'lena' : ''); b.innerHTML = k === 'lena' ? `<i>${IC.lena}</i>` : IC[k]; b.appendChild(document.createTextNode(l)); b.onclick = () => go(k); tb[k] = b; tab.appendChild(b); });
+  const tb = {}; TABS.forEach(([k, l]) => { const b = el('button', k === 'lena' ? 'lena' : ''); b.innerHTML = k === 'lena' ? `<i>${IC.lena}</i>` : `<img class="lf-ti" src="assets/lena/ic/t_${k}.webp" alt="">`; b.appendChild(document.createTextNode(l)); b.onclick = () => go(k); tb[k] = b; tab.appendChild(b); });
   app.append(root, tab); app.classList.add('lt');
 
   let cur = 'lena'; // v151: 열면 늘 레나 대화부터
@@ -428,7 +441,7 @@
     const pl = open.filter(t => t.plan && !ms.includes(t)).sort((a, b) => a.plan.localeCompare(b.plan));
     const h3 = el('h2'); h3.append('시간 정한 것', el('small', null, pl.length + '개')); P.appendChild(h3);
     const pp = el('div', 'lf-tl lf-paper'); pp.append(el('i', 'tp'), el('i', 'tp r')); let lastD = ''; pl.forEach(t => { const d = lday(new Date(t.plan).getTime()), k = dk(d); if (k !== lastD) { pp.appendChild(el('div', 'lf-day', dLabel(d))); lastD = k; } const s = relM(d, t.plan); pp.appendChild(rowEl({ s, e: s + mins(t), kind: t.play ? 'play' : 'todo', txt: t.text, it: t }, d)); }); if (pl.length) P.appendChild(pp);
-    if (!pl.length) P.appendChild(el('div', 'lf-muted', '아직 없어. 오른쪽 아래 + 로 넣어.'));
+    if (!pl.length) P.appendChild(catEmpty('free', '아직 없어. 오른쪽 아래 + 로 넣어.'));
     // 안 정한 것
     const un = open.filter(t => !t.plan);
     if (un.length) { const h4 = el('h2'); h4.style.color = '#f2ea3a'; h4.append('시간 안 정한 것', el('small', null, un.length + '개')); P.appendChild(h4);
@@ -572,7 +585,7 @@
   function ytRender(P, sm) {
     if (!S.box || !S.boxTok) { P.appendChild(el('div', 'lf-muted', '유튜브는 단축어 우편함 서버(0번 설정 › 단축어)를 먼저 연결해야 써.')); return; }
     const f = S.ytFeed;
-    if (!(S.yt && S.yt.on) && !f) { P.appendChild(el('div', 'lf-muted', '구글 로그인을 한 번 해 두면 구독한 채널의 새 영상이 여기 뜨고, 앱 안에서 바로 봐.')); const b = el('button', 'lf-big', '유튜브 연결하기'); b.onclick = () => openSheet('lyt'); P.appendChild(b); return; }
+    if (!(S.yt && S.yt.on) && !f) { P.appendChild(catEmpty('plug', '')); P.appendChild(el('div', 'lf-muted', '구글 로그인을 한 번 해 두면 구독한 채널의 새 영상이 여기 뜨고, 앱 안에서 바로 봐.')); const b = el('button', 'lf-big', '유튜브 연결하기'); b.onclick = () => openSheet('lyt'); P.appendChild(b); return; }
     sm.textContent = f ? `${agoTxt(f.at)} 새로 고침` : '';
     if (ytErr) P.appendChild(el('div', 'lf-muted', ytErr));
     const top = el('div', 'row'); top.append(btn(ytBusy ? '불러오는 중…' : '새로 고침', 'ghost', () => ytLoad(true)), btn(ytShorts ? '쇼츠 보는 중' : '쇼츠 빼는 중', 'ghost', () => { ytShorts = !ytShorts; render(); }), btn('설정', 'ghost', () => openSheet('lyt'))); P.appendChild(top);
@@ -643,6 +656,7 @@
   const PDEF = { 1: ['수학 숙제', 60], 2: ['영어 숙제', 60], 3: ['국어 숙제', 60], 4: ['영어 단어', 30], 5: ['수행평가 준비', 60], 6: ['시험 공부', 90], 7: ['책 읽기', 30], 8: ['게임', 60, 1], 9: ['유튜브', 30, 1], '*': ['', 30] };
   const PRE = () => { const o = L(); if (!o.keys || typeof o.keys !== 'object') { o.keys = {}; Object.entries(PDEF).forEach(([k, v]) => { o.keys[k] = { t: v[0], m: v[1], p: !!v[2] }; }); } return o.keys; }; // (S.life.pre는 학원 전 이동 시간)
   let preK = null;
+  const keyIc = t => [[/단어|voca/i, 'word'], [/수학|math/i, 'math'], [/영어|english/i, 'eng'], [/국어|문학|독해/, 'kor'], [/수행/, 'perf'], [/시험|기출|모의/, 'exam'], [/책|독서/, 'read'], [/게임|롤|겜/, 'game'], [/유튜브|영상|쇼츠|넷플/, 'yt']].reduce((r, [re, n]) => r || (re.test(t) ? n : ''), '');
   function buildPad() {
     const K = $('keys'); if (!K) return; K.innerHTML = '';
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].forEach(k => {
@@ -651,7 +665,7 @@
       else if (k === '#') { b.append(el('b', null, '#'), el('span', null, '닫기')); b.onclick = () => { dtmf('#'); closePad(); }; }
       else {
         b.classList.add('pre'); if (o && o.p) b.classList.add('play'); if (!o || !o.t) b.classList.add('empty');
-        const sp = el('span', null, o && o.t ? o.t : '+ 비어 있음'); if (o && o.t) sp.appendChild(el('small', null, `${o.m}분`)); b.append(el('b', null, k), sp);
+        const sp = el('span', null, o && o.t ? o.t : '+ 비어 있음'); if (o && o.t) sp.appendChild(el('small', null, `${o.m}분`)); const ic = o && o.t && keyIc(o.t); b.append(el('b', null, k)); if (ic) { const im = el('img', 'ki'); im.src = `assets/lena/ic/k_${ic}.webp`; im.alt = ''; b.appendChild(im); } b.appendChild(sp);
         let lt = 0, long = false;
         b.addEventListener('pointerdown', () => { long = false; lt = setTimeout(() => { long = true; preK = k; openSheet('lpre'); }, 550); });
         ['pointerup', 'pointerleave', 'pointercancel'].forEach(e => b.addEventListener(e, () => clearTimeout(lt)));
@@ -699,7 +713,7 @@
     c.append(t, ok); P.appendChild(c);
     S.memos.forEach(m => { const k = el('div', 'lf-card lf-memo'), tx = el('div', 'tx', m.text), meta = el('small', null, new Date(m.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + (m.by === 'lena' ? ' · 레나가 적음' : ''));
       k.append(tx, meta, xbtn(() => { S.memos = S.memos.filter(x => x !== m); save(); render(); toast('메모 지웠어.', () => { S.memos.push(m); S.memos.sort((a, b) => b.at - a.at); save(); render(); }); })); P.appendChild(k); });
-    if (!S.memos.length) P.appendChild(el('div', 'lf-muted', '아직 메모가 없어.'));
+    if (!S.memos.length) P.appendChild(catEmpty('memo', '아직 메모가 없어. 위 칸에 적어 봐.'));
   }
 
   window.lenaLife = { go, render, parse, quickAdd, findSlot, free, fixed, autoPlace, replanMissed, missedL, rowsOf, lday, YT, placeOne, whenTxt, ends: d => plannedOn(d).map(t => relM(d, t.plan) + mins(t)) };

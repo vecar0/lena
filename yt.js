@@ -230,6 +230,10 @@
 .yt-sv.pz .tap:after{opacity:1}
 .yt-sv .tap .snd{position:absolute;top:14px;left:50%;transform:translateX(-50%);padding:7px 12px;border-radius:16px;border:1.5px solid #000;background:rgba(14,18,20,.85);color:#eef4f1;font-size:13px;white-space:nowrap;pointer-events:none}
 .yt-body.snd1 .yt-sv .tap .snd{display:none}
+.yt-msg .yt-cat{display:block;width:96px;height:96px;margin:0 auto 6px;object-fit:contain;animation:yt-bob 1.2s ease-in-out infinite}
+@keyframes yt-bob{50%{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.yt-msg .yt-cat{animation:none}}
+.yt-cmw.cl .lf-empty{flex-direction:row;padding:4px 12px}.yt-cmw.cl .lf-empty img{width:40px;height:40px}
 `;
   document.head.appendChild(css);
   const SV = {
@@ -376,7 +380,7 @@
   function cmClose(now) { const pn = cpan; if (!pn) return; cpan = null; if (now || RM.matches) { pn.remove(); return; } pn.animate([{ transform: 'none' }, { transform: 'translateY(100%)' }], { duration: 200, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }).onfinish = () => pn.remove(); }
   const msg = t => E('div', 'yt-msg', t);
   const errTxt = e => /login|401/.test(String(e && (e.code || e.message))) ? '구글 로그인이 풀렸어. 놀기 탭 › 유튜브 설정에서 다시 로그인해 줘.' : /403/.test(String(e && e.message)) ? '오늘 쓸 수 있는 유튜브 양을 다 썼어(구글 하루 한도). 내일 다시 돼.' : '유튜브를 못 불러왔어. 잠깐 뒤 다시 해 봐.';
-  async function load(B, f) { const w = msg('불러오는 중…'); B.appendChild(w); try { await f(); w.remove(); } catch (e) { w.textContent = errTxt(e); if (/login/.test(String(e && e.code))) S.yt.on = 0; } }
+  async function load(B, f) { const w = msg('불러오는 중…'); if (window.lenaCat) { w.prepend(Object.assign(document.createElement('img'), { src: 'assets/lena/ic/c_load.webp', alt: '', className: 'yt-cat' })); } B.appendChild(w); try { await f(); w.remove(); } catch (e) { w.textContent = errTxt(e); if (/login/.test(String(e && e.code))) S.yt.on = 0; } }
   const replace = p => { st.stack[st.stack.length - 1] = p; draw(); };
 
   // ---------- 화면들 ----------
@@ -569,7 +573,7 @@
         if (full) { const x = E('button', 'yt-cx'); x.innerHTML = SV.x; x.setAttribute('aria-label', '댓글 닫기'); x.onclick = () => cmClose(); h.appendChild(x); } else h.appendChild(E('small', 'tg'));
         T.appendChild(h); if (full) T.appendChild(chips([['relevance', '인기 댓글'], ['time', '최신순']], order, k => cmLoad(T, k, 1)));
         const box = E('div'); T.appendChild(box); let pt = '';
-        const page = async () => { const j = await capi('commentThreads', { part: 'snippet', videoId: v.id, maxResults: 20, order, textFormat: 'plainText', ...(pt ? { pageToken: pt } : {}) }); pt = j.nextPageToken || ''; (j.items || []).forEach(x => box.appendChild(cmt(x.snippet.topLevelComment, x.snippet.totalReplyCount, x.id))); if (!box.children.length) box.appendChild(msg('아직 댓글이 없어.')); return pt; };
+        const page = async () => { const j = await capi('commentThreads', { part: 'snippet', videoId: v.id, maxResults: 20, order, textFormat: 'plainText', ...(pt ? { pageToken: pt } : {}) }); pt = j.nextPageToken || ''; (j.items || []).forEach(x => box.appendChild(cmt(x.snippet.topLevelComment, x.snippet.totalReplyCount, x.id))); if (!box.children.length) box.appendChild(window.lenaCat ? lenaCat('talk', '아직 댓글이 없어.') : msg('아직 댓글이 없어.')); return pt; };
         page().then(left => { if (left && full) more(T, page); }).catch(e => { if (!full) cm.classList.remove('cl');
           if (e.reason === 'commentsDisabled') return box.appendChild(msg('이 영상은 올린 사람이 댓글을 막아 놨어.'));
           if (e.st === 403 && !S.ytKey && e.reason !== 'quotaExceeded') { box.appendChild(msg('구글 로그인 권한(읽기 전용)만으로는 댓글이 안 열려. 유튜브 설정에서 \'댓글 보기 키\'를 한 번 넣어 줘.')); const b = E('button', 'yt-more', '댓글 보기 키 넣기'); b.onclick = () => openSheet('lyt'); box.appendChild(b); return; }
