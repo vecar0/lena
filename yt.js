@@ -223,6 +223,13 @@
 .yt-desc{position:relative}
 .yt-dm{display:block;margin-top:8px;font-weight:800;color:#0b7d6d}.yt-dm:after{content:"간략히"}
 .yt-desc.cl .yt-dm{position:absolute;right:10px;bottom:8px;margin:0;padding-left:18px;background:linear-gradient(90deg,transparent,#efe9dd 14px)}.yt-desc.cl .yt-dm:after{content:"…더보기"}
+
+.yt-sv .tap{position:absolute;inset:0;z-index:1;display:grid;place-items:center;touch-action:pan-y;-webkit-tap-highlight-color:transparent}
+.yt-sv .sinf,.yt-sv .sd{z-index:2}
+.yt-sv .tap:after{content:"";width:64px;height:64px;border-radius:50%;background:rgba(0,0,0,.55) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5l12 7-12 7z' fill='%23fff'/%3E%3C/svg%3E") center/30px no-repeat;opacity:0;transition:opacity .15s}
+.yt-sv.pz .tap:after{opacity:1}
+.yt-sv .tap .snd{position:absolute;top:14px;left:50%;transform:translateX(-50%);padding:7px 12px;border-radius:16px;border:1.5px solid #000;background:rgba(14,18,20,.85);color:#eef4f1;font-size:13px;white-space:nowrap;pointer-events:none}
+.yt-body.snd1 .yt-sv .tap .snd{display:none}
 `;
   document.head.appendChild(css);
   const SV = {
@@ -402,7 +409,8 @@
     if (fresh() || st.chip === 'later') put(S.ytFeed ? S.ytFeed.list : []); else load(box, async () => put(await ensureFeed()));
   }
   // 쇼츠: 위아래로 넘겨 보기(보이는 것만 재생)
-  let SHX = null;
+  let SHX = null, SHM = 1; // SHM: 쇼츠 소리 꺼짐(아이폰은 소리 없이만 저절로 재생돼서, 한 번 누르면 켬)
+  const shCmd = (s, fn) => { const fr = s.querySelector('iframe'); if (fr && fr.contentWindow) fr.contentWindow.postMessage(JSON.stringify({ event: 'command', func: fn, args: [] }), '*'); };
   function vShorts(alive) {
     pause(); body.classList.add('yt-shv');
     load(body, async () => {
@@ -410,7 +418,7 @@
       if (L.length < 6) { if (!SHX) { const j = await api('search', { part: 'snippet', q: '쇼츠', type: 'video', videoDuration: 'short', regionCode: 'KR', relevanceLanguage: 'ko', maxResults: 25, safeSearch: 'moderate' }); SHX = (await videos((j.items || []).map(x => x.id.videoId).filter(Boolean))).filter(v => v.dur && v.dur <= 180); await chans(SHX.map(v => v.cid)); } L = L.concat(SHX.filter(v => ok(v) && !L.some(x => x.id === v.id))); }
       if (!alive()) return; if (!L.length) { body.appendChild(msg('볼 쇼츠가 없어.')); return; }
       const H = body.clientHeight;
-      shObs = new IntersectionObserver(es => es.forEach(e => { const s = e.target, v = s._v, f = s.querySelector('.f'); if (e.isIntersecting) { if (!f.firstChild) { f.appendChild(frame(`https://www.youtube.com/embed/${v.id}?playsinline=1&autoplay=1&loop=1&playlist=${v.id}&rel=0&modestbranding=1&hl=ko`)); histAdd(v); } } else f.innerHTML = ''; }), { root: body, threshold: .6 });
+      shObs = new IntersectionObserver(es => es.forEach(e => { const s = e.target, v = s._v, f = s.querySelector('.f'); if (e.isIntersecting) { if (!f.firstChild) { const fr = frame(`https://www.youtube.com/embed/${v.id}?playsinline=1&autoplay=1&mute=1&controls=0&loop=1&playlist=${v.id}&rel=0&modestbranding=1&hl=ko&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`); fr.onload = () => { if (!SHM) setTimeout(() => shCmd(s, 'unMute'), 300); }; f.appendChild(fr); s.classList.remove('pz'); histAdd(v); } } else f.innerHTML = ''; }), { root: body, threshold: .6 });
       L.forEach(v => {
         const s = E('div', 'yt-sv'); s.style.height = H + 'px'; s._v = v; if (v.th) s.style.backgroundImage = `url("${v.th}")`;
         const f = E('div', 'f'), info = E('div', 'sinf'), cb = E('button', 'shc'), side = E('div', 'sd');
@@ -422,7 +430,8 @@
         sb('<svg viewBox="0 0 24 24"><path d="M14 5l7 7-7 7M21 12H9c-3 0-6 2-6 7"/></svg>', '공유', () => share(v));
         sb('<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>', isLater(v) ? '저장됨' : '저장', () => { toggleLater(v); });
         sb('<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>', '더보기', () => menu(v));
-        s.append(f, info, side); body.appendChild(s); shObs.observe(s);
+        const tap = E('div', 'tap'); tap.appendChild(E('b', 'snd', '🔇 눌러서 소리 켜기')); tap.onclick = () => { if (SHM) { SHM = 0; shCmd(s, 'unMute'); shCmd(s, 'playVideo'); s.classList.remove('pz'); body.classList.add('snd1'); return; } const pz = s.classList.toggle('pz'); shCmd(s, pz ? 'pauseVideo' : 'playVideo'); };
+        s.append(f, tap, info, side); body.appendChild(s); shObs.observe(s);
       });
     });
   }
